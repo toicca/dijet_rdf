@@ -1,4 +1,4 @@
-*.d
-*.so
-*.pcm
-__pycache__
+__pycache__/
+src/JetMETObjects/*.d
+src/JetMETObjects/*.so
+src/JetMETObjects/*.pcm
