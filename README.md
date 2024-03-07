@@ -11,3 +11,7 @@ Di- and multijet analysis based on ROOT RDataFrame
      ```
      source /cvmfs/sft.cern.ch/lcg/views/LCG_105a/x86_64-ubuntu2004-gcc9-opt/setup.sh
      ```
+1. Build JetMET objects
+   ```
+   python3 src/make_JEC.py
+   ``` 
