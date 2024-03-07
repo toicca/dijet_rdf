@@ -1,0 +1,16 @@
+[General]
+filepath = data/testfiles.txt
+triggerpath = data/testtrigger.txt
+# If number of files = -1, all files will be processed
+number_of_files = 5
+output = out/newest_test.root
+golden_json = data/Cert_Collisions2022_355100_362760_Golden.json
+veto_map = 
+
+[JEC]
+L1 = 
+L2Relative = /eos/user/d/dnasman/dijet_rdf/data/Summer22/Summer22Run3/L2Relative/Summer22Run3_V1_MC_L2Relative_AK4PUPPI.txt
+L2L2 = /eos/user/d/dnasman/dijet_rdf/data/Summer22/Summer22Run3/L2Residual/Run3_22Sep2023_v3/Summer22-22Sep2023_Run2022CD_V3_DATA_L2Residual_AK4PFPuppi.txt
+
+[Distributed]
+nThreads = 5
