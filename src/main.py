@@ -43,7 +43,7 @@ def create_connection(cores):
             lcg = True,
             nanny = False,
             container_runtime = "none",
-            log_directory = "/eos/user/d/dnasman/condor/log",
+            log_directory = "/eos/user/U/USERNAME/condor/log",
             scheduler_options={
                 'port': n_port,
                 'host': socket.gethostname(),
