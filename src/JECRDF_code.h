@@ -18,13 +18,9 @@ JetCorrectorParameters *L1JetPar;
 JetCorrectorParameters* L2RelativeJetPar;
 JetCorrectorParameters *L2L3JetPar;
 
-
-
 // std::vector<JetCorrectorParameters>> allCorrectionParameters;
 // JME::JetResolution *jet_resolution(0);
 // JetResolutionScaleFactor *jet_resolution_sf(0);
-
-
 
 void init_JEC(std::string L1 = "", std::string L2Relative = "", std::string L2L3 = "", unsigned int nThreads = 1) {
 

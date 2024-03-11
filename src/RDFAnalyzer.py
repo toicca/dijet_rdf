@@ -41,6 +41,7 @@ class RDFAnalyzer:
         self.rdf = (self.rdf.Define("weight", "genWeight" if isMC else "1.0")
                     .Define("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
                     .Define("Jet_rawPt", "Jet_pt * (1.0-Jet_rawFactor)")
+                    .Define("Jet_passesVetomap", "ROOT::VecOps::RVec<int>(Jet_pt.size(), 1)")
                     .Define("RawPuppiMET_polar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
                     )
         
@@ -108,7 +109,9 @@ class RDFAnalyzer:
                .Redefine("Jet_rawFactor", "1.0 - 1.0 / JEC")
                .Redefine("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
         )
-        self.histograms["all"].extend([rdf.Histo1D(("JEC", "JEC;JEC;N_{events}", 100, 0.0, 2.0), "JEC", "weight"),])
+        self.histograms["all"].extend([
+            rdf.Histo1D(("JEC", "JEC;JEC;N_{events}", self.bins["response"]["n"], self.bins["response"]["pt"]), "JEC", "weight"),
+            ])
 
         return rdf
     
@@ -119,9 +122,9 @@ class RDFAnalyzer:
         return rdf
     
     def __do_cut_veto_map(self, veto_map_file : str) -> RNode:
-        # TODO: Implement this in C++
-        # ROOT.init_veto_map(veto_map_file)
-        rdf = self.rdf.Filter("isGoodLumi(run, luminosityBlock)", "Veto Map Filter")
+        ROOT.gInterpreter.Declare('#include "src/JETVETOMAPS_code.h"')
+        ROOT.init_vetomap(veto_map_file)
+        rdf = self.rdf.Redefine("Jet_passesVetomap","isGoodVeto(Jet_eta, Jet_phi)")
         return rdf
     
     def do_smear_JER(self):
