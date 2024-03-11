@@ -11,10 +11,11 @@ RunGraphs = ROOT.RDF.RunGraphs
 
 @dataclass
 class JEC_corrections:
-    L1 : str
-    L2Relative : str
-    L2L3 : str
-    
+    L1 : str = ""
+    L2Relative : str = ""
+    L2L3 : str = ""
+    JER : str = ""
+    JERSF : str = ""
 class RDFAnalyzer:
     def __init__(self, filelist : List[str],
                 trigger_list : List[str],
