@@ -18,6 +18,9 @@ JetCorrectorParameters *L1JetPar;
 JetCorrectorParameters* L2RelativeJetPar;
 JetCorrectorParameters *L2L3JetPar;
 
+JetResolution *jet_resolution;
+JetResolutionScaleFactor *jet_resolution_sf;
+
 // std::vector<JetCorrectorParameters>> allCorrectionParameters;
 // JME::JetResolution *jet_resolution(0);
 // JetResolutionScaleFactor *jet_resolution_sf(0);
@@ -49,6 +52,15 @@ void init_JEC(std::string L1 = "", std::string L2Relative = "", std::string L2L3
     }
 }
 
+void init_JER(std::string Res = "", std::string SF = "") {
+    JetCorrectorParameters *resolutionParameters = new JetCorrectorParameters(Res);
+    jet_resolution = new JetResolution(*resolutionParameters);
+    if (SF != "") {
+        JetCorrectorParameters *resolution_sf_parameters = new JetCorrectorParameters(SF);
+        jet_resolution_sf = new JetResolutionScaleFactor(*resolution_sf_parameters);
+    }
+}
+
 ROOT::RVec<float> getJEC(unsigned int threadNumber, ROOT::RVec<float> pt, ROOT::RVec<float> eta, ROOT::RVec<float> area, float rho) {
     ROOT::RVec<float> jec(0);
     for (unsigned int i = 0; i < pt.size(); i++) {
@@ -61,11 +73,18 @@ ROOT::RVec<float> getJEC(unsigned int threadNumber, ROOT::RVec<float> pt, ROOT::
     return jec;
 }
 
-// void init_JER(std::string Res = "", std::string SF = "") {
-//     JetCorrectorParameters *resolutionParameters = new JetCorrectorParameters(Res);
-//     jet_resolution = new JetResolution(*resolutionParameters);
-//     if (SF != "") {
-//         JetCorrectorParameters *resolution_sf_parameters = new JetCorrectorParameters(SF);
-//         jet_resolution_sf = new JetResolutionScaleFactor(*resolution_sf_parameters);
-//     }
-// }
+ROOT::RVec<float> getJER(ROOT::RVec<float> pt, ROOT::RVec<float> eta, ROOT::RVec<float> genJetPt, ROOT::RVec<float> jetArea, ROOT::RVec<float> rho, ROOT::RVec<int> nPU, ROOT::RVec<int> nPV, ROOT::RVec<int> genJetIdx) {
+    ROOT::RVec<float> jer(0);
+    for (unsigned int i = 0; i < pt.size(); i++) {
+        jer.push_back(jet_resolution->getResolution({{JME::Binning::JetPt, pt[i]}, {JME::Binning::JetEta, eta[i]}, {JME::Binning::Rho, rho[i]}}));
+    }
+    return jer;
+}
+
+ROOT::RVec<float> getJER_SF(ROOT::RVec<float> pt, ROOT::RVec<float> eta, ROOT::RVec<float> genJetPt, ROOT::RVec<float> jetArea, ROOT::RVec<float> rho, ROOT::RVec<int> nPU, ROOT::RVec<int> nPV, ROOT::RVec<int> genJetIdx) {
+    ROOT::RVec<float> jer_sf(0);
+    for (unsigned int i = 0; i < pt.size(); i++) {
+        jer_sf.push_back(jet_resolution_sf->getScaleFactor({{JME::Binning::JetPt, pt[i]}, {JME::Binning::JetEta, eta[i]}, {JME::Binning::Rho, rho[i]}, {JME::Binning::NPV, nPV[i]}}));
+    }
+    return jer_sf;
+}
