@@ -6,7 +6,7 @@ import argparse
 from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
 from RDFAnalyzer import JEC_corrections
-from RDFHelpers import findFiles, readTriggerList
+from RDFHelpers import findFiles, readTriggerList, parse_arguments
 
 from filewriter import FileWriter
 import configparser
@@ -15,33 +15,45 @@ nThreads = 4
 
 RDataFrame = ROOT.RDataFrame
 
-def read_config_file(config_file: str) -> configparser.ConfigParser:
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    return config
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description='Description of your program')
-    parser.add_argument('--config', type=str, help='Path to the config file', required=True)
-    return parser.parse_args()
-
 if __name__ == "__main__":
+    # Tässä koko blockissa on jotain väärää
     args = parse_arguments()
-    config = read_config_file(args.config)
-    
-    print("Reading config file")
-    filelist = findFiles(config["General"]["filepath"])
-    nFiles = int(config["General"]["number_of_files"])
-    if nFiles == -1:
+    if args.filepath:
+        filelist = findFiles(args.filepath)
+    elif args.filelist != None and len(args.filelist) > 0:
+        filelist = args.filelist
+    else:
+        raise ValueError("No file list provided")
+    if args.triggerpath:
+        triggerlist = readTriggerList(args.triggerpath)
+    elif args.triggerlist != None and len(args.triggerlist) > 0:
+        triggerlist = args.triggerlist
+    else:
+        triggerlist = []
+    nFiles = args.number_of_files
+    if int(nFiles) == -1 or not nFiles:
         nFiles = len(filelist)
-    triggerlist = readTriggerList(config["General"]["triggerpath"])
-    json_file = config["General"]["golden_json"]
-    nThreads = int(config["Distributed"]["nThreads"])
+
+    output_path = args.output_path
+    run_id = args.run_id
+    is_MC = args.is_MC
+    json_file = args.golden_json
+    jetvetomap = args.jetvetomap
+    L1FastJet = args.L1FastJet
+    L2Relative = args.L2Relative
+    L2L3Residual = args.L2L3Residual
+    JER = args.JER
+    JER_SF = args.JER_SF
+    nThreads = args.nThreads
+    verbosity = args.verbosity
+    progress_bar = args.progress_bar
+    cutflow_report = args.cutflow_report
+    
     ROOT.EnableImplicitMT(nThreads)
     
     print("Creating analysis object")
 
-    corrections = JEC_corrections("", config["JEC"]["L2Relative"], "")
+    corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
     dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads)
     multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads)
 
