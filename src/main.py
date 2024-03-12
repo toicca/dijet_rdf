@@ -31,7 +31,9 @@ if __name__ == "__main__":
     else:
         triggerlist = []
     nFiles = args.number_of_files
-    if int(nFiles) == -1 or not nFiles:
+    if not nFiles:
+        nFiles = len(filelist)
+    elif nFiles < 0:
         nFiles = len(filelist)
 
     output_path = args.output_path
@@ -54,16 +56,17 @@ if __name__ == "__main__":
     print("Creating analysis object")
 
     corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
-    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads)
-    multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads)
+    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar)
+    # multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads)
 
     dijet_analysis.do_inclusive()
+    dijet_analysis.do_PFComposition()
     dijet_analysis.do_DB()
     dijet_analysis.do_MPF()
     dijet_analysis.run_histograms()
     hists = dijet_analysis.get_histograms()
     
-    filewriter = FileWriter(config["General"]["output"])
+    filewriter = FileWriter(output_path + "/dijet_" + run_id + ".root")
     for trigger, histograms in hists.items():
         filewriter.write_trigger(trigger, histograms)
     filewriter.close()

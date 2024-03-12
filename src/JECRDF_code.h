@@ -18,8 +18,8 @@ JetCorrectorParameters *L1JetPar;
 JetCorrectorParameters* L2RelativeJetPar;
 JetCorrectorParameters *L2L3JetPar;
 
-JetResolution *jet_resolution;
-JetResolutionScaleFactor *jet_resolution_sf;
+JME::JetResolution *jet_resolution;
+JME::JetResolutionScaleFactor *jet_resolution_sf;
 
 // std::vector<JetCorrectorParameters>> allCorrectionParameters;
 // JME::JetResolution *jet_resolution(0);
@@ -53,11 +53,11 @@ void init_JEC(std::string L1 = "", std::string L2Relative = "", std::string L2L3
 }
 
 void init_JER(std::string Res = "", std::string SF = "") {
-    JetCorrectorParameters *resolutionParameters = new JetCorrectorParameters(Res);
-    jet_resolution = new JetResolution(*resolutionParameters);
+    // JetCorrectorParameters *resolutionParameters = new JetCorrectorParameters(Res);
+    jet_resolution = new JME::JetResolution(Res.c_str());
     if (SF != "") {
-        JetCorrectorParameters *resolution_sf_parameters = new JetCorrectorParameters(SF);
-        jet_resolution_sf = new JetResolutionScaleFactor(*resolution_sf_parameters);
+        // JetCorrectorParameters *resolution_sf_parameters = new JetCorrectorParameters(SF);
+        jet_resolution_sf = new JME::JetResolutionScaleFactor(SF.c_str());
     }
 }
 

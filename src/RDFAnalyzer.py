@@ -16,6 +16,10 @@ class JEC_corrections:
     L2L3 : str = ""
     JER : str = ""
     JERSF : str = ""
+    
+    def check_empty(self):
+        return all(value == "" or value is None for value in self.__dict__.values())
+    
 class RDFAnalyzer:
     def __init__(self, filelist : List[str],
                 trigger_list : List[str],
@@ -46,7 +50,8 @@ class RDFAnalyzer:
                     .Define("RawPuppiMET_polar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
                     )
         
-        if JEC.L1 != "" or JEC.L2Relative != "" or JEC.L2L3 != "":
+        if not JEC.check_empty():
+            print(JEC.L1, JEC.L2Relative, JEC.L2L3)
             # clean_JEC()
             # compile_JEC()
             load_JEC()
@@ -65,7 +70,7 @@ class RDFAnalyzer:
         
         return self
 
-    def __Flag_cut(self, rdf : RNode) -> RNode:
+    def Flag_cut(self, rdf : RNode) -> RNode:
         flag = """Flag_goodVertices && 
                     Flag_globalSuperTightHalo2016Filter &&
                     Flag_EcalDeadCellTriggerPrimitiveFilter &&
@@ -151,7 +156,7 @@ class RDFAnalyzer:
         # Create the inclusive histograms
         for trigger, rdf in self.trigger_rdfs.items():
             all_rdf = rdf
-            selected_rdf = (self.__Flag_cut(rdf)).Redefine("Jet_pt", "Jet_pt[Jet_jetId >= 4]").Redefine("Jet_eta", "Jet_eta[Jet_jetId >= 4]")
+            selected_rdf = (self.Flag_cut(rdf)).Redefine("Jet_pt", "Jet_pt[Jet_jetId >= 4]").Redefine("Jet_eta", "Jet_eta[Jet_jetId >= 4]")
             
             # Eta binned rdfs for pT distribution of jets
             eta_bins_for_pt = [(0.0, 1.3), (0.0, 0.5), (0.5, 1.0), (1.0, 1.5), (1.5, 2.0), (2.0, 2.5),
@@ -181,7 +186,15 @@ class RDFAnalyzer:
     def do_PFComposition(self) -> "RDFAnalyzer":
         for trigger, rdf in self.trigger_rdfs.items():
             all_rdf = rdf
-            selected_rdf = (self.__Flag_cut(rdf)).Redefine("Jet_pt", "Jet_pt[Jet_jetId >= 4]").Redefine("Jet_eta", "Jet_eta[Jet_jetId >= 4]")
+            selected_rdf = ((self.Flag_cut(rdf))
+                            .Redefine("Jet_pt", "Jet_pt[Jet_jetId >= 4]")
+                            .Redefine("Jet_eta", "Jet_eta[Jet_jetId >= 4]")
+                            .Redefine("Jet_neHEF", "Jet_neHEF[Jet_jetId >= 4]")
+                            .Redefine("Jet_neEmEF", "Jet_neEmEF[Jet_jetId >= 4]")
+                            .Redefine("Jet_chHEF", "Jet_chHEF[Jet_jetId >= 4]")
+                            .Redefine("Jet_chEmEF", "Jet_chEmEF[Jet_jetId >= 4]")
+                            .Redefine("Jet_muEF", "Jet_muEF[Jet_jetId >= 4]")
+                            )
             
             print("Creating PFComposition histograms for trigger", trigger)
             # TODO: This kind of behaviour of repeating histogram creation could be optimized

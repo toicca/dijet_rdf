@@ -64,7 +64,14 @@ def parse_arguments():
         config = read_config_file(args.config)
         for section in config.sections():
             for option in config.options(section):
-                setattr(args, option, config.get(section, option))
+                # Do a type conversion for the option
+                if option == "number_of_files" or option == "nThreads" or option == "verbosity" or option == "is_local" or option == "is_MC" or option == "progress_bar" or option == "cutflow_report":
+                    if config.get(section, option) == "":
+                        setattr(args, option, 0)
+                    else:
+                        setattr(args, option, int(config.get(section, option)))
+                else:
+                    setattr(args, option, config.get(section, option))
     
     return args
 

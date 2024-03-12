@@ -1,7 +1,7 @@
 import ROOT
 from typing import List
 import numpy as np
-from RDFAnalyzer import RDFAnalyzer, JEC_corrections
+from RDFAnalyzer import RDFAnalyzer, JEC_corrections, RNode
     
 RDataFrame = ROOT.RDataFrame
 RunGraphs = ROOT.RDF.RunGraphs
@@ -17,12 +17,15 @@ class DijetAnalyzer(RDFAnalyzer):
                 progress_bar : bool = False,
                 ):
         super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar)
+        
+    def Flag_cut(self, rdf: RNode) -> RNode:
+        return super().Flag_cut(rdf)
  
 
     def do_DB(self) -> "DijetAnalyzer":
         system = "dijet"
         for trigger, rdf in self.trigger_rdfs.items():
-            db_rdf = self.__Flag_cut(self.__sample_cut(rdf))
+            db_rdf = self.Flag_cut(self.__sample_cut(rdf))
             pT_binLabels = ["average_Pt_dijet", "Jet_pt_tag", "Jet_pt_probe"]
 
             db_rdf = (db_rdf.Define(f"response_DB_{system}", f"(1.0 + Asymmetry_{system}) / (1.0 - Asymmetry_{system})")
@@ -46,7 +49,7 @@ class DijetAnalyzer(RDFAnalyzer):
     def do_MPF(self) -> "DijetAnalyzer":
         system = "dijet"
         for trigger, rdf in self.trigger_rdfs.items():
-            db_rdf = self.__Flag_cut(self.__sample_cut(rdf))
+            db_rdf = self.Flag_cut(self.__sample_cut(rdf))
             pT_binLabels = ["average_Pt_dijet", "Jet_pt_tag", "Jet_pt_probe"]
 
             db_rdf = (db_rdf.Define(f"response_MPF_{system}", f"(1.0 + B_{system}) / (1.0 - B_{system})")
@@ -54,8 +57,10 @@ class DijetAnalyzer(RDFAnalyzer):
             
             print("Creating MPF histograms for trigger", trigger)
             self.histograms[trigger].extend([
-                db_rdf.Histo1D((f"MPF_{system}_Response", "MPF_"+ str(system) + "_response;response;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), f"response_MPF_{system}", "weight"),
-                db_rdf.Histo2D((f"DB_{system}_EtaVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta|;response", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]), f"Jet_eta_tag_{system}", f"response_MPF_{system}", "weight")
+                db_rdf.Histo1D((f"MPF_{system}_Response", "MPF_"+ str(system) + "_response;response;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), 
+                               f"response_MPF_{system}", "weight"),
+                db_rdf.Histo2D((f"MPF_{system}_EtaVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta|;response", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]), 
+                               f"Jet_eta_tag_{system}", f"response_MPF_{system}", "weight")
             ])
             for label in pT_binLabels:
                 self.histograms[trigger].append(
@@ -69,6 +74,7 @@ class DijetAnalyzer(RDFAnalyzer):
     
     
     def __sample_cut(self, rdf : RNode) -> RNode:
+        print("Applying sample cuts")
         min_pt = 15
         tag_eta = 1.3
         asymmetry_alpha = 0.7
