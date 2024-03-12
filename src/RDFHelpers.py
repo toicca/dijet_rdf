@@ -2,6 +2,8 @@ import ROOT
 import json
 import numpy as np
 from typing import List
+import argparse
+import configparser
 
 #====================================================
 #
@@ -16,6 +18,56 @@ def findFiles(file : str) -> List[str]:
 def readTriggerList(file : str) -> List[str]:
     with open(file) as f:
         return [line.strip() for line in f.readlines()]
+    
+def read_config_file(config_file: str) -> configparser.ConfigParser:
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    return config
+    
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='JEC4PROMPT Analyzer')
+    
+    # General config
+    parser.add_argument('--config', type=str, help='Path to the config file. If set, overrides all other options', required=True)
+    filepath_group = parser.add_mutually_exclusive_group(required=False)
+    filepath_group.add_argument('--filepath', type=str, help='Path to the file list')
+    filepath_group.add_argument('--filelist', nargs='+', type=str, help='Input files separated by spaces')
+    trigger_group = parser.add_mutually_exclusive_group()
+    trigger_group.add_argument('--triggerpath', type=str, help='Path to the trigger list')
+    trigger_group.add_argument('--triggerlist', nargs='+', type=str, help='Trigger list separated by spaces')
+    parser.add_argument('--number_of_files', type=int, default=-1, help='How many files to be processed. -1 for all files in the list')
+    parser.add_argument('--is_local', action='store_true', help='Run locally. If not set will append root://cms-xrd-global.cern.ch/ to the start of file names')
+    parser.add_argument('--output_path', type=str, help='Path where to write output files')
+    parser.add_argument('--run_id', type=str, help='Run identifier such as date or version of the software included in output file names')
+    parser.add_argument('--is_MC', action='store_true', help='Set if running on MC')
+
+    # Corrections and filtering files
+    parser.add_argument('--golden_json', type=str, help='Path to the golden JSON file')
+    parser.add_argument('--jetvetomap', type=str, help='Path to the jetvetomap file')
+    parser.add_argument('--L1FastJet', type=str, help='Path to the L1FastJet txt correction file (legacy option)')
+    parser.add_argument('--L2Relative', type=str, help='Path to the L2Relative txt correction file')
+    parser.add_argument('--L2L3Residual', type=str, help='Path to the L2L3Residual txt correction file')
+    parser.add_argument('--JER', type=str, help='Path to the JER txt correction file')
+    parser.add_argument('--JER_SF', type=str, help='Path to the JER scale factor txt correction file')
+
+    # Performance and logging
+    parser.add_argument('--nThreads', type=int, default=2, help='Number of threads to use')
+    parser.add_argument('--verbosity', type=int, choices=[0,1,2], help='Verbosity level')
+    parser.add_argument('--progress_bar', action='store_true', help='Show progress bar')
+    parser.add_argument('--cutflow_report', action='store_true', help='Print cutflow report')
+
+    # Parse command line arguments, overriding config file values
+    args = parser.parse_args()
+    
+    # If config file is set, override all arguments with ones set in there
+    if args.config:
+        config = read_config_file(args.config)
+        for section in config.sections():
+            for option in config.options(section):
+                setattr(args, option, config.get(section, option))
+    
+    return args
+
 
 #====================================================
 #
@@ -65,3 +117,10 @@ def get_bins() -> dict:
     bins["response"]["n"] = len(bins["response"]["bins"]) - 1
     
     return bins
+
+if __name__ == "__main__":
+    # Test for the argument parser
+    args = parse_arguments()
+    print(args)
+    if None:
+        print("yeeters")
