@@ -28,7 +28,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='JEC4PROMPT Analyzer')
     
     # General config
-    parser.add_argument('--config', type=str, help='Path to the config file. If set, overrides all other options', required=True)
+    parser.add_argument('--config', type=str, help='Path to the config file. If set, overrides all other options', required=False)
     filepath_group = parser.add_mutually_exclusive_group(required=False)
     filepath_group.add_argument('--filepath', type=str, help='Path to the file list')
     filepath_group.add_argument('--filelist', nargs='+', type=str, help='Input files separated by spaces')
@@ -42,7 +42,7 @@ def parse_arguments():
     parser.add_argument('--is_MC', action='store_true', help='Set if running on MC')
 
     # Corrections and filtering files
-    parser.add_argument('--golden_json', type=str, help='Path to the golden JSON file')
+    parser.add_argument('--golden_json', type=str, default='', help='Path to the golden JSON file')
     parser.add_argument('--jetvetomap', type=str, help='Path to the jetvetomap file')
     parser.add_argument('--L1FastJet', type=str, help='Path to the L1FastJet txt correction file (legacy option)')
     parser.add_argument('--L2Relative', type=str, help='Path to the L2Relative txt correction file')
