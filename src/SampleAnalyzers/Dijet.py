@@ -15,8 +15,9 @@ class DijetAnalyzer(RDFAnalyzer):
                 JEC : JEC_corrections = JEC_corrections("", "", ""),
                 nThreads : int = 1,
                 progress_bar : bool = False,
+                local : bool = False
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar)
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, local=local)
         
     def Flag_cut(self, rdf: RNode) -> RNode:
         return super().Flag_cut(rdf)

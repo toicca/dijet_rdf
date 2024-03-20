@@ -29,6 +29,7 @@ class RDFAnalyzer:
                 nThreads : int = 1,
                 progress_bar : bool = False,
                 isMC : bool = False,
+                local : bool = False,
                 ) -> "RDFAnalyzer":
         self.nThreads = nThreads
         self.trigger_list = trigger_list
@@ -38,7 +39,7 @@ class RDFAnalyzer:
         self.chain = None
         self.bins = get_bins()
         
-        self.rdf = self.__loadRDF(filelist, nFiles = nFiles)
+        self.rdf = self.__loadRDF(filelist, nFiles = nFiles, local = local)
         if progress_bar:
             ROOT.RDF.Experimental.AddProgressBar(self.rdf)
 

@@ -39,6 +39,7 @@ if __name__ == "__main__":
     output_path = args.output_path
     run_id = args.run_id
     is_MC = args.is_MC
+    is_local = args.is_local
     json_file = args.golden_json
     jetvetomap = args.jetvetomap
     L1FastJet = args.L1FastJet
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     print("Creating analysis object")
 
     corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
-    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar)
+    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, local=is_local)
     # multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads)
 
     dijet_analysis.do_inclusive()
