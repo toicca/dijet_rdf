@@ -104,7 +104,7 @@ def get_bins() -> dict:
     bins["eta"]["n"] = len(bins["eta"]["bins"]) - 1
     
     bins["phi"] = {}
-    bins["phi"]["bins"] = np.linspace(-3.1416, 3.1416, 100, dtype=float)
+    bins["phi"]["bins"] = np.linspace(-3.1416, 3.1416, 73, dtype=float)
     bins["phi"]["n"] = len(bins["phi"]["bins"]) - 1
     
     bins["mjj"] = {}

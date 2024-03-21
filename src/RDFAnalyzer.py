@@ -41,6 +41,10 @@ class RDFAnalyzer:
         self.rdf = self.__loadRDF(filelist, nFiles = nFiles)
         if progress_bar:
             ROOT.RDF.Experimental.AddProgressBar(self.rdf)
+            
+        trigger_string = " || ".join(trigger_list)
+        # print(trigger_string)
+        self.trigger_list.append("all_trigs")
 
         # Initial variables
         self.rdf = (self.rdf.Define("weight", "genWeight" if isMC else "1.0")
@@ -48,6 +52,7 @@ class RDFAnalyzer:
                     .Define("Jet_rawPt", "Jet_pt * (1.0-Jet_rawFactor)")
                     .Define("Jet_passesVetomap", "ROOT::VecOps::RVec<int>(Jet_pt.size(), 1)")
                     .Define("RawPuppiMET_polar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
+                    .Define("all_trigs", trigger_string)
                     )
         
         if not JEC.check_empty():
@@ -125,12 +130,18 @@ class RDFAnalyzer:
         ROOT.gInterpreter.Declare('#include "src/JSONRDF_code.h"')
         ROOT.init_json(json_file)
         rdf = self.rdf.Filter("isGoodLumi(run, luminosityBlock)", "JSON Filter")
+        self.histograms["all"].extend([
+            rdf.Histo1D(("GoldenJON", "GoldenJSON;GoldenJSON;N_{events}", 2, 0, 2), "isGoodLumi(run, luminosityBlock)", "weight")
+        ])
         return rdf
     
     def __do_cut_veto_map(self, veto_map_file : str) -> RNode:
         ROOT.gInterpreter.Declare('#include "src/JETVETOMAPS_code.h"')
         ROOT.init_vetomap(veto_map_file)
         rdf = self.rdf.Redefine("Jet_passesVetomap","isGoodVeto(Jet_eta, Jet_phi)")
+        self.histograms["all"].extend([
+            rdf.Histo1D(("VetoMap", "VetoMap;VetoMap;N_{events}", 2, 0, 2), "Jet_passesVetomap", "weight")
+        ])
         return rdf
     
     def do_smear_JER(self):
@@ -181,6 +192,19 @@ class RDFAnalyzer:
                                             self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                                            "Jet_pt", "weight") for i in range(len(eta_binned_rdfs))])
             
+        return self
+    
+    def do_RunsAndLumis(self) -> "RDFAnalyzer":
+        for trigger, rdf in self.trigger_rdfs.items():
+            all_rdf = rdf
+            selected_rdf = (self.Flag_cut(rdf))
+            print("Creating run and lumi histograms for trigger", trigger)
+            self.histograms[trigger].extend([
+                all_rdf.Histo1D(("Run_all", "Run_all;Run;N_{events}", 373075-355100, 355100, 373075), "run", "weight"),
+                all_rdf.Histo1D(("Lumi_all", "Lumi_all;Lumi;N_{events}", 1501, 0, 1500), "luminosityBlock", "weight"),
+                selected_rdf.Histo1D(("Run_selected", "Run_selected;Run;N_{events}", 373075-355100, 355100, 373075), "run", "weight"),
+                selected_rdf.Histo1D(("Lumi_selected", "Lumi_selected;Lumi;N_{events}", 1501, 0, 1500), "luminosityBlock", "weight")
+            ])
         return self
     
     def do_PFComposition(self) -> "RDFAnalyzer":
@@ -241,6 +265,52 @@ class RDFAnalyzer:
                 selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileMUF_selected", "PFComposition_EtaVsPtVsProfileMUF|#eta_{jet}|;p_{T} (GeV);MUF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_muEF", "weight")
+            ])
+            
+            # Same plots as above but eta vs phi
+            self.histograms[trigger].extend([
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfilePt_all", "PFComposition_EtaVsPhiVsProfilePt;|#eta|;#phi;p_{T} (GeV);", 
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_pt", "weight"),
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileRho_all", "PFComposition_EtaVsPhiVsProfileRho;|#eta|;#phi;#rho;", 
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Rho_fixedGridRhoFastjetAll", "weight"),
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNHF_all", "PFComposition_EtaVsPhiVsProfileNHF;|#eta|;#phi;NHF;", 
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_neHEF", "weight"),
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNEF_all", "PFComposition_EtaVsPhiVsProfileNEF;|#eta|;#phi;NEF;", 
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_neEmEF", "weight"),
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCHF_all", "PFComposition_EtaVsPhiVsProfileCHF;|#eta|;#phi;CHF;", 
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_chHEF", "weight"),
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCEF_all", "PFComposition_EtaVsPhiVsProfileCEF;|#eta|;#phi;CEF;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_chEmEF", "weight"),
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileMUF_all", "PFComposition_EtaVsPhiVsProfileMUF;|#eta|;#phi;MUF;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_muEF", "weight"),
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfilePt_selected", "PFComposition_EtaVsPhiVsProfilePt|#eta_{jet}|;#phi;p_{T} (GeV);",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_pt", "weight"),
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileRho_selected", "PFComposition_EtaVsPhiVsProfileRho|#eta_{jet}|;#phi;#rho;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Rho_fixedGridRhoFastjetAll", "weight"),
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNHF_selected", "PFComposition_EtaVsPhiVsProfileNHF|#eta_{jet}|;#phi;NHF;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_neHEF", "weight"),
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNEF_selected", "PFComposition_EtaVsPhiVsProfileNEF|#eta_{jet}|;#phi;NEF;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_neEmEF", "weight"),
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCHF_selected", "PFComposition_EtaVsPhiVsProfileCHF|#eta_{jet}|;#phi;CHF;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_chHEF", "weight"),
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCEF_selected", "PFComposition_EtaVsPhiVsProfileCEF|#eta_{jet}|;#phi;CEF;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_chEmEF", "weight"),
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileMUF_selected", "PFComposition_EtaVsPhiVsProfileMUF|#eta_{jet}|;#phi;MUF;",
+                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                    "Jet_eta", "Jet_phi", "Jet_muEF", "weight")
             ])
             
         return self

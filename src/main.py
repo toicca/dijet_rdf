@@ -63,6 +63,7 @@ if __name__ == "__main__":
     dijet_analysis.do_PFComposition()
     dijet_analysis.do_DB()
     dijet_analysis.do_MPF()
+    dijet_analysis.do_RunsAndLumis()
     dijet_analysis.run_histograms()
     hists = dijet_analysis.get_histograms()
     
