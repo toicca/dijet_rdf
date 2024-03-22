@@ -31,7 +31,7 @@ def parse_arguments():
     parser.add_argument('--config', type=str, help='Path to the config file. If set, overrides all other options', required=False)
     filepath_group = parser.add_mutually_exclusive_group(required=False)
     filepath_group.add_argument('--filepath', type=str, help='Path to the file list')
-    filepath_group.add_argument('--filelist', nargs='+', type=str, help='Input files separated by spaces')
+    filepath_group.add_argument('--filelist', type=str, help='Input files separated by commas')
     trigger_group = parser.add_mutually_exclusive_group()
     trigger_group.add_argument('--triggerpath', type=str, help='Path to the trigger list')
     trigger_group.add_argument('--triggerlist', nargs='+', type=str, help='Trigger list separated by spaces')
