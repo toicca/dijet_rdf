@@ -1,14 +1,14 @@
 [GENERAL]
-filepath = data/testfiles.txt
+filepath = data/testfiles_mc.txt
 filelist =
 triggerpath = data/testtrigger.txt
 triggerlist =
 number_of_files = 5
 is_local =
 output_path = out/
-run_id = test_22Mar
-is_MC =
-golden_json =
+run_id = test_MC_22Mar
+is_MC = 1
+golden_json = data/Cert_Collisions2023_366442_370790_Golden.json
 jetvetomap =
 L1FastJet =
 L2Relative = data/Summer22/L2Relative/Summer22Run3_V1_MC_L2Relative_AK4PUPPI.txt

@@ -15,9 +15,10 @@ class GammaJetAnalyzer(RDFAnalyzer):
                 JEC : JEC_corrections = JEC_corrections("", "", ""),
                 nThreads : int = 1,
                 progress_bar : bool = False,
+                isMC : bool = False,
                 local : bool = False
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, local = local)
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local)
  
 
     def do_DB(self) -> "GammaJetAnalyzer":
