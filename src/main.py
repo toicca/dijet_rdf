@@ -21,8 +21,7 @@ if __name__ == "__main__":
     if args.filepath:
         filelist = findFiles(args.filepath)
     elif args.filelist != None and len(args.filelist) > 0:
-        filelist = args.filelist
-        filelist = [file.strip() for file in filelist.split(",")]
+        filelist = [file.strip() for file in args.filelist.split(",")]
     else:
         raise ValueError("No file list provided")
     if args.triggerpath:
