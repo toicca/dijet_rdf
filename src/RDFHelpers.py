@@ -65,7 +65,7 @@ def parse_arguments():
         for section in config.sections():
             for option in config.options(section):
                 # Do a type conversion for the option
-                if option == "number_of_files" or option == "nThreads" or option == "verbosity" or option == "is_local" or option == "is_MC" or option == "progress_bar" or option == "cutflow_report":
+                if option == "number_of_files" or option == "nThreads" or option == "verbosity" or option == "is_local" or option == "is_mc" or option == "progress_bar" or option == "cutflow_report":
                     if config.get(section, option) == "":
                         setattr(args, option, 0)
                     else:
@@ -104,7 +104,7 @@ def get_bins() -> dict:
     bins["eta"]["n"] = len(bins["eta"]["bins"]) - 1
     
     bins["phi"] = {}
-    bins["phi"]["bins"] = np.linspace(-3.1416, 3.1416, 100, dtype=float)
+    bins["phi"]["bins"] = np.linspace(-3.1416, 3.1416, 73, dtype=float)
     bins["phi"]["n"] = len(bins["phi"]["bins"]) - 1
     
     bins["mjj"] = {}
@@ -122,6 +122,10 @@ def get_bins() -> dict:
     bins["response"] = {}
     bins["response"]["bins"] = np.linspace(0, 2, 100, dtype=float)
     bins["response"]["n"] = len(bins["response"]["bins"]) - 1
+    
+    bins["asymmetry"] = {}
+    bins["asymmetry"]["bins"] = np.linspace(-1, 1, 100, dtype=float)
+    bins["asymmetry"]["n"] = len(bins["asymmetry"]["bins"]) - 1
     
     return bins
 
