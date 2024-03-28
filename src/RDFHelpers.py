@@ -64,6 +64,7 @@ def parse_arguments():
         config = read_config_file(args.config)
         for section in config.sections():
             for option in config.options(section):
+                # print(option)
                 # Do a type conversion for the option
                 if option == "number_of_files" or option == "nThreads" or option == "verbosity" or option == "is_local" or option == "is_mc" or option == "progress_bar" or option == "cutflow_report":
                     if config.get(section, option) == "":
