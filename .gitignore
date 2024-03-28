@@ -3,3 +3,4 @@ src/JetMETObjects/src/*.d
 src/JetMETObjects/src/*.so
 src/JetMETObjects/src/*.pcm
 out/
+.vscode/
