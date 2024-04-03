@@ -15,9 +15,10 @@ class DijetAnalyzer(RDFAnalyzer):
                 JEC : JEC_corrections = JEC_corrections("", "", ""),
                 nThreads : int = 1,
                 progress_bar : bool = False,
+                isMC : bool = False,
                 local : bool = False
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, local=local)
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local)
         
     def Flag_cut(self, rdf: RNode) -> RNode:
         return super().Flag_cut(rdf)
@@ -35,7 +36,14 @@ class DijetAnalyzer(RDFAnalyzer):
             print("Creating DB histograms for trigger", trigger)
             self.histograms[trigger].extend([
                 db_rdf.Histo1D((f"DB_{system}_Response", "DB_"+ str(system) + "_response;response;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), f"response_DB_{system}", "weight"),
-                db_rdf.Histo2D((f"DB_{system}_EtaVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta|;response", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]), f"Jet_eta_tag_{system}", f"response_DB_{system}", "weight")
+                db_rdf.Histo2D((f"DB_{system}_EtaprobeVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta_{probe}|;response",
+                                self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                               f"Jet_eta_probe_{system}", f"response_DB_{system}", "weight"),
+                db_rdf.Histo1D((f"DB_{system}_Asymmetry", "DB_"+ str(system) + "_Asymmetry;Asymmetry;N_{events}", self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]), 
+                               f"Asymmetry_{system}", "weight"),
+                db_rdf.Profile2D((f"DB_{system}_EtaprobeVsPhiprobeVsAsymmetry", "DB_"+ str(system) + "_EtaVsPhiVsAsymmetry;|#eta_{probe}|;#phi_{probe};Asymmetry", 
+                                self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                                f"Jet_eta_probe_{system}", f"Jet_phi_probe_{system}", f"Asymmetry_{system}", "weight"),
             ])
             for label in pT_binLabels:
                 self.histograms[trigger].append(
@@ -60,8 +68,15 @@ class DijetAnalyzer(RDFAnalyzer):
             self.histograms[trigger].extend([
                 db_rdf.Histo1D((f"MPF_{system}_Response", "MPF_"+ str(system) + "_response;response;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), 
                                f"response_MPF_{system}", "weight"),
-                db_rdf.Histo2D((f"MPF_{system}_EtaVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta|;response", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]), 
-                               f"Jet_eta_tag_{system}", f"response_MPF_{system}", "weight")
+
+                db_rdf.Histo2D((f"MPF_{system}_EtaprobeVsResponse", "DB_"+ str(system) + "_EtaprobeVsResponse;|#eta_{probe}|;response", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]), 
+                               f"Jet_eta_probe_{system}", f"response_MPF_{system}", "weight"),
+                db_rdf.Histo1D((f"MPF_{system}_B", "MPF_"+ str(system) + "_B;B;N_{events}", self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                 f"B_{system}", "weight"),
+                db_rdf.Profile2D((f"MPF_{system}_EtaprobeVsPhiprobeVsB", "MPF_"+ str(system) + "_EtaprobeVsPhiprobeVsB;|#eta_{probe}|;#phi_{probe};B", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]),
+                                    f"Jet_eta_probe_{system}", f"Jet_phi_probe_{system}", f"B_{system}", "weight"),
+
+                
             ])
             for label in pT_binLabels:
                 self.histograms[trigger].append(
@@ -81,8 +96,8 @@ class DijetAnalyzer(RDFAnalyzer):
         asymmetry_alpha = 0.7
         delta_phi = 2.7
         rdf_dijet = (rdf.Filter("nJet >= 2")
-                    # Choose tag and probe jets, this isn't necessarily random so check on it
-                    .Define("tag_idx", "int(run % 2 == 0)")
+                    # Choose tag and probe jets, this is just a hack to get a random number
+                    .Define("tag_idx", "int(int(Jet_phi[0]*1000) % 2 == 0)")
                     .Define("probe_idx", "tag_idx == 0")
                     .Define("deltaPhi_dijet", "abs(Jet_phi[tag_idx] - Jet_phi[probe_idx])")
                     .Define("deltaEta_dijet", "abs(Jet_eta[tag_idx] - Jet_eta[probe_idx])")
@@ -91,13 +106,16 @@ class DijetAnalyzer(RDFAnalyzer):
                     .Define("Jet_pt_tag", "Jet_pt[tag_idx]")
                     .Define("Jet_pt_probe", "Jet_pt[probe_idx]")
                     .Define("Jet_eta_tag_dijet", "Jet_eta[tag_idx]") # Scuffed
+                    .Define("Jet_eta_probe_dijet", "Jet_eta[probe_idx]")
+                    .Define("Jet_phi_tag_dijet", "Jet_phi[tag_idx]")
+                    .Define("Jet_phi_probe_dijet", "Jet_phi[probe_idx]")
                     # Filter the two jets
                     .Filter(f"abs(Jet_eta[tag_idx]) < {tag_eta} && deltaPhi_dijet > {delta_phi}")
                     .Filter(f"Jet_pt[tag_idx] > {min_pt} && Jet_pt[probe_idx] > {min_pt}")
                     .Filter("Jet_jetId[tag_idx] >= 4 && Jet_jetId[probe_idx] >= 4")
                     .Filter(f"(abs(Jet_pt[tag_idx] - Jet_pt[probe_idx]) / (2.0 * average_Pt_dijet)) < {asymmetry_alpha}")
                     # Asymmetry of the system
-                    .Define("Asymmetry_dijet", "(Jet_pt[tag_idx] - Jet_pt[probe_idx]) / (Jet_pt[tag_idx] + Jet_pt[probe_idx])")
+                    .Define("Asymmetry_dijet", "(Jet_pt[probe_idx] - Jet_pt[tag_idx]) / (Jet_pt[tag_idx] + Jet_pt[probe_idx])")
                     .Define("B_dijet", "RawPuppiMET_pt * cos(ROOT::VecOps::DeltaPhi(Jet_phi[tag_idx], RawPuppiMET_phi)) / (Jet_pt[tag_idx] + Jet_pt[probe_idx])")
                     # TODO: Add jet veto
                     )
