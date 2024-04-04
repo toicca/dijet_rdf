@@ -59,6 +59,7 @@ class RDFAnalyzer:
 
         # Initial variables
         self.rdf = (self.rdf.Define("weight", "genWeight" if self.isMC else "1.0")
+                    .Filter("nJet > 0", "Only events with jets")
                     .Define("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
                     .Define("Jet_rawPt", "Jet_pt * (1.0-Jet_rawFactor)")
                     .Define("Jet_passesVetomap", "ROOT::VecOps::RVec<int>(Jet_pt.size(), 1)")
