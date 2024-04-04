@@ -1,0 +1,21 @@
+[GENERAL]
+filepath = data/testfiles_mc.txt
+filelist =
+triggerpath = data/testtrigger_MC.txt
+triggerlist =
+number_of_files = 5
+is_local =
+output_path = out/
+run_id = test_MCnoTrig_28Mar
+is_MC = 1
+golden_json = data/Cert_Collisions2023_366442_370790_Golden.json
+jetvetomap =
+L1FastJet =
+L2Relative = data/Summer22/Summer22Run3/L2Relative/Summer22Run3_V1_MC_L2Relative_AK4PUPPI.txt
+L2L3Residual =
+JER = data/Summer22/Summer22Run3/MC_JER/Summer22_V1_NSCP_MC_PtResolution_ak4pfchs.txt
+JER_SF = data/Summer22/Summer22Run3/JER_SF/Summer22Run3_V2_MC_SF_AK4PFPuppi.txt
+nThreads = 4
+verbosity =
+progress_bar = 1
+cutflow_report =

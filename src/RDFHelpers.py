@@ -31,7 +31,7 @@ def parse_arguments():
     parser.add_argument('--config', type=str, help='Path to the config file. If set, overrides all other options', required=False)
     filepath_group = parser.add_mutually_exclusive_group(required=False)
     filepath_group.add_argument('--filepath', type=str, help='Path to the file list')
-    filepath_group.add_argument('--filelist', nargs='+', type=str, help='Input files separated by spaces')
+    filepath_group.add_argument('--filelist', type=str, help='Input files separated by commas')
     trigger_group = parser.add_mutually_exclusive_group()
     trigger_group.add_argument('--triggerpath', type=str, help='Path to the trigger list')
     trigger_group.add_argument('--triggerlist', nargs='+', type=str, help='Trigger list separated by spaces')
@@ -64,8 +64,9 @@ def parse_arguments():
         config = read_config_file(args.config)
         for section in config.sections():
             for option in config.options(section):
+                # print(option)
                 # Do a type conversion for the option
-                if option == "number_of_files" or option == "nThreads" or option == "verbosity" or option == "is_local" or option == "is_MC" or option == "progress_bar" or option == "cutflow_report":
+                if option == "number_of_files" or option == "nThreads" or option == "verbosity" or option == "is_local" or option == "is_mc" or option == "progress_bar" or option == "cutflow_report":
                     if config.get(section, option) == "":
                         setattr(args, option, 0)
                     else:
@@ -104,7 +105,7 @@ def get_bins() -> dict:
     bins["eta"]["n"] = len(bins["eta"]["bins"]) - 1
     
     bins["phi"] = {}
-    bins["phi"]["bins"] = np.linspace(-3.1416, 3.1416, 100, dtype=float)
+    bins["phi"]["bins"] = np.linspace(-3.1416, 3.1416, 73, dtype=float)
     bins["phi"]["n"] = len(bins["phi"]["bins"]) - 1
     
     bins["mjj"] = {}
@@ -122,6 +123,10 @@ def get_bins() -> dict:
     bins["response"] = {}
     bins["response"]["bins"] = np.linspace(0, 2, 100, dtype=float)
     bins["response"]["n"] = len(bins["response"]["bins"]) - 1
+    
+    bins["asymmetry"] = {}
+    bins["asymmetry"]["bins"] = np.linspace(-1, 1, 100, dtype=float)
+    bins["asymmetry"]["n"] = len(bins["asymmetry"]["bins"]) - 1
     
     return bins
 
