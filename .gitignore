@@ -2,3 +2,5 @@ __pycache__/
 src/JetMETObjects/src/*.d
 src/JetMETObjects/src/*.so
 src/JetMETObjects/src/*.pcm
+out/*.root
+out/*/*.root
