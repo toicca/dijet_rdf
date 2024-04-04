@@ -39,7 +39,7 @@ def parse_arguments():
     parser.add_argument('--is_local', action='store_true', help='Run locally. If not set will append root://cms-xrd-global.cern.ch/ to the start of file names')
     parser.add_argument('--output_path', type=str, help='Path where to write output files')
     parser.add_argument('--run_id', type=str, help='Run identifier such as date or version of the software included in output file names')
-    parser.add_argument('--is_mc', action='store_true', help='Set if running on MC')
+    parser.add_argument('--is_MC', action='store_true', help='Set if running on MC')
 
     # Corrections and filtering files
     parser.add_argument('--golden_json', type=str, default='', help='Path to the golden JSON file')
