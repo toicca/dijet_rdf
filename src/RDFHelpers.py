@@ -128,6 +128,18 @@ def get_bins() -> dict:
     bins["asymmetry"]["bins"] = np.linspace(-1, 1, 100, dtype=float)
     bins["asymmetry"]["n"] = len(bins["asymmetry"]["bins"]) - 1
     
+    bins["runs"] = {}
+    bins["runs"]["bins"] = np.linspace(355065, 391370, 391370-355065, dtype=int)
+    bins["runs"]["n"] = len(bins["runs"]["bins"]) - 1
+    
+    bins["bx"] = {}
+    bins["bx"]["bins"] = np.linspace(0, 3564, 3564, dtype=int)
+    bins["bx"]["n"] = len(bins["bx"]["bins"]) - 1
+    
+    bins["lumi"] = {}
+    bins["lumi"]["bins"] = np.linspace(0, 1600, 1600, dtype=int)
+    bins["lumi"]["n"] = len(bins["lumi"]["bins"]) - 1
+    
     return bins
 
 if __name__ == "__main__":

@@ -66,6 +66,7 @@ class RDFAnalyzer:
                     .Define("RawPuppiMET_polar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
                     .Define("all_trigs", trigger_string)
                     .Define("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
+                    .Define("Jet_eta_leading", "Jet_eta[Jet_order[0]]")
                     )
         
         # MC cuts, to be implemented elsewhere
@@ -284,6 +285,7 @@ class RDFAnalyzer:
             all_rdf = rdf
             selected_rdf = ((self.Flag_cut(rdf))
                             .Redefine("Jet_pt_leading", "Jet_pt[Jet_jetId >= 4][0]")
+                            .Redefine("Jet_eta_leading", "Jet_eta[Jet_jetId >= 4][0]")
                             .Redefine("Jet_pt", "Jet_pt[Jet_jetId >= 4]")
                             .Redefine("Jet_eta", "Jet_eta[Jet_jetId >= 4]")
                             )
@@ -306,7 +308,7 @@ class RDFAnalyzer:
                                 "Jet_eta", "Jet_pt", "weight"),
                 all_rdf.Histo2D(("Inclusive_EtaVsPtlead_all", "Inclusive_EtaVsPtlead;|#eta|;p_{T,lead} (GeV);",
                                 self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]),
-                                "Jet_eta", "Jet_pt_leading", "weight"),
+                                "Jet_eta_leading", "Jet_pt_leading", "weight"),
                 all_rdf.Histo1D(("Inclusive_Pt_all", "Inclusive_pT_all;p_{T} (GeV);N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
                 all_rdf.Histo1D(("Inclusive_Ptlead_all", "Inclusive_pTlead_all;p_{T,lead} (GeV);N_{events}",
@@ -316,7 +318,7 @@ class RDFAnalyzer:
                                     "Jet_eta", "Jet_pt", "weight"),
                 selected_rdf.Histo2D(("Inclusive_EtaVsPtlead_selected", "Inclusive_EtaVsPtlead;|#eta_{jet}|;p_{T,lead} (GeV)",
                                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
-                                    "Jet_eta", "Jet_pt_leading", "weight"),
+                                    "Jet_eta_leading", "Jet_pt_leading", "weight"),
                 selected_rdf.Histo1D(("Inclusive_Pt_selected", "Inclusive_pT_selected;p_{T} (GeV);N_{events}",
                                     self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
                 selected_rdf.Histo1D(("Inclusive_Ptlead_selected", "Inclusive_pTlead_selected;p_{T,lead} (GeV);N_{events}",
@@ -397,10 +399,14 @@ class RDFAnalyzer:
             selected_rdf = (self.Flag_cut(rdf))
             print("Creating run and lumi histograms for trigger", trigger)
             self.histograms[trigger].extend([
-                all_rdf.Histo1D(("Run_all", "Run_all;Run;N_{events}", 373075-355100, 355100, 373075), "run", "weight"),
-                all_rdf.Histo1D(("Lumi_all", "Lumi_all;Lumi;N_{events}", 1501, 0, 1500), "luminosityBlock", "weight"),
-                selected_rdf.Histo1D(("Run_selected", "Run_selected;Run;N_{events}", 373075-355100, 355100, 373075), "run", "weight"),
-                selected_rdf.Histo1D(("Lumi_selected", "Lumi_selected;Lumi;N_{events}", 1501, 0, 1500), "luminosityBlock", "weight")
+                all_rdf.Histo1D(("RunAndLumi_Run_all", "Run_all;Run;N_{events}", self.bins["runs"]["n"], self.bins["runs"]["bins"]), "run", "weight"),
+                all_rdf.Histo1D(("RunAndLumi_Lumi_all", "Lumi_all;Lumi;N_{events}", self.bins["lumi"]["n"], self.bins["lumi"]["bins"]), "luminosityBlock", "weight"),
+                all_rdf.Histo1D(("RunAndLumi_BunchCrossing_all", "BunchCrossing_all;BunchCrossing;N_{events}", self.bins["bx"]["n"], self.bins["bx"]["bins"]), "bunchCrossing", "weight"),
+                all_rdf.Histo2D(("RunAndLumi_RunVsBunchCrossing_all", "RunVsBunchCrossing_all;Run;BunchCrossing;N_{events}", self.bins["runs"]["n"], self.bins["runs"]["bins"], self.bins["bx"]["n"], self.bins["bx"]["bins"]), "run", "bunchCrossing", "weight"),
+                selected_rdf.Histo1D(("RunAndLumi_Run_selected", "Run_selected;Run;N_{events}", self.bins["runs"]["n"], self.bins["runs"]["bins"]), "run", "weight"),
+                selected_rdf.Histo1D(("RunAndLumi_Lumi_selected", "Lumi_selected;Lumi;N_{events}", self.bins["lumi"]["n"], self.bins["lumi"]["bins"]), "luminosityBlock", "weight"),
+                selected_rdf.Histo1D(("RunAndLumi_BunchCrossing_selected", "BunchCrossing_selected;BunchCrossing;N_{events}", self.bins["bx"]["n"], self.bins["bx"]["bins"]), "bunchCrossing", "weight"),
+                selected_rdf.Histo2D(("RunAndLumi_RunVsBunchCrossing_selected", "RunVsBunchCrossing_selected;Run;BunchCrossing;N_{events}", self.bins["runs"]["n"], self.bins["runs"]["bins"], self.bins["bx"]["n"], self.bins["bx"]["bins"]), "run", "bunchCrossing", "weight")
             ])
         return self
     
