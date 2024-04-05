@@ -38,15 +38,15 @@ if __name__ == "__main__":
 
     output_path = args.output_path
     run_id = args.run_id
-    is_MC = args.is_mc
+    is_mc = args.is_MC
     is_local = args.is_local
     json_file = args.golden_json
     jetvetomap = args.jetvetomap
-    L1FastJet = args.l1fastjet
-    L2Relative = args.l2relative
-    L2L3Residual = args.l2l3residual
-    JER = args.jer
-    JER_SF = args.jer_sf
+    L1FastJet = args.L1FastJet
+    L2Relative = args.L2Relative
+    L2L3Residual = args.L2L3Residual
+    JER = args.JER
+    JER_SF = args.JER_SF
     nThreads = args.nThreads
     verbosity = args.verbosity
     progress_bar = args.progress_bar
@@ -55,17 +55,17 @@ if __name__ == "__main__":
     ROOT.EnableImplicitMT(nThreads)
     
     print("Creating analysis object")
-    print(L2Relative, args.l2relative, args.L2Relative)
+    print(L2Relative, args.L2Relative, args.L2Relative)
 
     corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
-    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_MC, local=is_local)
+    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
 
     dijet_analysis.do_inclusive()
     dijet_analysis.do_PFComposition()
     dijet_analysis.do_DB()
     dijet_analysis.do_MPF()
     dijet_analysis.do_RunsAndLumis()
-    if is_MC:
+    if is_mc:
         dijet_analysis.do_MC()
     dijet_analysis.run_histograms()
     hists = dijet_analysis.get_histograms()
