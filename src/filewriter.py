@@ -6,7 +6,6 @@ class FileWriter:
         self.output_file = output_file
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
-        
         self.output = ROOT.TFile(output_file, "RECREATE")
         self.output.cd()
         

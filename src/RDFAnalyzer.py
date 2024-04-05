@@ -288,6 +288,7 @@ class RDFAnalyzer:
                             .Redefine("Jet_eta_leading", "Jet_eta[Jet_jetId >= 4][0]")
                             .Redefine("Jet_pt", "Jet_pt[Jet_jetId >= 4]")
                             .Redefine("Jet_eta", "Jet_eta[Jet_jetId >= 4]")
+                            .Redefine("Jet_phi", "Jet_phi[Jet_jetId >= 4]")
                             )
             
             # Eta binned rdfs for pT distribution of jets
@@ -313,6 +314,9 @@ class RDFAnalyzer:
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
                 all_rdf.Histo1D(("Inclusive_Ptlead_all", "Inclusive_pTlead_all;p_{T,lead} (GeV);N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt_leading", "weight"),
+                all_rdf.Histo2D(("Inclusive_EtaVsPhi_all", "Inclusive_EtaVsPhi;|#eta|;#phi;",
+                                self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]),
+                                "Jet_eta", "Jet_phi", "weight"),
                 selected_rdf.Histo2D(("Inclusive_EtaVsPt_selected", "Inclusive_EtaVsPt;|#eta_{jet}|;p_{T} (GeV)",
                                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                                     "Jet_eta", "Jet_pt", "weight"),
@@ -322,7 +326,10 @@ class RDFAnalyzer:
                 selected_rdf.Histo1D(("Inclusive_Pt_selected", "Inclusive_pT_selected;p_{T} (GeV);N_{events}",
                                     self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
                 selected_rdf.Histo1D(("Inclusive_Ptlead_selected", "Inclusive_pTlead_selected;p_{T,lead} (GeV);N_{events}",
-                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt_leading", "weight")
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt_leading", "weight"),
+                selected_rdf.Histo2D(("Inclusive_EtaVsPhi_selected", "Inclusive_EtaVsPhi;|#eta|;#phi;",
+                                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]),
+                                    "Jet_eta", "Jet_phi", "weight")
             
             ]
             )

@@ -1,7 +1,8 @@
 import ROOT
-from RDFHelpers import read_trigger_list, find_files
+from RDFHelpers import file_read_lines, read_config_file
 from typing import List
 import argparse, configparser
+import numpy as np
 
 hist_names = ("PFComposition_EtaVsPhiVsProfileNHF_selected",
             "PFComposition_EtaVsPhiVsProfilePt_selected",
@@ -31,13 +32,12 @@ def parse_arguments():
     
     return args
 
-if __name__ == '__main__':
+def produce_vetomap(input_file: str, trigger_list: List[str], hist_names: List[str], output_path: str):
+    """
+    VetoMap producer for dijet_rdf.
+    Translated from https://github.com/miquork/jecsys3/blob/21fcfb6c4a6fab963650b08019f57d679644ec83/minitools/doJetVetoV2.C
+    """
     
-    input_file = "out/dijet_test_22Mar.root"
-    trigger_file = "data/testtrigger.txt"
-    
-    trigger_list = read_trigger_list(trigger_file)
-
     file = ROOT.TFile(input_file, "UPDATE")
     if len(trigger_list) == 0:
         trigger_keys = file.GetListOfKeys()
@@ -46,14 +46,10 @@ if __name__ == '__main__':
     # Get the folder name from hist_names
     methods = [h.split("_")[0] for h in hist_names]
 
-    for method, hname in zip(methods, hist_names):
-        for trg in trigger_list:
-            if trg == "HLT_ZeroBias":
-                continue
-            # out_file = f"out/vetomap_tests/{trg}_vetomap.root"
-            
+    for trg in trigger_list:
+        for method, hname in zip(methods, hist_names):            
             obj_path = f"{trg}/{method}/{hname}"
-            obj = f.Get(obj_path)
+            obj = file.Get(obj_path)
             assert obj, f"Object not found at {obj_path}"
             assert obj.InheritsFrom("TH2D"), f"Object at {obj_path} is not a TH2D or derived class"
 
@@ -114,14 +110,43 @@ if __name__ == '__main__':
                 
                 htmp.Delete()
                 
-            if not f.GetDirectory(trg):
-                f.mkdir(trg)
-            if not f.GetDirectory(trg+"/VetoMap"):
-                f.mkdir(trg+"/VetoMap")
-            f.cd(trg+"/VetoMap")
+            if not file.GetDirectory(trg):
+                file.mkdir(trg)
+            if not file.GetDirectory(trg+"/VetoMap"):
+                file.mkdir(trg+"/VetoMap")
+            file.cd(trg+"/VetoMap")
             h2nom.Write()
             h2abs.Write()
-            f.cd()
+            file.cd()
+            
+    file.Close()
+    return
+
+if __name__ == '__main__':
+    
+    args = parse_arguments()
+    
+    trigger_list: List[str] = []
+    files: List[str] = []
+    
+    if args.triggerpath:
+        trigger_list = file_read_lines(args.triggerpath)
+    elif args.triggerlist:
+        trigger_list = [s.strip() for s in args.triggerlist.split(',')]
+
+    if args.filepath:
+        files = file_read_lines(args.filepath)
+    else:
+        files = [s.strip() for s in args.filelist.split(',')]
+
+    output_path = args.out
+
+    config_file = args.config
+    config = read_config_file(config_file)
+
+    for file in files:
+        produce_vetomap(file, trigger_list, hist_names, output_path)
+    
         
         
 
