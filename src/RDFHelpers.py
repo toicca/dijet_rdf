@@ -11,11 +11,11 @@ import configparser
 #
 #====================================================
 
-def findFiles(file : str) -> List[str]:
+def find_files(file : str) -> List[str]:
     with open(file) as f:
         return [line.strip() for line in f.readlines() if line.strip().endswith(".root")]
 
-def readTriggerList(file : str) -> List[str]:
+def read_trigger_list(file : str) -> List[str]:
     with open(file) as f:
         return [line.strip() for line in f.readlines()]
     

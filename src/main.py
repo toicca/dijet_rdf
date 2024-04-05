@@ -6,7 +6,7 @@ import argparse
 from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
 from RDFAnalyzer import JEC_corrections
-from RDFHelpers import findFiles, readTriggerList, parse_arguments
+from RDFHelpers import find_files, read_trigger_list, parse_arguments
 
 from filewriter import FileWriter
 import configparser
@@ -19,13 +19,13 @@ if __name__ == "__main__":
     # Tässä koko blockissa on jotain väärää
     args = parse_arguments()
     if args.filepath:
-        filelist = findFiles(args.filepath)
+        filelist = find_files(args.filepath)
     elif args.filelist != None and len(args.filelist) > 0:
         filelist = [file.strip() for file in args.filelist.split(",")]
     else:
         raise ValueError("No file list provided")
     if args.triggerpath:
-        triggerlist = readTriggerList(args.triggerpath)
+        triggerlist = read_trigger_list(args.triggerpath)
     elif args.triggerlist != None and len(args.triggerlist) > 0:
         triggerlist = args.triggerlist
     else:
