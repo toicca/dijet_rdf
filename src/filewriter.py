@@ -1,8 +1,12 @@
 import ROOT
 import os
+from typing import List, Dict
 
 class FileWriter:
-    def __init__(self, output_file : str):
+    def __init__(self, output_file : str, triggers : List[str] = [], samples : Dict[str, List] = {}):
+        self.triggers = triggers
+        self.samples = samples
+        
         self.output_file = output_file
         if not os.path.exists(os.path.dirname(output_file)):
             os.makedirs(os.path.dirname(output_file))
@@ -22,6 +26,9 @@ class FileWriter:
             self.output.cd("..")
             
         self.output.cd()
+        
+    def write_full(self, sample : str, trigger : str, histograms : list):
+        self.write_trigger(sample + "/" + trigger, histograms)
         
     def close(self):
         self.output.Close()

@@ -6,7 +6,7 @@ import argparse
 from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
 from RDFAnalyzer import JEC_corrections
-from RDFHelpers import file_read_lines, parse_arguments
+from RDFHelpers import file_read_lines, parse_arguments, combine_analyzer_runs
 
 from filewriter import FileWriter
 import configparser
