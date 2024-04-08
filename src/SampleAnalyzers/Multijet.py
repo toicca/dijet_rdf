@@ -20,11 +20,13 @@ class MultijetAnalyzer(RDFAnalyzer):
                 ):
         super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local)
  
+    def Flag_cut(self, rdf: RNode) -> RNode:
+        return super().Flag_cut(rdf)
 
     def do_DB(self) -> "MultijetAnalyzer":
         system = "multijet"
         for trigger, rdf in self.trigger_rdfs.items():
-            db_rdf = self.__Flag_cut(self.__sample_cut(rdf))
+            db_rdf = self.Flag_cut(self.__sample_cut(rdf))
             pT_binLabels = ["average_Pt_multijet", "Jet_pt_lead", "pt_recoil"]
 
             db_rdf = (db_rdf.Define(f"response_DB_{system}", f"(1.0 + Asymmetry_{system}) / (1.0 - Asymmetry_{system})")
@@ -33,7 +35,14 @@ class MultijetAnalyzer(RDFAnalyzer):
             print("Creating DB histograms for trigger", trigger)
             self.histograms[trigger].extend([
                 db_rdf.Histo1D((f"DB_{system}_Response", "DB_"+ str(system) + "_response;response;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), f"response_DB_{system}", "weight"),
-                db_rdf.Histo2D((f"DB_{system}_EtaVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta|;response", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]), f"Jet_eta_tag_{system}", f"response_DB_{system}", "weight")
+                db_rdf.Histo2D((f"DB_{system}_EtaprobeVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta_{probe}|;response",
+                                self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                               f"pt_recoil", f"response_DB_{system}", "weight"),
+                db_rdf.Histo1D((f"DB_{system}_Asymmetry", "DB_"+ str(system) + "_Asymmetry;Asymmetry;N_{events}", self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]), 
+                               f"Asymmetry_{system}", "weight"),
+                db_rdf.Profile2D((f"DB_{system}_EtaprobeVsPhiprobeVsAsymmetry", "DB_"+ str(system) + "_EtaVsPhiVsAsymmetry;|#eta_{probe}|;#phi_{probe};Asymmetry", 
+                                self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
+                                f"pt_recoil", f"phi_recoil", f"Asymmetry_{system}", "weight"),
             ])
             for label in pT_binLabels:
                 self.histograms[trigger].append(
@@ -42,13 +51,12 @@ class MultijetAnalyzer(RDFAnalyzer):
                                     self.bins["response"]["n"], self.bins["response"]["bins"]),
                                     label, f"response_DB_{system}", "weight"),
                 )
-
         return self
     
     def do_MPF(self) -> "MultijetAnalyzer":
         system = "multijet"
         for trigger, rdf in self.trigger_rdfs.items():
-            db_rdf = self.__Flag_cut(self.__sample_cut(rdf))
+            db_rdf = self.Flag_cut(self.__sample_cut(rdf))
             pT_binLabels = ["average_Pt_multijet", "Jet_pt_lead", "pt_recoil"]
 
             db_rdf = (db_rdf.Define(f"response_MPF_{system}", f"(1.0 + B_{system}) / (1.0 - B_{system})")
@@ -83,7 +91,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Redefine("Jet_pt", f"Jet_pt[Jet_pt > {min_pt}]")
                     .Filter("Jet_pt.size() >= 3")
                     .Define("sortedArgs", "ROOT::VecOps::Argsort(Jet_pt)")
-                    .Redefine("leading_idx", "sortedArgs[Jet_pt.size() - 1]")
+                    .Define("leading_idx", "sortedArgs[Jet_pt.size() - 1]")
                     .Define("second_idx", "sortedArgs[Jet_pt.size() - 2]")
                     .Define("third_idx", "sortedArgs[Jet_pt.size() - 3]")
                     .Define("Jet_pt_lead", "Jet_pt[leading_idx]")
@@ -107,11 +115,11 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("B_multijet", "RawPuppiMET_pt * cos(ROOT::VecOps::DeltaPhi(Jet_phi[leading_idx], RawPuppiMET_phi)) / (Jet_pt_lead + pt_recoil)")
                     # TODO: Add jet veto
                     )
-        self.histograms["all"].extend([rdf_dijet.Histo1D(("Asymmetry", "Asymmetry;Asymmetry;N_{events}", 100, -1.0, 1.0), f"Asymmetry_multijet", "weight"),
-                                       rdf_dijet.Histo1D(("pt_recoil", "pt_recoil;p_{T, recoil} (GeV);N_{events}", 100, 0.0, 1000.0), "pt_recoil", "weight"),
-                                       rdf_dijet.Histo1D(("Jet_pt_lead", "Jet_pt_lead;p_{T, lead} (GeV);N_{events}", 100, 0.0, 1000.0), "Jet_pt_lead", "weight"),
-                                       rdf_dijet.Histo1D(("deltaPhi_multijet", "deltaPhi_multijet;#Delta#phi_{lead, recoil};N_{events}", 100, 0.0, 3.141592653), "deltaPhi_multijet", "weight"),
-                                       rdf_dijet.Histo1D(("average_Pt_multijet", "average_Pt_multijet;average p_{T} (GeV);N_{events}", 100, 0.0, 1000.0), "average_Pt_multijet", "weight"),])
+        # self.histograms["all"].extend([rdf_dijet.Histo1D(("Asymmetry", "Asymmetry;Asymmetry;N_{events}", 100, -1.0, 1.0), f"Asymmetry_multijet", "weight"),
+        #                                rdf_dijet.Histo1D(("pt_recoil", "pt_recoil;p_{T, recoil} (GeV);N_{events}", 100, 0.0, 1000.0), "pt_recoil", "weight"),
+        #                                rdf_dijet.Histo1D(("Jet_pt_lead", "Jet_pt_lead;p_{T, lead} (GeV);N_{events}", 100, 0.0, 1000.0), "Jet_pt_lead", "weight"),
+        #                                rdf_dijet.Histo1D(("deltaPhi_multijet", "deltaPhi_multijet;#Delta#phi_{lead, recoil};N_{events}", 100, 0.0, 3.141592653), "deltaPhi_multijet", "weight"),
+        #                                rdf_dijet.Histo1D(("average_Pt_multijet", "average_Pt_multijet;average p_{T} (GeV);N_{events}", 100, 0.0, 1000.0), "average_Pt_multijet", "weight"),])
 
         return rdf_dijet
         
