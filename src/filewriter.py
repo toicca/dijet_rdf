@@ -25,10 +25,7 @@ class FileWriter:
             hist.Write()
             self.output.cd("..")
             
-        self.output.cd()
-        
-    def write_full(self, sample : str, trigger : str, histograms : list):
-        self.write_trigger(sample + "/" + trigger, histograms)
+        self.output.cd("..")
         
     def close(self):
         self.output.Close()

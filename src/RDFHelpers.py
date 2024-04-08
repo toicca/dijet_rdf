@@ -4,22 +4,6 @@ import numpy as np
 from typing import List
 import argparse
 import configparser
-from RDFAnalyzer import RDFAnalyzer
-
-#====================================================
-#
-# Analyzer utilities
-#
-#====================================================
-
-def combine_analyzer_runs(analyzers: List[RDFAnalyzer]) -> List:
-    combined_runs = []
-    for analyzer in analyzers:
-        combined_runs.extend(analyzer.get_histograms())
-        
-    ROOT.RDF.RunGraphs(combined_runs)
-    
-    return combined_runs
 
 #====================================================
 #

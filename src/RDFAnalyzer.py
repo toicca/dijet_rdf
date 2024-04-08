@@ -4,6 +4,7 @@ from typing import List
 from RDFHelpers import get_bins
 import numpy as np
 from make_JEC import compile_JEC, load_JEC, clean_JEC
+import copy
     
 RDataFrame = ROOT.RDataFrame
 RNode = ROOT.RDF.RNode
@@ -38,7 +39,7 @@ class RDFAnalyzer:
                 local : bool = False,
                 ) -> "RDFAnalyzer":
         self.nThreads = nThreads
-        self.trigger_list = trigger_list
+        self.trigger_list = copy.deepcopy(trigger_list)
         self.histograms = {"all" : []} # format : {trigger : [histograms]}
         self.trigger_rdfs = {} # format : {trigger : rdf}. self.rdf is not initialized here due to order of operations
         self.has_run = False # possibly unnecessary
@@ -124,12 +125,10 @@ class RDFAnalyzer:
             if not JEC.check_empty_JER():
                 self.rdf = self.do_smear_JER(JEC)
             
-            
-
         if (json_file != "") and (not self.isMC):
             self.rdf = self.__do_cut_golden_json(json_file)
 
-        for trigger in trigger_list:
+        for trigger in self.trigger_list:
             if trigger != "":
                 self.trigger_rdfs[trigger] = self.rdf.Filter(trigger)
                 self.histograms[trigger] = []
