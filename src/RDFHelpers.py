@@ -35,7 +35,7 @@ def parse_arguments():
     filepath_group.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas')
     trigger_group = parser.add_mutually_exclusive_group()
     trigger_group.add_argument('-tp', '--triggerpath', type=str, help='Path to the trigger list')
-    trigger_group.add_argument('-tl','--triggerlist', nargs='+', type=str, help='Input files separated by commas')
+    trigger_group.add_argument('-tl','--triggerlist', type=str, help='Input files separated by commas')
     parser.add_argument('-nof', '--number_of_files', type=int, default=-1, help='How many files to be processed. -1 for all files in the list')
     parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not set will append root://cms-xrd-global.cern.ch/ to the start of file names')
     parser.add_argument('-out', '--output_path', type=str, help='Path where to write output files')
