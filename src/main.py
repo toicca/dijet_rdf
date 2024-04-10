@@ -58,17 +58,17 @@ if __name__ == "__main__":
     dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
     multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
     
-    # standard_analysis.do_inclusive()
-    # standard_analysis.do_PFComposition()
+    standard_analysis.do_inclusive()
+    standard_analysis.do_PFComposition()
     standard_analysis.do_RunsAndLumis()
     
     if is_mc:
         standard_analysis.do_MC()
     
     dijet_analysis.do_DB()
-    # dijet_analysis.do_MPF()
+    dijet_analysis.do_MPF()
     multijet_analysis.do_DB()
-    # multijet_analysis.do_MPF()
+    multijet_analysis.do_MPF()
     
     standard_analysis.run_histograms()
     dijet_analysis.run_histograms()
@@ -80,9 +80,5 @@ if __name__ == "__main__":
     
     filewriter = FileWriter(output_path + "/multisample_" + run_id + ".root", triggerlist)
     filewriter.write_samples([standard_analysis, dijet_analysis, multijet_analysis])
-    
-    # for sample, histos in zip(["dijet", "multijet"], [hists, hists2]):
-    # for trigger, histograms in hists1.items():
-    #     filewriter.write_trigger(trigger, histograms) # sample + "/" + trigger, histograms)
     filewriter.close()
     print("Done")
