@@ -1,7 +1,7 @@
 import ROOT
 from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
-from RDFAnalyzer import JEC_corrections
+from RDFAnalyzer import JEC_corrections, RDFAnalyzer
 from RDFHelpers import parse_arguments
 
 from filewriter import FileWriter
@@ -51,37 +51,38 @@ if __name__ == "__main__":
     ROOT.EnableImplicitMT(nThreads)
     
     print("Creating analysis object")
-    print(L2Relative, args.L2Relative, args.L2Relative)
-
     corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
+    
+    standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
+    
     dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
-
-    dijet_analysis.do_inclusive()
-    dijet_analysis.do_PFComposition()
-    dijet_analysis.do_DB()
-    dijet_analysis.do_MPF()
-    dijet_analysis.do_RunsAndLumis()
+    multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
+    
+    # standard_analysis.do_inclusive()
+    # standard_analysis.do_PFComposition()
+    standard_analysis.do_RunsAndLumis()
+    
     if is_mc:
-        dijet_analysis.do_MC()
+        standard_analysis.do_MC()
     
-    # multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
-    # multijet_analysis.do_inclusive()
-    # multijet_analysis.do_PFComposition()
-    # multijet_analysis.do_DB()
+    dijet_analysis.do_DB()
+    # dijet_analysis.do_MPF()
+    multijet_analysis.do_DB()
     # multijet_analysis.do_MPF()
-    # multijet_analysis.do_RunsAndLumis()
-    # if is_mc:
-    #     multijet_analysis.do_MC()
     
+    standard_analysis.run_histograms()
     dijet_analysis.run_histograms()
-    hists = dijet_analysis.get_histograms()
+    multijet_analysis.run_histograms()
     
-    # multijet_analysis.run_histograms()
-    # hists2 = multijet_analysis.get_histograms()
+    hists1 = standard_analysis.get_histograms()
+    hists2 = dijet_analysis.get_histograms()
+    hists3 = multijet_analysis.get_histograms()
     
-    filewriter = FileWriter(output_path + "/dijet_" + run_id + ".root")
+    filewriter = FileWriter(output_path + "/multisample_" + run_id + ".root", triggerlist)
+    filewriter.write_samples([standard_analysis, dijet_analysis, multijet_analysis])
+    
     # for sample, histos in zip(["dijet", "multijet"], [hists, hists2]):
-    for trigger, histograms in hists.items():
-        filewriter.write_trigger(trigger, histograms) # sample + "/" + trigger, histograms)
+    # for trigger, histograms in hists1.items():
+    #     filewriter.write_trigger(trigger, histograms) # sample + "/" + trigger, histograms)
     filewriter.close()
     print("Done")
