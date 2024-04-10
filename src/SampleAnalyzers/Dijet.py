@@ -96,8 +96,8 @@ class DijetAnalyzer(RDFAnalyzer):
         asymmetry_alpha = 0.7
         delta_phi = 2.7
         rdf_dijet = (rdf.Filter("nJet >= 2")
-                    # Choose tag and probe jets, this is just a hack to get a random number
-                    .Define("tag_idx", "int(int(Jet_phi[0]*1000) % 2 == 0)")
+                    # Choose tag and probe jets, use gRandom-Rndm()
+                    .Define("tag_idx", "int(round(gRandom->Rndm()))")
                     .Define("probe_idx", "tag_idx == 0")
                     .Define("deltaPhi_dijet", "abs(Jet_phi[tag_idx] - Jet_phi[probe_idx])")
                     .Define("deltaEta_dijet", "abs(Jet_eta[tag_idx] - Jet_eta[probe_idx])")
