@@ -51,8 +51,6 @@ if __name__ == "__main__":
     ROOT.EnableImplicitMT(nThreads)
     
     print("Creating analysis object")
-    print(L2Relative, args.L2Relative, args.L2Relative)
-
     corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
     dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
 

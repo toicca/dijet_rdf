@@ -1,7 +1,7 @@
 import ROOT
 from dataclasses import dataclass
 from typing import List
-from RDFHelpers import get_bins
+from RDFHelpers import get_bins, get_fill_range
 import numpy as np
 from make_JEC import compile_JEC, load_JEC, clean_JEC
 import copy
@@ -37,6 +37,7 @@ class RDFAnalyzer:
                 progress_bar : bool = False,
                 isMC : bool = False,
                 local : bool = False,
+                system : str = "standard",
                 ) -> "RDFAnalyzer":
         self.nThreads = nThreads
         self.trigger_list = copy.deepcopy(trigger_list)
@@ -44,9 +45,20 @@ class RDFAnalyzer:
         self.trigger_rdfs = {} # format : {trigger : rdf}. self.rdf is not initialized here due to order of operations
         self.has_run = False # possibly unnecessary
         self.chain = None
-        self.bins = get_bins()
         self.JEC_included = False
         self.isMC = isMC
+        self.run = ""
+        self.system = system
+        
+        if not self.isMC:
+            # Find the Run from filename
+            i = filelist[0].find("Run")
+            self.run = filelist[0][i:i+8]
+            frange = get_fill_range(self.run)
+            self.bins = get_bins(fill_range=frange)
+            print(f"Using fill range {frange} for run {self.run}")
+        else:
+            self.bins = get_bins()
         
         self.rdf = self.__loadRDF(filelist, nFiles = nFiles, local = local)
         if progress_bar:
@@ -270,9 +282,9 @@ class RDFAnalyzer:
 
     def run_histograms(self) -> "RDFAnalyzer":
         if not self.has_run:
+            print(f"Running histograms for system: {self.system}")
             for trigger in self.trigger_list:
                 if trigger != "":
-                    print("Running histograms for trigger", trigger)
                     RunGraphs(self.histograms[trigger])
             
             self.has_run = True
@@ -283,6 +295,7 @@ class RDFAnalyzer:
     def do_inclusive(self) -> "RDFAnalyzer":
         # Create the inclusive histograms
         # HOX! How do you know that the HLT jet isn't cut away with Jet_jetId or eta cut?
+        print(f"Creating inclusive histograms for {self.system}")
         for trigger, rdf in self.trigger_rdfs.items():
             all_rdf = rdf
             selected_rdf = ((self.Flag_cut(rdf))
@@ -304,7 +317,7 @@ class RDFAnalyzer:
                 eta_binned_lead_rdfs[i] = (selected_rdf.Filter(f"abs(Jet_eta[0]) > {val[0]} && abs(Jet_eta[0]) < {val[1]}")
                 )
                 
-            print("Creating inclusive histograms for trigger", trigger)
+            
             self.histograms[trigger].extend([
                 all_rdf.Histo2D(("Inclusive_EtaVsPt_all", "Inclusive_EtaVsPt;#eta;p_{T} (GeV);",
                                 self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]),
@@ -352,11 +365,13 @@ class RDFAnalyzer:
         if not self.isMC:
             raise ValueError("Trying to use MC specific functions on data")
         
+        print(f"Creating MC histograms for system: {self.system}")
+        
         for trigger, rdf in self.trigger_rdfs.items():
             rdf = self._MC_cut(rdf)
             all_rdf = rdf
             selected_rdf = ((self.Flag_cut(rdf)))
-            print("Creating MC histograms for trigger", trigger)
+            
             for inner_rdf, rdf_name in zip([all_rdf, selected_rdf], ["all", "selected"]):
                 
                 self.histograms[trigger].extend([
@@ -403,10 +418,11 @@ class RDFAnalyzer:
         return rdf_MC
     
     def do_RunsAndLumis(self) -> "RDFAnalyzer":
+        print(f"Creating run and lumi histograms for system: {self.system}")
         for trigger, rdf in self.trigger_rdfs.items():
             all_rdf = rdf
             selected_rdf = (self.Flag_cut(rdf))
-            print("Creating run and lumi histograms for trigger", trigger)
+            
             self.histograms[trigger].extend([
                 all_rdf.Histo1D(("RunAndLumi_Run_all", "Run_all;Run;N_{events}", self.bins["runs"]["n"], self.bins["runs"]["bins"]), "run", "weight"),
                 all_rdf.Histo1D(("RunAndLumi_Lumi_all", "Lumi_all;Lumi;N_{events}", self.bins["lumi"]["n"], self.bins["lumi"]["bins"]), "luminosityBlock", "weight"),
@@ -436,9 +452,6 @@ class RDFAnalyzer:
             print("Creating PFComposition histograms for trigger", trigger)
             # TODO: This kind of behaviour of repeating histogram creation could be optimized
             self.histograms[trigger].extend([
-                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfilePt_all", "PFComposition_EtaVsPtVsProfilePt;|#eta|;p_{T} (GeV);p_{T} (GeV);", 
-                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
-                    "Jet_eta", "Jet_pt", "Jet_pt", "weight"),
                 all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileRho_all", "PFComposition_EtaVsPtVsProfileRho;|#eta|;p_{T} (GeV);#rho;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Rho_fixedGridRhoFastjetAll", "weight"),
@@ -457,9 +470,6 @@ class RDFAnalyzer:
                 all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileMUF_all", "PFComposition_EtaVsPtVsProfileMUF;|#eta|;p_{T} (GeV);MUF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_muEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfilePt_selected", "PFComposition_EtaVsPtVsProfilePt|#eta_{jet}|;p_{T} (GeV);p_{T} (GeV);", 
-                    self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
-                    "Jet_eta", "Jet_pt", "Jet_pt", "weight"),
                 selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileRho_selected", "PFComposition_EtaVsPtVsProfileRho|#eta_{jet}|;p_{T} (GeV);#rho;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Rho_fixedGridRhoFastjetAll", "weight"),

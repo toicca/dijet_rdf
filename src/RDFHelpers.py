@@ -89,10 +89,32 @@ def parse_arguments():
 
 #====================================================
 #
-# Bins for histograms
+# Bins for histograms and Run/IOV information
 #
 #====================================================
-def get_bins() -> dict:
+
+def get_fill_range(IOV : str) -> tuple:
+    fill_dict = {
+        "Run2024B": (378981, 380100),
+        "Run2024A": (376370, 378980),
+        "Commissioning2023": (363380, 365738),
+        "Run2023A": (365739, 366364),
+        "Run2023B": (366365, 367079),
+        "Run2023C": (367080, 369802),
+        "Run2023D": (369803, 372415),
+        "Run2023E": (372417, 373075),
+        "Run2023F": (373076, 376371),
+        "Commissioning2022": (347687, 352318),
+        "Run2022A": (352319, 355064),
+        "Run2022B": (355065, 355793),
+        "Run2022C": (355794, 357486),
+        "Run2022D": (357487, 359021),
+        "Run2022E": (359022, 360331),
+        "Run2022F": (360332, 362180)
+    }
+    return fill_dict[IOV]
+    
+def get_bins(fill_range : tuple = (376370, 380100)) -> dict:
     bins = {}
     
     # These pt and eta bins are some JEC bins
@@ -139,7 +161,8 @@ def get_bins() -> dict:
     bins["asymmetry"]["n"] = len(bins["asymmetry"]["bins"]) - 1
     
     bins["runs"] = {}
-    bins["runs"]["bins"] = np.linspace(355065, 391370, int((391370-355065) / 10000), dtype=float)
+    # bins["runs"]["bins"] = np.linspace(355065, 391370, int((391370-355065) / 10000), dtype=float)
+    bins["runs"]["bins"] = np.linspace(fill_range[0], fill_range[1], int((fill_range[1] - fill_range[0])), dtype=float)
     bins["runs"]["n"] = len(bins["runs"]["bins"]) - 1
     
     bins["bx"] = {}
