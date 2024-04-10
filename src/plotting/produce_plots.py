@@ -65,6 +65,8 @@ def produce_plots(file, output_path, config, trigger_list=[]):
                 y_max = 1.05*y_max
 
                 iPos = 33
+                if hist.InheritsFrom("TH2D") or hist.InheritsFrom("TProfile2D"):
+                    iPos = 0
 
                 CMS.SetExtraText("Private")
                 CMS.SetEnergy("13.6")
