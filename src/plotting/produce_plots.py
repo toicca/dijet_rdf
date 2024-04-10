@@ -46,84 +46,87 @@ def produce_plots(file, output_path, config, trigger_list=[]):
         triggers = [tkey.GetName() for tkey in trigger_keys]
 
     for trigger in triggers:
-        methods = file.Get(trigger)
-        for method_key in methods.GetListOfKeys():
-            method_name = method_key.GetName()
-            pathlib.Path("{}/{}/{}".format(output_path, trigger, method_name)).mkdir(exist_ok=True, parents=True)
-            hists = methods.Get(method_name)
-            for hist_key in hists.GetListOfKeys():
-                hist_name = hist_key.GetName()
-                hist = hists.Get(hist_name)
+        systems = file.Get(trigger)
+        for system_key in systems.GetListOfKeys():
+            system_name = system_key.GetName()
+            methods = systems.Get(system_name)
+            for method_key in methods.GetListOfKeys():
+                method_name = method_key.GetName()
+                pathlib.Path("{}/{}/{}/{}".format(output_path, trigger, system_name, method_name)).mkdir(exist_ok=True, parents=True)
+                hists = methods.Get(method_name)
+                for hist_key in hists.GetListOfKeys():
+                    hist_name = hist_key.GetName()
+                    hist = hists.Get(hist_name)
 
-                xlabel = hist.GetXaxis().GetTitle()
-                ylabel = hist.GetYaxis().GetTitle()
+                    xlabel = hist.GetXaxis().GetTitle()
+                    ylabel = hist.GetYaxis().GetTitle()
 
-                (b_min, b_max) = (hist.GetMinimumBin(), hist.GetMaximumBin())
-                (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
-                (y_min, y_max) = (hist.GetBinContent(b_min), hist.GetBinContent(b_max))
-                y_max = 1.05*y_max
+                    (b_min, b_max) = (hist.GetMinimumBin(), hist.GetMaximumBin())
+                    (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
+                    (y_min, y_max) = (hist.GetBinContent(b_min), hist.GetBinContent(b_max))
+                    y_max = 1.05*y_max
 
-                iPos = 33
+                    iPos = 33
 
-                # Move CMS logo/text out of frame so it does not get covered by the plot
-                if hist.InheritsFrom("TH2D") or hist.InheritsFrom("TProfile2D"):
-                    iPos = 0
+                    # Move CMS logo/text out of frame so it does not get covered by the plot
+                    if hist.InheritsFrom("TH2D") or hist.InheritsFrom("TProfile2D"):
+                        iPos = 0
 
-                CMS.SetExtraText("Private")
-                CMS.SetEnergy("13.6")
-                CMS.SetLumi("")
-                canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xlabel, ylabel, square = True, extraSpace=0.06, iPos=iPos)
+                    CMS.SetExtraText("Private")
+                    CMS.SetEnergy("13.6")
+                    CMS.SetLumi("")
+                    canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xlabel, ylabel, square = True, extraSpace=0.06, iPos=iPos)
 
-                if config.has_section(hist_name):
-                    logx = int(config[hist_name]["logx"])
-                    logy = int(config[hist_name]["logy"])
+                    if config.has_section(hist_name):
+                        logx = int(config[hist_name]["logx"])
+                        logy = int(config[hist_name]["logy"])
 
-                    if config[hist_name]["xlim"] != "":
-                        (x_min, x_max) = tuple(map(float, config[hist_name]["xlim"].split(" ")))
-    
-                    if config[hist_name]["ylim"] != "":
-                        (y_min, y_max) = tuple(map(float, config[hist_name]["ylim"].split(" ")))
-    
-                    if config[hist_name]["xlabel"] != "":
-                        xlabel = config[hist_name]["xlabel"]
-    
-                    if config[hist_name]["ylabel"] != "":
-                        xlabel = config[hist_name]["ylabel"]
+                        if config[hist_name]["xlim"] != "":
+                            (x_min, x_max) = tuple(map(float, config[hist_name]["xlim"].split(" ")))
 
-                    if config[hist_name]["iPos"] != "":
-                        iPos = int(config[hist_name]["iPos"])
+                        if config[hist_name]["ylim"] != "":
+                            (y_min, y_max) = tuple(map(float, config[hist_name]["ylim"].split(" ")))
 
-                    canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xlabel, ylabel, square = True, extraSpace=0.06, iPos=0)
+                        if config[hist_name]["xlabel"] != "":
+                            xlabel = config[hist_name]["xlabel"]
 
-                    if logx == 1:
-                        canv.SetLogx()
+                        if config[hist_name]["ylabel"] != "":
+                            xlabel = config[hist_name]["ylabel"]
 
-                    if logy == 1:
-                        canv.SetLogy()
+                        if config[hist_name]["iPos"] != "":
+                            iPos = int(config[hist_name]["iPos"])
 
-                    if config[hist_name]["xlabelsize"] != "":
-                        xlabelsize = float(config[hist_name]["xlabelsize"])
-                        CMS.GetcmsCanvasHist(canv).GetXaxis().SetLabelSize(xlabelsize)
+                        canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xlabel, ylabel, square = True, extraSpace=0.06, iPos=0)
 
-                    if config[hist_name]["ylabelsize"] != "":
-                        ylabelsize = float(config[hist_name]["ylabelsize"])
-                        CMS.GetcmsCanvasHist(canv).GetYaxis().SetLabelSize(ylabelsize)
-                
-                CMS.GetcmsCanvasHist(canv).GetYaxis().SetTitleOffset(1.5)
-                CMS.GetcmsCanvasHist(canv).GetXaxis().SetTitleOffset(0.9)
-                
-                marker = hist.GetMarkerStyle()
-                msize = hist.GetMarkerSize()
-                mcolor = hist.GetMarkerColor()
-                lstyle = hist.GetLineStyle()
-                lwidth = hist.GetLineWidth()
-                lcolor = hist.GetLineColor()
-                fstyle = hist.GetFillStyle()
-                fcolor = hist.GetFillColor()
-                CMS.cmsDraw(hist, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
-                canv.Draw()
-                
-                CMS.SaveCanvas(canv, "{}/{}/{}/{}.pdf".format(output_path, trigger, method_name, hist_name))
+                        if logx == 1:
+                            canv.SetLogx()
+
+                        if logy == 1:
+                            canv.SetLogy()
+
+                        if config[hist_name]["xlabelsize"] != "":
+                            xlabelsize = float(config[hist_name]["xlabelsize"])
+                            CMS.GetcmsCanvasHist(canv).GetXaxis().SetLabelSize(xlabelsize)
+
+                        if config[hist_name]["ylabelsize"] != "":
+                            ylabelsize = float(config[hist_name]["ylabelsize"])
+                            CMS.GetcmsCanvasHist(canv).GetYaxis().SetLabelSize(ylabelsize)
+
+                    CMS.GetcmsCanvasHist(canv).GetYaxis().SetTitleOffset(1.5)
+                    CMS.GetcmsCanvasHist(canv).GetXaxis().SetTitleOffset(0.9)
+
+                    marker = hist.GetMarkerStyle()
+                    msize = hist.GetMarkerSize()
+                    mcolor = hist.GetMarkerColor()
+                    lstyle = hist.GetLineStyle()
+                    lwidth = hist.GetLineWidth()
+                    lcolor = hist.GetLineColor()
+                    fstyle = hist.GetFillStyle()
+                    fcolor = hist.GetFillColor()
+                    CMS.cmsDraw(hist, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
+                    canv.Draw()
+
+                    CMS.SaveCanvas(canv, "{}/{}/{}/{}/{}.pdf".format(output_path, trigger, system_name, method_name, hist_name))
 
 if __name__ == "__main__":
     args = parse_arguments()
