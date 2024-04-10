@@ -21,16 +21,16 @@ void init_vetomap(TString VetoMapFile) {
     f->Close();
 }
 
-ROOT::RVec<int> isGoodVeto(ROOT::RVec<float> eta, ROOT::RVec<float> phi) {
-    ROOT::RVec<int> passed_veto(0);
+ROOT::RVec<bool> isGoodVeto(ROOT::RVec<float> eta, ROOT::RVec<float> phi) {
+    ROOT::RVec<bool> passed_veto(0);
     for (unsigned int i = 0; i < eta.size(); i++) {
         int bin = VetoMap->FindBin(eta[i], phi[i]);
         int content = VetoMap->GetBinContent(bin);
         if (content > 0) {
-            passed_veto.push_back(0);
+            passed_veto.push_back(false);
         }
         else {
-            passed_veto.push_back(1);
+            passed_veto.push_back(true);
         }
     }
     return passed_veto;
