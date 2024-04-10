@@ -38,7 +38,7 @@ class RDFAnalyzer:
                 isMC : bool = False,
                 local : bool = False,
                 system : str = "standard",
-                ) -> "RDFAnalyzer":
+                ):
         self.nThreads = nThreads
         self.trigger_list = copy.deepcopy(trigger_list)
         self.histograms = {"all" : []} # format : {trigger : [histograms]}
@@ -151,7 +151,6 @@ class RDFAnalyzer:
         # Set gRandom seed
         ROOT.gRandom.SetSeed(12345)
         
-        return self
 
     def Flag_cut(self, rdf : RNode) -> RNode:
         flag = """Flag_goodVertices && 

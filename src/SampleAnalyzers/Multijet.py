@@ -25,14 +25,15 @@ class MultijetAnalyzer(RDFAnalyzer):
 
     def do_DB(self) -> "MultijetAnalyzer":
         system = "multijet"
+        print(f"Creating DB histograms for system: {self.system}")
         for trigger, rdf in self.trigger_rdfs.items():
-            db_rdf = self.Flag_cut(self.__sample_cut(rdf))
+            db_rdf = self.__sample_cut(self.Flag_cut(rdf))
             pT_binLabels = ["average_Pt_multijet", "Jet_pt_lead", "pt_recoil"]
 
             db_rdf = (db_rdf.Define(f"response_DB_{system}", f"(1.0 + Asymmetry_{system}) / (1.0 - Asymmetry_{system})")
                     )
             
-            print("Creating DB histograms for trigger", trigger)
+            
             self.histograms[trigger].extend([
                 db_rdf.Histo1D((f"DB_{system}_Response", "DB_"+ str(system) + "_response;response;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), f"response_DB_{system}", "weight"),
                 db_rdf.Histo2D((f"DB_{system}_EtaprobeVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta_{probe}|;response",
@@ -55,14 +56,14 @@ class MultijetAnalyzer(RDFAnalyzer):
     
     def do_MPF(self) -> "MultijetAnalyzer":
         system = "multijet"
+        print(f"Creating MPF histograms for system: {self.system}")
         for trigger, rdf in self.trigger_rdfs.items():
-            db_rdf = self.Flag_cut(self.__sample_cut(rdf))
+            db_rdf = self.__sample_cut(self.Flag_cut(rdf))
             pT_binLabels = ["average_Pt_multijet", "Jet_pt_lead", "pt_recoil"]
 
             db_rdf = (db_rdf.Define(f"response_MPF_{system}", f"(1.0 + B_{system}) / (1.0 - B_{system})")
                     )
             
-            print("Creating MPF histograms for trigger", trigger)
             self.histograms[trigger].extend([
                 db_rdf.Histo1D((f"MPF_{system}_Response", "MPF_"+ str(system) + "_response;response;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), f"response_MPF_{system}", "weight"),
                 db_rdf.Histo2D((f"DB_{system}_EtaVsResponse", "DB_"+ str(system) + "_EtaVsResponse;|#eta|;response", self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]), f"Jet_eta_tag_{system}", f"response_MPF_{system}", "weight")
@@ -90,26 +91,28 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Redefine("Jet_jetId", f"Jet_jetId[Jet_pt > {min_pt}]")
                     .Redefine("Jet_pt", f"Jet_pt[Jet_pt > {min_pt}]")
                     .Filter("Jet_pt.size() >= 3")
-                    .Define("sortedArgs", "ROOT::VecOps::Argsort(Jet_pt)")
-                    .Define("leading_idx", "sortedArgs[Jet_pt.size() - 1]")
-                    .Define("second_idx", "sortedArgs[Jet_pt.size() - 2]")
-                    .Define("third_idx", "sortedArgs[Jet_pt.size() - 3]")
+                    .Define("leading_idx", "Jet_order[0]")
+                    .Define("second_idx", "Jet_order[1]")
+                    .Define("third_idx", "Jet_order[2]")
+                    # Filter the lead and recoil system
                     .Define("Jet_pt_lead", "Jet_pt[leading_idx]")
+                    .Filter(f"Jet_pt_lead > {min_pt} && abs(Jet_eta[leading_idx]) < {lead_eta} && Jet_jetId[leading_idx] >= 4")
+                    .Filter(f"Jet_pt[second_idx] > {min_pt} && abs(Jet_eta[second_idx]) < {recoil_eta} && Jet_jetId[second_idx] >= 4")
+                    .Filter(f"Jet_pt[third_idx] > {min_pt} && abs(Jet_eta[third_idx]) < {recoil_eta} && Jet_jetId[third_idx] >= 4")
+                    
                     .Define("pt_recoil", "ROOT::VecOps::Sum(Jet_pt) - Jet_pt_lead")
                     .Define("eta_recoil", "ROOT::VecOps::Sum(Jet_eta) - Jet_eta[leading_idx]")
                     .Define("phi_recoil", "ROOT::VecOps::Sum(Jet_phi) - Jet_phi[leading_idx]")
                     .Define("mass_recoil", "ROOT::VecOps::Sum(Jet_mass) - Jet_mass[leading_idx]")
                     .Define("average_Pt_multijet", "(Jet_pt_lead + pt_recoil) / (float(Jet_pt.size()))")
+                    
                     .Define("Jet_eta_tag_multijet", "eta_recoil") # Also, scuffed
-                    # Is this deltaPhi good? Phi_recoil sussy
-                    .Define("deltaPhi_multijet", "abs(Jet_phi[leading_idx] - phi_recoil) < 3.141592653 ? abs(Jet_phi[leading_idx] - phi_recoil) : 2 * 3.141592653 - abs(Jet_phi[leading_idx] - phi_recoil)")
-                    # Filter the lead and recoil system
-                    .Filter(f"Jet_pt[leading_idx] > {min_pt} && abs(Jet_eta[leading_idx]) < {lead_eta} && Jet_jetId[leading_idx] >= 4")
-                    .Filter(f"Jet_pt[second_idx] > {min_pt} && abs(Jet_eta[second_idx]) < {recoil_eta} && Jet_jetId[second_idx] >= 4")
-                    .Filter(f"Jet_pt[third_idx] > {min_pt} && abs(Jet_eta[third_idx]) < {recoil_eta} && Jet_jetId[third_idx] >= 4")
+                    .Define("deltaPhi_multijet", "abs(Jet_phi[leading_idx] - phi_recoil)")
+                    .Redefine("deltaPhi_multijet", "deltaPhi_multijet > TMath::Pi() ? TMath::TwoPi() - deltaPhi_multijet : deltaPhi_multijet")
+
                     .Filter(f"Jet_pt[second_idx] < 0.6 * pt_recoil")
                     .Filter(f"Jet_pt[third_idx] < 0.6 * pt_recoil")
-                    .Filter(f"abs(deltaPhi_multijet - 3.141592653) < {delta_phi}")
+                    .Filter(f"abs(deltaPhi_multijet - TMath::Pi()) < {delta_phi}")
                     # Asymmetry of the system
                     .Define("Asymmetry_multijet", "(Jet_pt_lead - pt_recoil) / (Jet_pt_lead + pt_recoil)")
                     .Define("B_multijet", "RawPuppiMET_pt * cos(ROOT::VecOps::DeltaPhi(Jet_phi[leading_idx], RawPuppiMET_phi)) / (Jet_pt_lead + pt_recoil)")

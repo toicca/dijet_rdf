@@ -1,11 +1,12 @@
 import ROOT
 import os
 from typing import List, Dict
+from RDFAnalyzer import RDFAnalyzer
 
 class FileWriter:
-    def __init__(self, output_file : str, triggers : List[str] = [], samples : Dict[str, List] = {}):
+    def __init__(self, output_file : str, triggers : List[str] = []):
         self.triggers = triggers
-        self.samples = samples
+        
         
         self.output_file = output_file
         if not os.path.exists(os.path.dirname(output_file)):
@@ -26,6 +27,25 @@ class FileWriter:
             self.output.cd("..")
             
         self.output.cd("..")
+        
+    def write_samples(self, samples : List[RDFAnalyzer], triggers : List[str] = []):
+        if not triggers:
+            triggers = self.triggers
+            
+        for trigger in triggers:
+            for sample in samples:
+                histograms = sample.get_histograms()
+                
+                for hist in histograms[trigger]:
+                    hist_name = hist.GetName()
+                    file_name = hist_name.split("_")[0]
+                    if not self.output.GetDirectory(trigger + "/" + sample.system + "/" + file_name):
+                        print("We made it")
+                        self.output.mkdir(trigger + "/" + sample.system + "/" + file_name)
+                    self.output.cd(trigger + "/" + sample.system + "/" + file_name)
+                    hist.Write()
+                    self.output.cd()
+            
         
     def close(self):
         self.output.Close()

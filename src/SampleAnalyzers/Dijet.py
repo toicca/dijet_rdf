@@ -26,9 +26,9 @@ class DijetAnalyzer(RDFAnalyzer):
 
     def do_DB(self) -> "DijetAnalyzer":
         system = "dijet"
-        print(f"Creating DB histograms for trigger {self.system}")
+        print(f"Creating DB histograms for system: {self.system}")
         for trigger, rdf in self.trigger_rdfs.items():
-            db_rdf = self.Flag_cut(self.__sample_cut(rdf))
+            db_rdf = self.__sample_cut(self.Flag_cut(rdf))
             pT_binLabels = ["average_Pt_dijet", "Jet_pt_tag", "Jet_pt_probe"]
 
             db_rdf = (db_rdf.Define(f"response_DB_{system}", f"(1.0 + Asymmetry_{system}) / (1.0 - Asymmetry_{system})")
@@ -69,7 +69,7 @@ class DijetAnalyzer(RDFAnalyzer):
     
     def do_MPF(self) -> "DijetAnalyzer":
         system = "dijet"
-        print(f"Creating MPF histograms for system {self.system}")
+        print(f"Creating MPF histograms for system: {self.system}")
         for trigger, rdf in self.trigger_rdfs.items():
             db_rdf = self.__sample_cut(self.Flag_cut(rdf))
             pT_binLabels = ["average_Pt_dijet", "Jet_pt_tag", "Jet_pt_probe"]
@@ -121,7 +121,6 @@ class DijetAnalyzer(RDFAnalyzer):
     
     
     def __sample_cut(self, rdf : RNode) -> RNode:
-        print("Applying sample cuts")
         min_pt = 15
         tag_eta = 1.3
         asymmetry_alpha = 0.7
