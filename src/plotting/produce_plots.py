@@ -1,11 +1,7 @@
 import ROOT
-import uproot
-import mplhep as hep
 import numpy as np
 import matplotlib.pyplot as plt
-from hist import Hist
 import os
-import matplotlib as mpl
 import argparse
 import configparser
 from typing import List
@@ -70,7 +66,8 @@ def produce_plots(file, output_path, config, trigger_list=[]):
 
                 iPos = 33
 
-                CMS.SetExtraText("Simulation Preliminary")
+                CMS.SetExtraText("Private")
+                CMS.SetEnergy("13.6")
                 CMS.SetLumi("")
                 canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xlabel, ylabel, square = True, extraSpace=0.06, iPos=iPos)
 
