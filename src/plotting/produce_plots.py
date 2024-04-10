@@ -40,7 +40,6 @@ def read_config_file(file: str) -> configparser.ConfigParser:
 
 
 def produce_plots(file, output_path, config, trigger_list=[]):
-    subfolder_name = file.GetName().split("/")[-1].replace(".root", "").replace(".", "_")
     triggers = trigger_list
     if len(triggers) == 0:
         trigger_keys = file.GetListOfKeys()
@@ -50,7 +49,7 @@ def produce_plots(file, output_path, config, trigger_list=[]):
         methods = file.Get(trigger)
         for method_key in methods.GetListOfKeys():
             method_name = method_key.GetName()
-            pathlib.Path("{}/{}/{}/{}".format(output_path, subfolder_name, trigger, method_name)).mkdir(exist_ok=True, parents=True)
+            pathlib.Path("{}/{}/{}".format(output_path, trigger, method_name)).mkdir(exist_ok=True, parents=True)
             hists = methods.Get(method_name)
             for hist_key in hists.GetListOfKeys():
                 hist_name = hist_key.GetName()
@@ -65,6 +64,8 @@ def produce_plots(file, output_path, config, trigger_list=[]):
                 y_max = 1.05*y_max
 
                 iPos = 33
+
+                # Move CMS logo/text out of frame so it does not get covered by the plot
                 if hist.InheritsFrom("TH2D") or hist.InheritsFrom("TProfile2D"):
                     iPos = 0
 
@@ -122,7 +123,7 @@ def produce_plots(file, output_path, config, trigger_list=[]):
                 CMS.cmsDraw(hist, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
                 canv.Draw()
                 
-                CMS.SaveCanvas(canv, "{}/{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger, method_name, hist_name))
+                CMS.SaveCanvas(canv, "{}/{}/{}/{}.pdf".format(output_path, trigger, method_name, hist_name))
 
 if __name__ == "__main__":
     args = parse_arguments()
