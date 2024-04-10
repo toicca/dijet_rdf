@@ -40,7 +40,6 @@ class FileWriter:
                     hist_name = hist.GetName()
                     file_name = hist_name.split("_")[0]
                     if not self.output.GetDirectory(trigger + "/" + sample.system + "/" + file_name):
-                        print("We made it")
                         self.output.mkdir(trigger + "/" + sample.system + "/" + file_name)
                     self.output.cd(trigger + "/" + sample.system + "/" + file_name)
                     hist.Write()
