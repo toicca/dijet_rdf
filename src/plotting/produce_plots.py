@@ -58,6 +58,10 @@ def produce_plots(file, output_path, config, trigger_list=[]):
                     hist_name = hist_key.GetName()
                     hist = hists.Get(hist_name)
 
+                    # ignore 3D histograms and profiles for now
+                    if hist.InheritsFrom("TH3D") or hist.InheritsFrom("TProfile3D"):
+                        continue
+
                     xlabel = hist.GetXaxis().GetTitle()
                     ylabel = hist.GetYaxis().GetTitle()
 
