@@ -4,9 +4,9 @@ from typing import List, Dict
 from RDFAnalyzer import RDFAnalyzer
 
 class FileWriter:
-    def __init__(self, output_file : str, triggers : List[str] = []):
+    def __init__(self, output_file : str, triggers : List[str] = [], cut_hist_names : bool = False):
         self.triggers = triggers
-        
+        self.cut_hist_names = cut_hist_names
         
         self.output_file = output_file
         if not os.path.exists(os.path.dirname(output_file)):
@@ -23,6 +23,9 @@ class FileWriter:
             if not self.output.GetDirectory(trigger + "/" + file_name):
                 self.output.mkdir(trigger + "/" + file_name)
             self.output.cd(trigger + "/" + file_name)
+            if self.cut_hist_names:
+                hist_name = hist_name.split("_")[-1]
+                hist.SetName(hist_name)
             hist.Write()
             self.output.cd("..")
             
@@ -42,6 +45,15 @@ class FileWriter:
                     if not self.output.GetDirectory(trigger + "/" + sample.system + "/" + file_name):
                         self.output.mkdir(trigger + "/" + sample.system + "/" + file_name)
                     self.output.cd(trigger + "/" + sample.system + "/" + file_name)
+                    if self.cut_hist_names:
+                        if hist_name.split("_")[-1] == "selected":
+                            hist_name = hist_name.split("_")[-2] + "_selected"  
+                        elif hist_name.split("_")[-1] == "all":
+                            hist_name = hist_name.split("_")[-2] + "_all"
+                        else:
+                            hist_name = hist_name.split("_")[-1]
+                            
+                    hist.SetName(hist_name)
                     hist.Write()
                     self.output.cd()
             

@@ -56,6 +56,7 @@ def parse_arguments():
     parser.add_argument('-verb', '--verbosity', type=int, choices=[0,1,2], help='Verbosity level')   # TODO
     parser.add_argument('-pbar', '--progress_bar', action='store_true', help='Show progress bar')
     parser.add_argument('-cfrep', '--cutflow_report', action='store_true', help='Print cutflow report') # TODO
+    parser.add_argument('-cutHN', '--cut_histogram_names', action='store_true', default=False, help='Cut the method from histogram names')
 
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()
@@ -65,7 +66,10 @@ def parse_arguments():
         config = read_config_file(args.config)
         for arg, value in config["GENERAL"].items():
             # Do a type conversion for the option
-            if arg == "number_of_files" or arg == "nThreads" or arg == "verbosity" or arg == "is_local" or arg == "is_mc" or arg == "progress_bar" or arg == "cutflow_report":
+            if arg == "number_of_files" or arg == "nThreads" \
+            or arg == "verbosity" or arg == "is_local" \
+            or arg == "is_mc" or arg == "progress_bar" \
+            or arg == "cutflow_report"  or arg == "cut_histogram_names":
                 if value == "":
                     setattr(args, arg, 0)
                 else:

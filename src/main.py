@@ -47,10 +47,11 @@ if __name__ == "__main__":
     verbosity = args.verbosity
     progress_bar = args.progress_bar
     cutflow_report = args.cutflow_report
+    cut_hist_names = args.cut_histogram_names
     
     ROOT.EnableImplicitMT(nThreads)
     
-    print("Creating analysis object")
+    print("Creating analysis object " + ("(MC)" if is_mc else "(Data)"))
     corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
     
     standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
@@ -67,6 +68,7 @@ if __name__ == "__main__":
     
     dijet_analysis.do_DB()
     dijet_analysis.do_MPF()
+    multijet_analysis.do_sample_control()
     multijet_analysis.do_DB()
     multijet_analysis.do_MPF()
     
@@ -78,7 +80,7 @@ if __name__ == "__main__":
     hists2 = dijet_analysis.get_histograms()
     hists3 = multijet_analysis.get_histograms()
     
-    filewriter = FileWriter(output_path + "/multisample_" + run_id + ".root", triggerlist)
+    filewriter = FileWriter(output_path + "/multisample_" + run_id + ".root", standard_analysis.trigger_list, cut_hist_names)
     filewriter.write_samples([standard_analysis, dijet_analysis, multijet_analysis])
     filewriter.close()
     print("Done")

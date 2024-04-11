@@ -78,6 +78,7 @@ class RDFAnalyzer:
                     .Define("Jet_passesVetomap", "ROOT::VecOps::RVec<int>(Jet_pt.size(), 1)")
                     .Define("RawPuppiMET_polar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
                     .Define("all_trigs", trigger_string)
+                    .Define("all", "1")
                     .Define("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
                     .Define("Jet_eta_leading", "Jet_eta[Jet_order[0]]")
                     )
@@ -147,6 +148,7 @@ class RDFAnalyzer:
 
         # Only after JECs, common cuts etc. have been applied, we can create the inclusive rdf
         self.trigger_rdfs["all"] = self.rdf
+        self.trigger_list.append("all")
         
         # Set gRandom seed
         ROOT.gRandom.SetSeed(12345)
@@ -202,9 +204,9 @@ class RDFAnalyzer:
         # Remember that this might alter the leading jets!
         ROOT.init_JEC(L1 = jec.L1, L2Relative = jec.L2Relative, L2L3 = jec.L2L3, nThreads = self.nThreads)
         
-        self.histograms["all"].extend([
-            self.rdf.Histo1D(("JEC_Jet_pt_original", "Jet_pt_original;p_{T} (GeV);N_{events}", self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
-            ])
+        # self.histograms["all"].extend([
+        #     self.rdf.Histo1D(("JEC_Jet_pt_original", "Jet_pt_original;p_{T} (GeV);N_{events}", self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
+        #     ])
 
         rdf = (self.rdf.Define("JEC", "getJEC(rdfslot_, Jet_pt, Jet_eta, Jet_area, Rho_fixedGridRhoFastjetAll)")
                .Redefine("Jet_pt", "Jet_rawPt * JEC")
@@ -212,9 +214,9 @@ class RDFAnalyzer:
                .Redefine("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
                .Redefine("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
         )
-        self.histograms["all"].extend([
-            rdf.Histo1D(("JEC", "JEC;JEC;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JEC", "weight"),
-            ])
+        # self.histograms["all"].extend([
+        #     rdf.Histo1D(("JEC", "JEC;JEC;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JEC", "weight"),
+        #     ])
 
         return rdf
     
@@ -276,8 +278,11 @@ class RDFAnalyzer:
         return rdf
             
     def get_histograms(self) -> dict:
-        print("Returning histograms")
-        return self.histograms
+        if not self.has_run:
+            print("Please run histograms first")
+            return {}
+        else:
+            return self.histograms
 
     def run_histograms(self) -> "RDFAnalyzer":
         if not self.has_run:
@@ -538,6 +543,9 @@ class RDFAnalyzer:
         return self
     
     def __sample_cut(self, rdf : RNode):
+        pass
+    
+    def do_sample_control(self, rdf : RNode):
         pass
 
 
