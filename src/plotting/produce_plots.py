@@ -79,7 +79,6 @@ def produce_plots(file, output_path, config, trigger_list=[]):
                         
                         iPos = 0
 
-
                     CMS.SetExtraText("Private")
                     CMS.SetEnergy("13.6")
                     CMS.SetLumi("")
