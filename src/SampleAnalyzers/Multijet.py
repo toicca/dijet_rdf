@@ -179,7 +179,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Multijet_recoilPolar", "ROOT::Math::Polar2DVectorF(Multijet_recoilPt, Multijet_recoilPhi)")
                     .Define("Multijet_avgPolar", "(Multijet_recoilPolar- Multijet_leadPolar) / (Multijet_leadPolar.R() + Multijet_recoilPolar.R())")
                     .Define("Multijet_bisectorPolar", "ROOT::Math::Polar2DVectorF(1.0, (Multijet_recoilPolar - Multijet_leadPolar).Phi())")
-                    .Define("Multijet_nRecoil", "Jet_pt.size() - 1")
+                    .Define("Multijet_nRecoil", "Jet_pt_recoil.size()")
                     .Define("Multijet_ptAvg", "(Multijet_leadPt + Multijet_recoilPt) / float(Multijet_nRecoil + 1)")
                     .Define("Multijet_ptAvp", "0.5 * (Multijet_recoilPolar.Dot(Multijet_bisectorPolar) - Multijet_leadPolar.Dot(Multijet_bisectorPolar))")
                     # Responses
