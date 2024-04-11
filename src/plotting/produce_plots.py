@@ -74,6 +74,9 @@ def produce_plots(file, output_path, config, trigger_list=[]):
 
                     # Move CMS logo/text out of frame so it does not get covered by the plot
                     if hist.InheritsFrom("TH2D") or hist.InheritsFrom("TProfile2D"):
+                        (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
+                        (y_min, y_max) = (hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax())
+                        
                         iPos = 0
 
                     CMS.SetExtraText("Private")
