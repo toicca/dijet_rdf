@@ -73,7 +73,7 @@ class RDFAnalyzer:
         # Initial variables
         self.rdf = (self.rdf.Define("weight", "genWeight" if self.isMC else "1.0")
                     .Filter("nJet > 0", "Only events with jets")
-                    .Define("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
+                    .Define("Jet_order", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Jet_pt))")
                     .Define("Jet_rawPt", "Jet_pt * (1.0-Jet_rawFactor)")
                     .Define("Jet_passesVetomap", "ROOT::VecOps::RVec<int>(Jet_pt.size(), 1)")
                     .Define("RawPuppiMET_polar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
@@ -440,6 +440,7 @@ class RDFAnalyzer:
         return self
     
     def do_PFComposition(self) -> "RDFAnalyzer":
+        print("Creating PFComposition histograms for system: ", self.system)
         for trigger, rdf in self.trigger_rdfs.items():
             all_rdf = rdf
             selected_rdf = ((self.Flag_cut(rdf))
@@ -453,7 +454,6 @@ class RDFAnalyzer:
                             .Redefine("Jet_muEF", "Jet_muEF[Jet_jetId >= 4]")
                             )
             
-            print("Creating PFComposition histograms for trigger", trigger)
             # TODO: This kind of behaviour of repeating histogram creation could be optimized
             self.histograms[trigger].extend([
                 all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileRho_all", "PFComposition_EtaVsPtVsProfileRho;#eta;p_{T} (GeV);#rho;", 
