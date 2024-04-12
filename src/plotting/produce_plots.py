@@ -65,18 +65,19 @@ def produce_plots(file, output_path, config, trigger_list=[]):
                     xlabel = hist.GetXaxis().GetTitle()
                     ylabel = hist.GetYaxis().GetTitle()
 
-                    (b_min, b_max) = (hist.GetMinimumBin(), hist.GetMaximumBin())
                     (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
-                    (y_min, y_max) = (hist.GetBinContent(b_min), hist.GetBinContent(b_max))
-                    y_max = 1.05*y_max
+                    (y_min, y_max) = (hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax())
+
+                    if hist.InheritsFrom("TH1D") or hist.InheritsFrom("TProfile1D"):
+                        (b_min, b_max) = (hist.GetMinimumBin(), hist.GetMaximumBin())
+                        (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
+                        (y_min, y_max) = (hist.GetBinContent(b_min), hist.GetBinContent(b_max))
+                        y_max = 1.05*y_max
 
                     iPos = 33
 
                     # Move CMS logo/text out of frame so it does not get covered by the plot
                     if hist.InheritsFrom("TH2D") or hist.InheritsFrom("TProfile2D"):
-                        (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
-                        (y_min, y_max) = (hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax())
-                        
                         iPos = 0
 
                     CMS.SetExtraText("Private")
