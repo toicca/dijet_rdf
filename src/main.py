@@ -67,6 +67,7 @@ if __name__ == "__main__":
         standard_analysis.do_MC()
     
     dijet_analysis.do_DB()
+    dijet_analysis.do_sample_control()
     dijet_analysis.do_MPF()
     multijet_analysis.do_sample_control()
     multijet_analysis.do_DB()

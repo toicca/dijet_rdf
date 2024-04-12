@@ -41,6 +41,10 @@ class DijetAnalyzer(RDFAnalyzer):
                 control_rdf.Histo1D((f"Control_{self.system}_EtaProbe", "Control_"+ str(self.system) + "_EtaProbe;#eta_{probe};N_{events}",
                                     self.bins["eta"]["n"], self.bins["eta"]["bins"]),
                                     "Dijet_probeEta", "weight"),
+                # Direct response as a function of pT
+                control_rdf.Profile1D((f"Control_{self.system}_ResponseVsPt", "Control_"+ str(self.system) + "_ResponseVsPt;p_{T, tag} (GeV);response;N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                    "Dijet_tagPt", "Dijet_dbDirectResponse", "weight"),
             ])
             
         return self
@@ -144,6 +148,7 @@ class DijetAnalyzer(RDFAnalyzer):
                     .Define("Dijet_ptAvp", "0.5 * (Dijet_tagPolar.Dot(Dijet_probePolar) - Dijet_probePolar.Dot(Dijet_probePolar))")
                     .Define("Dijet_mpfResponse", "(1.0 + Dijet_B) / (1.0 - Dijet_B)")
                     .Define("Dijet_dbResponse", "(1.0 + Dijet_A) / (1.0 - Dijet_A)")
+                    .Define("Dijet_dbDirectResponse", "Dijet_probeVector.Pt() / Dijet_tagVector.Pt()")
                     )
         return rdf_dijet
     
