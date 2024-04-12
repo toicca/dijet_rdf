@@ -78,6 +78,7 @@ class RDFAnalyzer:
                     .Define("Jet_passesVetomap", "ROOT::VecOps::RVec<int>(Jet_pt.size(), 1)")
                     .Define("RawPuppiMET_polar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
                     .Define("all_trigs", trigger_string)
+                    .Define("all", "1")
                     .Define("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
                     .Define("Jet_eta_leading", "Jet_eta[Jet_order[0]]")
                     )
@@ -147,6 +148,7 @@ class RDFAnalyzer:
 
         # Only after JECs, common cuts etc. have been applied, we can create the inclusive rdf
         self.trigger_rdfs["all"] = self.rdf
+        self.trigger_list.append("all")
         
         # Set gRandom seed
         ROOT.gRandom.SetSeed(12345)
@@ -202,9 +204,9 @@ class RDFAnalyzer:
         # Remember that this might alter the leading jets!
         ROOT.init_JEC(L1 = jec.L1, L2Relative = jec.L2Relative, L2L3 = jec.L2L3, nThreads = self.nThreads)
         
-        self.histograms["all"].extend([
-            self.rdf.Histo1D(("JEC_Jet_pt_original", "Jet_pt_original;p_{T} (GeV);N_{events}", self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
-            ])
+        # self.histograms["all"].extend([
+        #     self.rdf.Histo1D(("JEC_Jet_pt_original", "Jet_pt_original;p_{T} (GeV);N_{events}", self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
+        #     ])
 
         rdf = (self.rdf.Define("JEC", "getJEC(rdfslot_, Jet_pt, Jet_eta, Jet_area, Rho_fixedGridRhoFastjetAll)")
                .Redefine("Jet_pt", "Jet_rawPt * JEC")
@@ -212,9 +214,9 @@ class RDFAnalyzer:
                .Redefine("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
                .Redefine("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
         )
-        self.histograms["all"].extend([
-            rdf.Histo1D(("JEC", "JEC;JEC;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JEC", "weight"),
-            ])
+        # self.histograms["all"].extend([
+        #     rdf.Histo1D(("JEC", "JEC;JEC;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JEC", "weight"),
+        #     ])
 
         return rdf
     
@@ -276,8 +278,11 @@ class RDFAnalyzer:
         return rdf
             
     def get_histograms(self) -> dict:
-        print("Returning histograms")
-        return self.histograms
+        if not self.has_run:
+            print("Please run histograms first")
+            return {}
+        else:
+            return self.histograms
 
     def run_histograms(self) -> "RDFAnalyzer":
         if not self.has_run:
@@ -451,86 +456,86 @@ class RDFAnalyzer:
             print("Creating PFComposition histograms for trigger", trigger)
             # TODO: This kind of behaviour of repeating histogram creation could be optimized
             self.histograms[trigger].extend([
-                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileRho_all", "PFComposition_EtaVsPtVsProfileRho;|#eta|;p_{T} (GeV);#rho;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileRho_all", "PFComposition_EtaVsPtVsProfileRho;#eta;p_{T} (GeV);#rho;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Rho_fixedGridRhoFastjetAll", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNHF_all", "PFComposition_EtaVsPtVsProfileNHF;|#eta|;p_{T} (GeV);NHF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNHF_all", "PFComposition_EtaVsPtVsProfileNHF;#eta;p_{T} (GeV);NHF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_neHEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNEF_all", "PFComposition_EtaVsPtVsProfileNEF;|#eta|;p_{T} (GeV);NEF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNEF_all", "PFComposition_EtaVsPtVsProfileNEF;#eta;p_{T} (GeV);NEF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_neEmEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCHF_all", "PFComposition_EtaVsPtVsProfileCHF;|#eta|;p_{T} (GeV);CHF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCHF_all", "PFComposition_EtaVsPtVsProfileCHF;#eta;p_{T} (GeV);CHF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_chHEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCEF_all", "PFComposition_EtaVsPtVsProfileCEF;|#eta|;p_{T} (GeV);CEF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCEF_all", "PFComposition_EtaVsPtVsProfileCEF;#eta;p_{T} (GeV);CEF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_chEmEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileMUF_all", "PFComposition_EtaVsPtVsProfileMUF;|#eta|;p_{T} (GeV);MUF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileMUF_all", "PFComposition_EtaVsPtVsProfileMUF;#eta;p_{T} (GeV);MUF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_muEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileRho_selected", "PFComposition_EtaVsPtVsProfileRho|#eta_{jet}|;p_{T} (GeV);#rho;", 
+                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileRho_selected", "PFComposition_EtaVsPtVsProfileRho;#eta_{jet};p_{T} (GeV);#rho;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Rho_fixedGridRhoFastjetAll", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNHF_selected", "PFComposition_EtaVsPtVsProfileNHF|#eta_{jet}|;p_{T} (GeV);NHF;", 
+                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNHF_selected", "PFComposition_EtaVsPtVsProfileNHF;#eta_{jet};p_{T} (GeV);NHF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_neHEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNEF_selected", "PFComposition_EtaVsPtVsProfileNEF|#eta_{jet}|;p_{T} (GeV);NEF;", 
+                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileNEF_selected", "PFComposition_EtaVsPtVsProfileNEF;#eta_{jet};p_{T} (GeV);NEF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_neEmEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCHF_selected", "PFComposition_EtaVsPtVsProfileCHF|#eta_{jet}|;p_{T} (GeV);CHF;", 
+                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCHF_selected", "PFComposition_EtaVsPtVsProfileCHF;#eta_{jet};p_{T} (GeV);CHF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_chHEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCEF_selected", "PFComposition_EtaVsPtVsProfileCEF|#eta_{jet}|;p_{T} (GeV);CEF;", 
+                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileCEF_selected", "PFComposition_EtaVsPtVsProfileCEF;#eta_{jet};p_{T} (GeV);CEF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_chEmEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileMUF_selected", "PFComposition_EtaVsPtVsProfileMUF|#eta_{jet}|;p_{T} (GeV);MUF;", 
+                selected_rdf.Profile2D(("PFComposition_EtaVsPtVsProfileMUF_selected", "PFComposition_EtaVsPtVsProfileMUF;#eta_{jet};p_{T} (GeV);MUF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["pt"]["n"], self.bins["pt"]["bins"]), 
                     "Jet_eta", "Jet_pt", "Jet_muEF", "weight")
             ])
             
             # Same plots as above but eta vs phi
             self.histograms[trigger].extend([
-                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfilePt_all", "PFComposition_EtaVsPhiVsProfilePt;|#eta|;#phi;p_{T} (GeV);", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfilePt_all", "PFComposition_EtaVsPhiVsProfilePt;#eta;#phi;p_{T} (GeV);", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_pt", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileRho_all", "PFComposition_EtaVsPhiVsProfileRho;|#eta|;#phi;#rho;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileRho_all", "PFComposition_EtaVsPhiVsProfileRho;#eta;#phi;#rho;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Rho_fixedGridRhoFastjetAll", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNHF_all", "PFComposition_EtaVsPhiVsProfileNHF;|#eta|;#phi;NHF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNHF_all", "PFComposition_EtaVsPhiVsProfileNHF;#eta;#phi;NHF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_neHEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNEF_all", "PFComposition_EtaVsPhiVsProfileNEF;|#eta|;#phi;NEF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNEF_all", "PFComposition_EtaVsPhiVsProfileNEF;#eta;#phi;NEF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_neEmEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCHF_all", "PFComposition_EtaVsPhiVsProfileCHF;|#eta|;#phi;CHF;", 
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCHF_all", "PFComposition_EtaVsPhiVsProfileCHF;#eta;#phi;CHF;", 
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_chHEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCEF_all", "PFComposition_EtaVsPhiVsProfileCEF;|#eta|;#phi;CEF;",
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCEF_all", "PFComposition_EtaVsPhiVsProfileCEF;#eta;#phi;CEF;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_chEmEF", "weight"),
-                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileMUF_all", "PFComposition_EtaVsPhiVsProfileMUF;|#eta|;#phi;MUF;",
+                all_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileMUF_all", "PFComposition_EtaVsPhiVsProfileMUF;#eta;#phi;MUF;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_muEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfilePt_selected", "PFComposition_EtaVsPhiVsProfilePt|#eta_{jet}|;#phi;p_{T} (GeV);",
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfilePt_selected", "PFComposition_EtaVsPhiVsProfilePt;#eta_{jet};#phi;p_{T} (GeV);",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_pt", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileRho_selected", "PFComposition_EtaVsPhiVsProfileRho|#eta_{jet}|;#phi;#rho;",
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileRho_selected", "PFComposition_EtaVsPhiVsProfileRho;#eta_{jet};#phi;#rho;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Rho_fixedGridRhoFastjetAll", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNHF_selected", "PFComposition_EtaVsPhiVsProfileNHF|#eta_{jet}|;#phi;NHF;",
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNHF_selected", "PFComposition_EtaVsPhiVsProfileNHF;#eta_{jet};#phi;NHF;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_neHEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNEF_selected", "PFComposition_EtaVsPhiVsProfileNEF|#eta_{jet}|;#phi;NEF;",
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileNEF_selected", "PFComposition_EtaVsPhiVsProfileNEF;#eta_{jet};#phi;NEF;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_neEmEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCHF_selected", "PFComposition_EtaVsPhiVsProfileCHF|#eta_{jet}|;#phi;CHF;",
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCHF_selected", "PFComposition_EtaVsPhiVsProfileCHF;#eta_{jet};#phi;CHF;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_chHEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCEF_selected", "PFComposition_EtaVsPhiVsProfileCEF|#eta_{jet}|;#phi;CEF;",
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileCEF_selected", "PFComposition_EtaVsPhiVsProfileCEF;#eta_{jet};#phi;CEF;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_chEmEF", "weight"),
-                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileMUF_selected", "PFComposition_EtaVsPhiVsProfileMUF|#eta_{jet}|;#phi;MUF;",
+                selected_rdf.Profile2D(("PFComposition_EtaVsPhiVsProfileMUF_selected", "PFComposition_EtaVsPhiVsProfileMUF;#eta_{jet};#phi;MUF;",
                     self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]), 
                     "Jet_eta", "Jet_phi", "Jet_muEF", "weight")
             ])
@@ -538,6 +543,9 @@ class RDFAnalyzer:
         return self
     
     def __sample_cut(self, rdf : RNode):
+        pass
+    
+    def do_sample_control(self, rdf : RNode):
         pass
 
 
