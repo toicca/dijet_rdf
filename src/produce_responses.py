@@ -7,11 +7,23 @@ import numpy as np
 response_histos = (("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsResponse"),
                     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsResponse"),
                     ("multijet", "MPF", "MPF_multijet_PtLeadVsEtaVsResponse"),
+                    ("multijet", "DB", "DB_multijet_PtAvgVsEtaVsResponse"),
+                    ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsResponse"),
+                    ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtAvgVsEtaVsResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtProbeVsEtaVsResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtTagVsEtaVsResponse"),
+                    ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsResponse"),
+                    ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsResponse"),
+                    ("dijet", "DB", "DB_dijet_PtTagVsEtaVsResponse"),
 )
 
 derived_histos = (("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsB"),
                     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsB"),
                     ("multijet", "MPF", "MPF_multijet_PtLeadVsEtaVsB"),
+                    ("multijet", "DB", "DB_multijet_PtAvgVsEtaVsA"),
+                    ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsA"),
+                    ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsA"),
 )
 
 def parse_arguments():
@@ -62,17 +74,17 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
             
             # Profile
             h3 = h2.ProfileX()
-            h3.SetName("projected_response_"+histogram)
+            h3.SetName(method + "_projected_response_"+histogram.replace("VsResponse", "").replace("VsEta", "").replace(f"_{method}_{system}", ""))
             
             # Save
             file.cd(response_path)
-            h2.Write()
+            # h2.Write()
             h3.Write()
             file.cd()
             
         for system, method, histogram in derived_histos:    
             path = f"{trg}/{system}/{method}/"
-            response_path = f"{trg}/{system}/Responses2"
+            response_path = f"{trg}/{system}/Responses"
             if not file.GetDirectory(path):
                 file.mkdir(path)
             if not file.GetDirectory(response_path):
@@ -100,15 +112,11 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
             
             h3.Divide(nominator, denominator, 1, 1)
             
-            h3.SetName("derived_response_"+histogram)
+            h3.SetName(method + "_derived_response_"+histogram.replace("VsResponse", "").replace("VsEta", "").replace(f"_{method}_{system}", ""))
             
             # Save
             file.cd(response_path)
             h3.Write()
-                
-                
-
-        
         
 
 

@@ -120,7 +120,7 @@ def produce_vetomap_old(input_file: str, trigger_list: List[str], output_path: s
                 
                 h1ns.SetBinContent(i, n)
                 
-                # Scale and shift the distribution to have mean = 0
+                # Scale and shift the distribution to have median = 0
                 for j in range(1, h2.GetNbinsY()+1):
                     if h2.GetBinError(i, j) != 0 and n > 70:
                         h2.SetBinContent(i, j, h2.GetBinContent(i, j) / median - 1.0)
@@ -247,7 +247,7 @@ def produce_vetomap(input_file: str, trigger_list: List[str], output_path: str):
 
                 h2 = obj.ProjectionXY() if obj.InheritsFrom("TProfile2D") else obj
                 
-                # Calculate average JES shift
+                # Save DB
                 if hname == "DB_dijet_EtaprobeVsPhiprobeVsAsymmetry":
                     DB_map = h2.Clone("DB_map")
                                     
