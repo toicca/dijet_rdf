@@ -120,7 +120,15 @@ def produce_plots_from_config(file, output_path, config, plots):
                         system_method_hist_str = f"{system_name}/{method_name}/{hist_name}"
                         if hist_name in hists_config or method_hist_str in hists_config or system_method_hist_str in hists_config:
                             hist = hists.Get(hist_name)
-                            collected_plots.append(hist)
+                            marker = hist.GetMarkerStyle()
+                            msize = hist.GetMarkerSize()
+                            mcolor = hist.GetMarkerColor()
+                            lstyle = hist.GetLineStyle()
+                            lwidth = hist.GetLineWidth()
+                            lcolor = hist.GetLineColor()
+                            fstyle = hist.GetFillStyle()
+                            fcolor = hist.GetFillColor()
+                            CMS.cmsDraw(hist, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
             
             if len(collected_plots) == 0: continue
             
@@ -200,17 +208,6 @@ def produce_plots_from_config(file, output_path, config, plots):
                 xtitleoffset = float(config[plot_name]["ytitleoffset"])
                 CMS.GetcmsCanvasHist(canv).GetYaxis().SetTitleOffset(ytitleoffset)
 
-            marker = hist.GetMarkerStyle()
-            msize = hist.GetMarkerSize()
-            mcolor = hist.GetMarkerColor()
-            lstyle = hist.GetLineStyle()
-            lwidth = hist.GetLineWidth()
-            lcolor = hist.GetLineColor()
-            fstyle = hist.GetFillStyle()
-            fcolor = hist.GetFillColor()
-            for plot in collected_plots:
-                CMS.cmsDraw(plot, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
-            canv.Draw()
             CMS.SaveCanvas(canv, "{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger, plot_name))
 
 if __name__ == "__main__":
