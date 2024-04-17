@@ -4,13 +4,27 @@ from typing import List
 import argparse, configparser
 import numpy as np
 
-hist_names = ("PFComposition_EtaVsPhiVsProfileNEF_selected",
-            "PFComposition_EtaVsPhiVsProfileCEF_selected",
-            "PFComposition_EtaVsPhiVsProfileCHF_selected",
-            "DB_dijet_EtaprobeVsPhiprobeVsAsymmetry",
-            "Inclusive_EtaVsPhi_selected"
-            )
+response_histos = (("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsResponse"),
+                    ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsResponse"),
+                    ("multijet", "MPF", "MPF_multijet_PtLeadVsEtaVsResponse"),
+                    ("multijet", "DB", "DB_multijet_PtAvgVsEtaVsResponse"),
+                    ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsResponse"),
+                    ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtAvgVsEtaVsResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtProbeVsEtaVsResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtTagVsEtaVsResponse"),
+                    ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsResponse"),
+                    ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsResponse"),
+                    ("dijet", "DB", "DB_dijet_PtTagVsEtaVsResponse"),
+)
 
+derived_histos = (("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsB"),
+                    ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsB"),
+                    ("multijet", "MPF", "MPF_multijet_PtLeadVsEtaVsB"),
+                    ("multijet", "DB", "DB_multijet_PtAvgVsEtaVsA"),
+                    ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsA"),
+                    ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsA"),
+)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Dijet responses for dijet_rdf: https://github.com/toicca/dijet_rdf")
@@ -36,8 +50,6 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
     Response producer for dijet_rdf.
     """
 
-    system = "dijet"
-    methods = ["DB", "MPF"]
     bins = get_bins()
     
     file = ROOT.TFile(file, "UPDATE")
@@ -46,72 +58,65 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
         trigger_keys = file.GetListOfKeys()
         trigger_list = [tkey.GetName() for tkey in trigger_keys]
         
-    if system == "dijet":
-        pT_binLabels = ["average_Pt_dijet", "Jet_pt_tag", "Jet_pt_probe"]
-    elif system == "multijet":
-        pT_binLabels = ["average_Pt_multijet", "Jet_pt_lead", "pt_recoil"]
-        
-    for method in methods:
-        for trg in trigger_list:
-            path = f"{trg}/{method}/"
-            if not file.GetDirectory(trg):
-                file.mkdir(trg)
+    for trg in trigger_list:
+        for system, method, histogram in response_histos:
+            path = f"{trg}/{system}/{method}/"
+            response_path = f"{trg}/{system}/Responses"
             if not file.GetDirectory(path):
                 file.mkdir(path)
-            if not file.GetDirectory(trg+"/Responses2"):
-                file.mkdir(trg+"/Responses2")
+            if not file.GetDirectory(response_path):
+                file.mkdir(response_path)
 
-            for binning in pT_binLabels:
-                
-                h = file.Get(path + f"{method}_{system}_PtVsEtaVsResponse_PtBin{binning}")
-                # Get the projection w.r.t. y-axis
-                h.GetYaxis().SetRangeUser(-2.5, 2.5)
-                h2 = h.Project3D("zx")
-                
-                # Profile
-                h3 = h2.ProfileX()
-                h3.SetName(f"{method}_{system}_PtVsEtaVsResponse_PtBin{binning}_Profile")
-                
-                # Save
-                file.cd(trg+"/Responses2")
-                h2.Write()
-                h3.Write()
-                file.cd()
-                
-                if method=="MPF":
-                    h = file.Get(path + f"{method}_{system}_PtVsEtaVsB_PtBin{binning}")
-                else:
-                    h = file.Get(path + f"{method}_{system}_PtVsEtaVsAsymmetry_PtBin{binning}")
-                    
-                h.GetYaxis().SetRangeUser(-2.5, 2.5)
-                h2 = h.Project3D("zx")
-                
-                # Profile
-                h3 = h2.ProfileX().ProjectionX()
-                
-                # Unit histogram
-                unit = h3.Clone()
-                unit.Reset()
-                for i in range(1, unit.GetNbinsX()+1):
-                    unit.SetBinContent(i, 1)
-                    unit.SetBinError(i, 0)
-                    
-                nominator = unit.Clone()
-                nominator.Add(unit, h3, c1=1.0, c2=1.0)
-                denominator = unit.Clone()
-                denominator.Add(unit, h3, c1=1.0, c2=-1.0)
-                
-                h3.Divide(nominator, denominator, 1, 1, "B")
-                
-                h3.SetName(f"rehti_{method}_{system}_PtVsEtaVsB_PtBin{binning}_Profile")
-                
-                # Save
-                file.cd(trg+"/Responses2")
-                h3.Write()
+            h = file.Get(path + histogram)
+            # Get the projection w.r.t. y-axis
+            h.GetYaxis().SetRangeUser(-2.5, 2.5)
+            h2 = h.Project3D("zx")
             
+            # Profile
+            h3 = h2.ProfileX()
+            h3.SetName(method + "_projected_response_"+histogram.replace("VsResponse", "").replace("VsEta", "").replace(f"_{method}_{system}", ""))
             
+            # Save
+            file.cd(response_path)
+            # h2.Write()
+            h3.Write()
+            file.cd()
+            
+        for system, method, histogram in derived_histos:    
+            path = f"{trg}/{system}/{method}/"
+            response_path = f"{trg}/{system}/Responses"
+            if not file.GetDirectory(path):
+                file.mkdir(path)
+            if not file.GetDirectory(response_path):
+                file.mkdir(response_path)
 
-        
+            h = file.Get(path + histogram)
+            # Get the projection w.r.t. y-axis
+            h.GetYaxis().SetRangeUser(-2.5, 2.5)
+            h2 = h.Project3D("zx")
+            
+            # # Profile
+            h3 = h2.ProfileX().ProjectionX()
+            
+            # # Unit histogram
+            unit = h3.Clone()
+            unit.Reset()
+            for i in range(1, unit.GetNbinsX()+1):
+                unit.SetBinContent(i, 1)
+                unit.SetBinError(i, 0)
+                
+            nominator = unit.Clone()
+            nominator.Add(unit, h3, c1=1.0, c2=1.0)
+            denominator = unit.Clone()
+            denominator.Add(unit, h3, c1=1.0, c2=-1.0)
+            
+            h3.Divide(nominator, denominator, 1, 1)
+            
+            h3.SetName(method + "_derived_response_"+histogram.replace("VsResponse", "").replace("VsEta", "").replace(f"_{method}_{system}", ""))
+            
+            # Save
+            file.cd(response_path)
+            h3.Write()
         
 
 
