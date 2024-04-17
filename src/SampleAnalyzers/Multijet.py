@@ -272,10 +272,10 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Multijet_B", "RawPuppiMET_polar.Dot(Multijet_leadPolar) / (2.0 * Multijet_ptAvg * Multijet_leadPolar.R())")
                     .Define("Multijet_Brecoil", "RawPuppiMET_polar.Dot(Multijet_recoilPolar) / (2.0 * Multijet_ptAvg * Multijet_recoilPolar.R())")
                     .Define("Multijet_mpfResponse", "(1.0 + Multijet_B) / (1.0 - Multijet_B)")
-                    .Define("Multijet_mpfLeadResponse", "1.0 + RawPuppiMET_polar.Dot(Multijet_leadPolar) / (Multijet_leadPolar.R() * Multijet_leadPolar.R())")
-                    .Define("Multijet_mpfAvgResponse", "1.0 + RawPuppiMET_polar.Dot(Multijet_avgPolar) / (Multijet_ptAvg * Multijet_avgPolar.R())")
-                    .Define("Multijet_mpfAvpResponse", "1.0 + RawPuppiMET_polar.Dot(Multijet_bisectorPolar) / (Multijet_ptAvg * Multijet_bisectorPolar.R())")
-                    .Define("Multijet_mpfRecoilResponse", "1.0 + RawPuppiMET_polar.Dot(Multijet_recoilPolar) / (Multijet_recoilPolar.R() * Multijet_recoilPolar.R())")
+                    .Define("Multijet_mpfLeadResponse", "1.0 - RawPuppiMET_polar.Dot(Multijet_leadPolar) / (Multijet_leadPolar.R() * Multijet_leadPolar.R())")
+                    .Define("Multijet_mpfAvgResponse", "1.0 + RawPuppiMET_polar.Dot(Multijet_avgPolar) / (Multijet_avgPolar.R() * Multijet_avgPolar.R())")
+                    .Define("Multijet_mpfAvpResponse", "1.0 + RawPuppiMET_polar.Dot(Multijet_bisectorPolar) / (Multijet_bisectorPolar.R() * Multijet_bisectorPolar.R())")
+                    .Define("Multijet_mpfRecoilResponse", "1.0 - RawPuppiMET_polar.Dot(Multijet_recoilPolar) / (Multijet_recoilPolar.R() * Multijet_recoilPolar.R())")
 
                     )
 

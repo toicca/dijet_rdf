@@ -252,9 +252,12 @@ class RDFAnalyzer:
             
         self.histograms["all"].extend([
             rdf.Histo1D(("VetoMap_VetoMap", "VetoMap;VetoMap;N_{events}", 2, 0, 2), "Jet_passesVetomap", "weight"),
-            rdf.Histo1D(("VetoMap_VetoMapWithGen", "VetoMapWithGen;VetoMapWithGen;N_{events}", 2, 0, 2), "JetWithGen_passesVetomap", "weight"),
-            rdf.Histo1D(("VetoMap_VetoMapNoGen", "VetoMapNoGen;VetoMapNoGen;N_{events}", 2, 0, 2), "JetNoGen_passesVetomap", "weight")
         ])
+        if self.isMC:
+            self.histograms["all"].extend([
+                rdf.Histo1D(("VetoMap_VetoMapWithGen", "VetoMapWithGen;VetoMapWithGen;N_{events}", 2, 0, 2), "JetWithGen_passesVetomap", "weight"),
+                rdf.Histo1D(("VetoMap_VetoMapNoGen", "VetoMapNoGen;VetoMapNoGen;N_{events}", 2, 0, 2), "JetNoGen_passesVetomap", "weight")
+            ])
         return rdf
     
     def do_smear_JER(self, jec : JEC_corrections) -> RNode:

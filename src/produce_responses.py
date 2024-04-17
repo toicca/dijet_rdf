@@ -72,33 +72,38 @@ def produce_resolutions(file: str, trigger_list: List[str], output_path : str):
                 file.mkdir(resolution_path)
 
             h = file.Get(path + histogram)
+            h.RebinY(4)
             resolutions = ROOT.TH2D("resolutions_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
-                                    bins["pt"]["n"], bins["pt"]["bins"], bins["eta"]["n"], bins["eta"]["bins"])          
+                                    bins["pt"]["n"], bins["pt"]["bins"], h.GetNbinsY(), h.GetYaxis().GetXmin(), h.GetYaxis().GetXmax())
+            projections = ROOT.TH2D("projections_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
+                                    bins["pt"]["n"], bins["pt"]["bins"], bins["pt"]["n"], bins["pt"]["bins"])
+
 
             # TH3.FitSlicesZ?
             for i in range(1, h.GetNbinsX()+1):
                 for j in range(1, h.GetNbinsY()+1):
                     # Fit to the asymmetry in the bin
                     proj = h.ProjectionZ(f"proj_{i}_{j}", i, i, j, j)
-                    # Find the median
-                    if proj.GetNbinsX() % 2 == 0:
-                        median = (proj.GetBinContent(proj.GetNbinsX()//2) + proj.GetBinContent(proj.GetNbinsX()//2+1))/2
-                    else:
-                        median = proj.GetBinContent(proj.GetNbinsX()//2)
+                    # Find the mean
+                    mean = proj.GetMean()
                     # Find the sigma
                     sigma = 0
                     for k in range(1, proj.GetNbinsX()+1):
-                        sigma += (proj.GetBinContent(k) - median)**2
-                    sigma = np.sqrt(sigma/proj.GetNbinsX())
+                        sigma += (proj.GetBinContent(k) - mean)**2
+                    sigma = proj.GetRMS()
 
-                    if abs(median) < sigma and sigma < 0.5:
-                        proj.Fit("gaus", "Q L N", "", median - 2*sigma, median + 2*sigma)
-                        fsigma = proj.GetFunction("gaus").GetParameter(1)
+                    if sigma > 0: 
+                        gaussian = ROOT.TF1("my_gaus", "gaus", mean - sigma, mean + sigma)
+                        proj.Fit(gaussian, "Q L N")
+                        fsigma = gaussian.GetParameter(2)
                         resolutions.SetBinContent(i, j, fsigma)
-                        resolutions.SetBinError(i, j, proj.GetFunction("gaus").GetParError(1))
+                        resolutions.SetBinError(i, j, gaussian.GetParError(2))
                     else:
-                        resolutions.SetBinContent(i, j, -1)
+                        resolutions.SetBinContent(i, j, 0)
                         resolutions.SetBinError(i, j, 0)
+                    # Save the projection
+                    for k in range(1, proj.GetNbinsX()+1):
+                        projections.SetBinContent(i, k, proj.GetBinContent(k))
 
             resolutions.SetName(method + "_projected_resolution_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""))
             
