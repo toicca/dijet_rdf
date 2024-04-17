@@ -289,23 +289,24 @@ def produce_vetomap(input_file: str, trigger_list: List[str], output_path: str):
                 if sigma != 0:
                     for j in range(1, sum_of_methods.GetNbinsY()+1):
                         # Require enough events in the bin
-                        if (sum_of_methods.GetBinError(i, j) != 0) and (sum_of_methods.GetBinError(i, j)/median < 0.5):
-                            delta = (sum_of_methods.GetBinContent(i, j) - median) / sigma
-                            veto_map_loose.SetBinContent(i, j, 0 if ((delta < 5) and (delta > -5)) else 1)
-                            veto_map_medium.SetBinContent(i, j, 0 if ((delta < 3) and (delta > -3)) else 1)
-                            veto_map_tight.SetBinContent(i, j, 0 if ((delta < 1) and (delta > -1)) else 1)
-                            spread_of_deltas.Fill(delta)
-                            deltas.SetBinContent(i, j, delta)
-                            
-                            if DB_map.GetBinContent(i, j) < 0 and abs(delta) > 3:
-                                veto_map_cold.SetBinContent(i, j, 1)
-                                veto_map_hot.SetBinContent(i, j, 0)
-                            elif DB_map.GetBinContent(i, j) > 0 and abs(delta) > 3:
-                                veto_map_cold.SetBinContent(i, j, 0)
-                                veto_map_hot.SetBinContent(i, j, 1)
-                            else:
-                                veto_map_cold.SetBinContent(i, j, 0)
-                                veto_map_hot.SetBinContent(i, j, 0)
+                        if median != 0:
+                            if (sum_of_methods.GetBinError(i, j) != 0) and (sum_of_methods.GetBinError(i, j)/median < 0.5):
+                                delta = (sum_of_methods.GetBinContent(i, j) - median) / sigma
+                                veto_map_loose.SetBinContent(i, j, 0 if ((delta < 5) and (delta > -5)) else 1)
+                                veto_map_medium.SetBinContent(i, j, 0 if ((delta < 3) and (delta > -3)) else 1)
+                                veto_map_tight.SetBinContent(i, j, 0 if ((delta < 1) and (delta > -1)) else 1)
+                                spread_of_deltas.Fill(delta)
+                                deltas.SetBinContent(i, j, delta)
+                                
+                                if DB_map.GetBinContent(i, j) < 0 and abs(delta) > 3:
+                                    veto_map_cold.SetBinContent(i, j, 1)
+                                    veto_map_hot.SetBinContent(i, j, 0)
+                                elif DB_map.GetBinContent(i, j) > 0 and abs(delta) > 3:
+                                    veto_map_cold.SetBinContent(i, j, 0)
+                                    veto_map_hot.SetBinContent(i, j, 1)
+                                else:
+                                    veto_map_cold.SetBinContent(i, j, 0)
+                                    veto_map_hot.SetBinContent(i, j, 0)
                             
                         else:
                             veto_map_loose.SetBinContent(i, j, 0)
