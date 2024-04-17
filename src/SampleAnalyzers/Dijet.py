@@ -16,9 +16,11 @@ class DijetAnalyzer(RDFAnalyzer):
                 nThreads : int = 1,
                 progress_bar : bool = False,
                 isMC : bool = False,
-                local : bool = False
+                local : bool = False,
+                run_raw : bool = False,
+                selection_only : bool = True
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="dijet")
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="dijet", run_raw=run_raw, selection_only = selection_only)
         
     def Flag_cut(self, rdf: RNode) -> RNode:
         return super().Flag_cut(rdf)
@@ -67,6 +69,16 @@ class DijetAnalyzer(RDFAnalyzer):
                 db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsResponse", "MPF_"+ str(system) + "_PtVsEtaVsResponse;p_{T, tag} (GeV);#eta_{probe};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Dijet_tagPt", "Dijet_probeEta", "Dijet_dbResponse", "weight"),
+                # 3D asymmetry distribution for JER 
+                db_rdf.Histo3D((f"DB_{system}_PtAvgVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, ave} (GeV);#eta_{probe};asymmetry;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                "Dijet_ptAvg", "Dijet_probeEta", "Dijet_A", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtProbeVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, probe} (GeV);#eta_{probe};asymmetry;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                "Dijet_probePt", "Dijet_probeEta", "Dijet_A", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, tag} (GeV);#eta_{probe};asymmetry;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                "Dijet_tagPt", "Dijet_probeEta", "Dijet_A", "weight"),
                 # 2D Asymmetry histogram for veto maps
                 db_rdf.Profile2D((f"DB_{system}_EtaprobeVsPhiprobeVsAsymmetry", "DB_"+ str(system) + "_EtaprobeVsPhiprobeVsAsymmetry;#eta_{probe};#phi_{probe};asymmetry;N_{events}",
                                   self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]),

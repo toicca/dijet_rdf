@@ -48,16 +48,25 @@ if __name__ == "__main__":
     progress_bar = args.progress_bar
     cutflow_report = args.cutflow_report
     cut_hist_names = args.cut_histogram_names
-    
+    run_raw = args.run_raw
+    selection_only = args.selection_only
+
     ROOT.EnableImplicitMT(nThreads)
     
     print("Creating analysis object " + ("(MC)" if is_mc else "(Data)"))
     corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
     
-    standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
+    standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, \
+                                    nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
+                                    selection_only=selection_only)
     
-    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
-    multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local)
+    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections,\
+                           nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
+                           selection_only=selection_only)
+    
+    multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, \
+                                nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
+                                selection_only=selection_only)
     
     standard_analysis.do_inclusive()
     standard_analysis.do_PFComposition()

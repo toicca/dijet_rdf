@@ -16,9 +16,11 @@ class MultijetAnalyzer(RDFAnalyzer):
                 nThreads : int = 1,
                 progress_bar : bool = False,
                 isMC : bool = False,
-                local : bool = False
+                local : bool = False,
+                run_raw : bool = False,
+                selection_only : bool = False
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="multijet")
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="multijet", run_raw=run_raw, selection_only=selection_only)
  
     def Flag_cut(self, rdf: RNode) -> RNode:
         return super().Flag_cut(rdf)
@@ -115,6 +117,9 @@ class MultijetAnalyzer(RDFAnalyzer):
                 db_rdf.Profile1D((f"DB_{system}_PtAveVsR", "DB_"+ str(system) + "_PtAveVsR;p_{T, ave} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_ptAvg", "Multijet_dbR_avg", "weight"),
+                db_rdf.Profile1D((f"DB_{system}_PtRecoilVsR_b2b", "DB_"+ str(system) + "_PtRecoilVsR_b2b;p_{T, recoil} (GeV);response;N_{events}",
+                                        self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                        "Multijet_recoilPt", "Multijet_dbR_recoilB2B", "weight"),
                 db_rdf.Profile1D((f"DB_{system}_PtRecoilVsR", "DB_"+ str(system) + "_PtRecoilVsR;p_{T, recoil} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_recoilPt", "Multijet_dbR_recoil", "weight"),
@@ -122,7 +127,12 @@ class MultijetAnalyzer(RDFAnalyzer):
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_leadPt", "Multijet_dbR_lead", "weight"),
             ])
-
+            db_gt100_rdf = self.__sample_cut(self.Flag_cut(rdf)).Filter("Multijet_recoilPt > 100")
+            self.histograms[trigger].extend([
+                db_gt100_rdf.Profile1D((f"DB_{system}_RunVsResponse", "DB_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
+                                         self.bins["runs"]["n"], self.bins["runs"]["bins"]),
+                                            "run", "Multijet_dbResponse", "weight"),
+            ])
         return self
     
     def do_MPF(self) -> "MultijetAnalyzer":
@@ -152,6 +162,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                 mpf_rdf.Histo3D((f"MPF_{system}_PtLeadVsEtaVsB", "MPF_"+ str(system) + "_PtLeadVsEtaVsB;p_{T, lead} (GeV);#eta_{recoil};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
                                 "Multijet_leadPt", "Multijet_recoilEta", "Multijet_B", "weight"),
+
                 # Average distributions for pT in barrel
                 mpf_rdf.Profile1D((f"MPF_{system}_PtAveVsResponse", "MPF_"+ str(system) + "_PtAveVsResponse;p_{T, ave} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
@@ -165,6 +176,12 @@ class MultijetAnalyzer(RDFAnalyzer):
                 mpf_rdf.Profile1D((f"MPF_{system}_PtRecoilVsResponse", "MPF_"+ str(system) + "_PtRecoilVsResponse;p_{T, recoil} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_recoilPt", "Multijet_mpfRecoilResponse", "weight"),
+            ])
+            mpf_gt100_rdf = self.__sample_cut(self.Flag_cut(rdf)).Filter("Multijet_recoilPt > 100")
+            self.histograms[trigger].extend([
+                mpf_gt100_rdf.Profile1D((f"MPF_{system}_RunVsResponse", "MPF_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
+                                         self.bins["runs"]["n"], self.bins["runs"]["bins"]),
+                                            "run", "Multijet_mpfRecoilResponse", "weight"),
             ])
 
         return self
@@ -248,6 +265,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Multijet_A", "(Multijet_recoilPt - Multijet_leadPt) / (Multijet_leadPt + Multijet_recoilPt)")
                     .Define("Multijet_dbResponse", "(1.0 + Multijet_A) / (1.0 - Multijet_A)")
                     .Define("Multijet_dbR_recoil", "-Multijet_recoilVector.Vect().Dot(Multijet_leadVector.Vect()) / (Multijet_recoilVector.Pt() * Multijet_recoilVector.Pt())") 
+                    .Define("Multijet_dbR_recoilB2B", "Multijet_recoilVector.Pt() / Multijet_leadVector.Pt()")
                     .Define("Multijet_dbR_lead", "-Multijet_recoilVector.Vect().Dot(Multijet_leadVector.Vect()) / (Multijet_recoilVector.Pt() * Multijet_leadVector.Pt())")
                     .Define("Multijet_dbR_avg", "-Multijet_recoilVector.Vect().Dot(Multijet_leadVector.Vect()) / (Multijet_recoilVector.Pt() * Multijet_ptAvg)")
                     # MPF

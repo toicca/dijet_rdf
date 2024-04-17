@@ -17,6 +17,10 @@ response_histos = (("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsResponse"),
                     ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsResponse"),
                     ("dijet", "DB", "DB_dijet_PtTagVsEtaVsResponse"),
 )
+resolution_histos = (("dijet", "DB", "DB_dijet_PtAvgVsEtaVsA"),
+                    ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsA"),
+                    ("dijet", "DB", "DB_dijet_PtTagVsEtaVsA"),
+)
 
 derived_histos = (("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsB"),
                     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsB"),
@@ -44,6 +48,66 @@ def parse_arguments():
     args = parser.parse_args()
     
     return args
+
+def produce_resolutions(file: str, trigger_list: List[str], output_path : str):
+    """
+    Resolution producer for dijet_rdf.
+    """
+
+    bins = get_bins()
+    
+    file = ROOT.TFile(file, "UPDATE")
+    if len(trigger_list) == 0:
+        print("No triggers provided. Using all triggers in the file.")
+        trigger_keys = file.GetListOfKeys()
+        trigger_list = [tkey.GetName() for tkey in trigger_keys]
+        
+    for trg in trigger_list:
+        for system, method, histogram in resolution_histos:
+            path = f"{trg}/{system}/{method}/"
+            resolution_path = f"{trg}/{system}/Resolutions"
+            if not file.GetDirectory(path):
+                file.mkdir(path)
+            if not file.GetDirectory(resolution_path):
+                file.mkdir(resolution_path)
+
+            h = file.Get(path + histogram)
+            resolutions = ROOT.TH2D("resolutions_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
+                                    bins["pt"]["n"], bins["pt"]["bins"], bins["eta"]["n"], bins["eta"]["bins"])          
+
+            # TH3.FitSlicesZ?
+            for i in range(1, h.GetNbinsX()+1):
+                for j in range(1, h.GetNbinsY()+1):
+                    # Fit to the asymmetry in the bin
+                    proj = h.ProjectionZ(f"proj_{i}_{j}", i, i, j, j)
+                    # Find the median
+                    if proj.GetNbinsX() % 2 == 0:
+                        median = (proj.GetBinContent(proj.GetNbinsX()//2) + proj.GetBinContent(proj.GetNbinsX()//2+1))/2
+                    else:
+                        median = proj.GetBinContent(proj.GetNbinsX()//2)
+                    # Find the sigma
+                    sigma = 0
+                    for k in range(1, proj.GetNbinsX()+1):
+                        sigma += (proj.GetBinContent(k) - median)**2
+                    sigma = np.sqrt(sigma/proj.GetNbinsX())
+
+                    if abs(median) < sigma and sigma < 0.5:
+                        proj.Fit("gaus", "Q L N", "", median - 2*sigma, median + 2*sigma)
+                        fsigma = proj.GetFunction("gaus").GetParameter(1)
+                        resolutions.SetBinContent(i, j, fsigma)
+                        resolutions.SetBinError(i, j, proj.GetFunction("gaus").GetParError(1))
+                    else:
+                        resolutions.SetBinContent(i, j, -1)
+                        resolutions.SetBinError(i, j, 0)
+
+            resolutions.SetName(method + "_projected_resolution_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""))
+            
+            # Save
+            file.cd(resolution_path)
+            # h2.Write()
+            resolutions.Write()
+            file.cd()
+
 
 def produce_responses(file: str, trigger_list: List[str], output_path : str):
     """
@@ -145,7 +209,7 @@ if __name__ == '__main__':
 
     for file in files:
         produce_responses(file, trigger_list, output_path)
-    
+        produce_resolutions(file, trigger_list, output_path)
         
         
 
