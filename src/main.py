@@ -69,6 +69,7 @@ if __name__ == "__main__":
                                 selection_only=selection_only)
     
     standard_analysis.do_inclusive()
+    standard_analysis.do_inclusive_control()
     standard_analysis.do_PFComposition()
     standard_analysis.do_RunsAndLumis()
     
