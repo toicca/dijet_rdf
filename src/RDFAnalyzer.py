@@ -41,7 +41,8 @@ class RDFAnalyzer:
                 local : bool = False,
                 system : str = "standard",
                 run_raw : bool = False,
-                selection_only : bool = True
+                selection_only : bool = True,
+                header_dir : str = "src"
                 ):
         self.nThreads = nThreads
         self.trigger_list = copy.deepcopy(trigger_list)
@@ -49,12 +50,12 @@ class RDFAnalyzer:
         self.trigger_rdfs = {} # format : {trigger : rdf}. self.rdf is not initialized here due to order of operations
         self.has_run = False # possibly unnecessary
         self.chain = None
-        self.JEC_included = False
         self.isMC = isMC
         self.era = ""
         self.system = system
         self.run_raw= run_raw
         self.selection_only = selection_only
+        self.header_dir = header_dir
 
         if not self.isMC:
             # Find the Run from filename
@@ -226,9 +227,7 @@ class RDFAnalyzer:
         return rdf
  
     def __redo_JEC(self, jec : JEC_corrections) -> RNode:
-        if not self.JEC_included:
-            ROOT.gInterpreter.Declare('#include "src/JECRDF_code.h"')
-            self.JEC_included = True
+        ROOT.gInterpreter.Declare(f'#include "{self.header_dir}/JECRDF_code.h"')
             
         # Replace None with "" for the JECs
         if jec.L1 is None:
@@ -260,7 +259,14 @@ class RDFAnalyzer:
     def __do_cut_golden_json(self, json_file : str) -> RNode:
         print("Applying golden JSON cut")
         print("JSON file:", json_file)
-        ROOT.gInterpreter.Declare('#include "src/JSONRDF_code.h"')
+
+        ROOT.gInterpreter.Declare(f'''
+        #ifndef INCLUDE_JSONRDF_CODE
+        #define INCLUDE_JSONRDF_CODE
+        #include "{self.header_dir}/JSONRDF_code.h"
+        #endif
+        ''')
+
         ROOT.init_json(json_file)
         rdf = self.rdf.Define("goldenJSON", "isGoodLumi(run, luminosityBlock)").Filter("goldenJSON", "JSON Filter")
         self.histograms["all"].extend([
@@ -269,7 +275,7 @@ class RDFAnalyzer:
         return rdf
     
     def __do_cut_veto_map(self, veto_map_file : str) -> RNode:
-        ROOT.gInterpreter.Declare('#include "src/JETVETOMAPS_code.h"')
+        ROOT.gInterpreter.Declare(f'#include "{self.header_dir}/JETVETOMAPS_code.h"')
         ROOT.init_vetomap(veto_map_file)
         rdf = self.rdf.Redefine("Jet_passesVetomap","isGoodVeto(Jet_eta, Jet_phi)")
 
@@ -289,7 +295,7 @@ class RDFAnalyzer:
     
     def do_smear_JER(self, jec : JEC_corrections) -> RNode:
         if not self.JEC_included:
-            ROOT.gInterpreter.Declare('#include "src/JECRDF_code.h"')
+            ROOT.gInterpreter.Declare(f'#include "{self.header_dir}/JECRDF_code.h"')
             self.JEC_included = True
             
         ROOT.init_JER(Res = jec.JER, SF = jec.JERSF, nThreads = self.nThreads)

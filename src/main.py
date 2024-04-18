@@ -50,6 +50,7 @@ if __name__ == "__main__":
     cut_hist_names = args.cut_histogram_names
     run_raw = args.run_raw
     selection_only = args.selection_only
+    header_dir = args.header_dir
 
     ROOT.EnableImplicitMT(nThreads)
     
@@ -58,15 +59,15 @@ if __name__ == "__main__":
     
     standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, \
                                     nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
-                                    selection_only=selection_only)
+                                    selection_only=selection_only, header_dir=header_dir)
     
     dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections,\
                            nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
-                           selection_only=selection_only)
+                           selection_only=selection_only, header_dir=header_dir)
     
     multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, \
                                 nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
-                                selection_only=selection_only)
+                                selection_only=selection_only, header_dir=header_dir)
     
     standard_analysis.do_inclusive()
     standard_analysis.do_inclusive_control()
