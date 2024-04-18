@@ -1,11 +1,12 @@
 import ROOT
 from dataclasses import dataclass
 from typing import List
-from RDFHelpers import get_bins, get_fill_range
+from RDFHelpers import get_bins, get_fill_range, find_era, update_run_bins
 import numpy as np
 from make_JEC import compile_JEC, load_JEC, clean_JEC
 import copy
-    
+
+
 RDataFrame = ROOT.RDataFrame
 RNode = ROOT.RDF.RNode
 RunGraphs = ROOT.RDF.RunGraphs
@@ -50,18 +51,17 @@ class RDFAnalyzer:
         self.chain = None
         self.JEC_included = False
         self.isMC = isMC
-        self.run = ""
+        self.era = ""
         self.system = system
         self.run_raw= run_raw
         self.selection_only = selection_only
 
         if not self.isMC:
             # Find the Run from filename
-            i = filelist[0].find("Run")
-            self.run = filelist[0][i:i+8]
-            frange = get_fill_range(self.run)
+            self.era = find_era(filelist)
+            frange = get_fill_range(self.era)
             self.bins = get_bins(fill_range=frange)
-            print(f"Using fill range {frange} for run {self.run}")
+            print(f"Using fill range {frange} for run {self.era}")
         else:
             self.bins = get_bins()
         
@@ -87,6 +87,12 @@ class RDFAnalyzer:
                     .Define("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
                     .Define("Jet_eta_leading", "Jet_eta[Jet_order[0]]")
                     )
+        if not self.isMC:
+            self.bins = update_run_bins(self.rdf, self.bins)
+        
+        # Bin update seems to remove progress bar
+        if progress_bar:
+            ROOT.RDF.Experimental.AddProgressBar(self.rdf)
         
         # MC cuts, to be implemented elsewhere
         if self.isMC:
@@ -133,7 +139,7 @@ class RDFAnalyzer:
                         .Redefine("GenJet_partonFlavour", "ROOT::VecOps::Take(GenJet_partonFlavour, JetWithGen_genJetIdx)")
                         )
             
-        
+        # JECs and JERs
         if not JEC.check_empty():
             # clean_JEC()
             # compile_JEC()
@@ -142,15 +148,19 @@ class RDFAnalyzer:
                 self.rdf = self.__redo_JEC(JEC)
             if not JEC.check_empty_JER():
                 self.rdf = self.do_smear_JER(JEC)
+
+        # Check if raw pt run
         if self.run_raw:
             self.rdf = (self.rdf.Redefine("Jet_pt", "Jet_pt * (1.0 - Jet_rawFactor)")
                         .Redefine("Jet_order", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Jet_pt))")
                         .Redefine("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
             )
 
+        # JSON cut
         if (json_file != "") and (not self.isMC):
             self.rdf = self.__do_cut_golden_json(json_file)
 
+        # Triggers 
         for trigger in self.trigger_list:
             if trigger != "":
                 self.trigger_rdfs[trigger] = self.rdf.Filter(trigger)
