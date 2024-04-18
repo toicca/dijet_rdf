@@ -42,7 +42,7 @@ def parse_arguments():
     parser.add_argument('-id', '--run_id', type=str, help='Run identifier such as date or version of the software included in output file names')
     parser.add_argument('-MC', '--is_MC', action='store_true', help='Set if running on MC')
     parser.add_argument('-raw', '--run_raw', action='store_true', help='Run on raw data (no corrections applied)')
-    parser.add_argument('-sel', '--selection_only', action='store_true', default=1, help='Run only "selected" (Jet_jetId > 4) histograms')
+    parser.add_argument('-sel', '--selection_only', action='store_false', help='Run only "selected" (Jet_jetId > 4) histograms')
 
     # Corrections and filtering files
     parser.add_argument('-gjson', '--golden_json', type=str, default='', help='Path to the golden JSON file') # good job son

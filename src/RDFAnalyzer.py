@@ -163,6 +163,27 @@ class RDFAnalyzer:
         # Set gRandom seed
         ROOT.gRandom.SetSeed(12345)
         
+    def do_inclusive_control(self) -> "RDFAnalyzer":
+        print(f"Creating inclusive control histograms for {self.system}")
+        filter_flags = (
+            "Flag_goodVertices",
+            "Flag_globalSuperTightHalo2016Filter",
+            "Flag_EcalDeadCellTriggerPrimitiveFilter",
+            "Flag_BadPFMuonFilter",
+            "Flag_BadPFMuonDzFilter",
+            "Flag_hfNoisyHitsFilter",
+            "Flag_eeBadScFilter",
+            "Flag_ecalBadCalibFilter"
+        )
+        for flag in filter_flags:
+            self.histograms["all"].extend([
+                self.rdf.Histo1D((f"Control_{flag}", flag+";"+flag+";N_{events}", 2, 0, 2), flag, "weight")
+            ])
+        self.histograms["all"].extend([
+            self.rdf.Histo1D((f"Control_jetID", "Jet_jetID;Jet_jetID;N_{events}", 8, 0, 8), "Jet_jetId", "weight"),
+        ])
+
+        return self
 
     def Flag_cut(self, rdf : RNode) -> RNode:
         flag = """Flag_goodVertices && 
