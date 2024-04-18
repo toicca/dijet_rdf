@@ -251,7 +251,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Multijet_leadVector", "ROOT::Math::PtEtaPhiMVector(Jet_pt[lead_idx], Jet_eta[lead_idx], Jet_phi[lead_idx], Jet_mass[lead_idx])")
                     .Define("Multijet_leadPolar", "ROOT::Math::Polar2DVectorF(Jet_pt[lead_idx], Jet_phi[lead_idx])")
                     .Define("Multijet_recoilPolar", "ROOT::Math::Polar2DVectorF(Multijet_recoilPt, Multijet_recoilPhi)")
-                    .Define("Multijet_avgPolar", "(Multijet_recoilPolar + Multijet_leadPolar) / 2.0")
+                    .Define("Multijet_avgPolar", "(Multijet_recoilPolar - Multijet_leadPolar) / 2.0")
                     .Define("Multijet_bisectorPolar", "ROOT::Math::Polar2DVectorF(1.0, (Multijet_recoilPolar + Multijet_leadPolar).Phi())")
                     .Define("Multijet_nRecoil", "Jet_pt_recoil.size()")
                     .Define("Multijet_ptAvg", "(Multijet_leadVector.Pt() + Multijet_recoilVector.Pt()) / 2.0")
