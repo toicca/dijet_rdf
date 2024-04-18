@@ -90,10 +90,6 @@ class RDFAnalyzer:
         if not self.isMC:
             self.bins = update_run_bins(self.rdf, self.bins)
         
-        # Bin update seems to remove progress bar
-        if progress_bar:
-            ROOT.RDF.Experimental.AddProgressBar(self.rdf)
-        
         # MC cuts, to be implemented elsewhere
         if self.isMC:
             self.rdf = (self.rdf.Filter("fabs(PV_z - GenVtx_z) < 0.2", "Vertex_z_cut")
