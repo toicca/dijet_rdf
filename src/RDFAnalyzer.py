@@ -234,7 +234,7 @@ class RDFAnalyzer:
         
         return rdf
  
-    def __redo_JEC(self, jec : JEC_corrections) -> RNode:
+    def __redo_JEC(self, jec : JEC_corrections, CL: bool = True) -> RNode:
         if not self.JEC_included and not CL:
             ROOT.gInterpreter.Declare(f'#include "{self.header_dir}/JECRDF_code.h"')
             self.JEC_included = True
