@@ -1,5 +1,5 @@
 import ROOT
-from RDFHelpers import file_read_lines, read_config_file, get_bins
+from ..RDFHelpers import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
