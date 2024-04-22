@@ -16,9 +16,10 @@ class GammaJetAnalyzer(RDFAnalyzer):
                 nThreads : int = 1,
                 progress_bar : bool = False,
                 isMC : bool = False,
-                local : bool = False
+                local : bool = False,
+                header_dir : str = "src"
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local)
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, header_dir=header_dir)
  
 
     def do_DB(self) -> "GammaJetAnalyzer":

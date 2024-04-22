@@ -18,9 +18,10 @@ class MultijetAnalyzer(RDFAnalyzer):
                 isMC : bool = False,
                 local : bool = False,
                 run_raw : bool = False,
-                selection_only : bool = False
+                selection_only : bool = False,
+                header_dir : str = "src"
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="multijet", run_raw=run_raw, selection_only=selection_only)
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="multijet", run_raw=run_raw, selection_only=selection_only, header_dir=header_dir)
  
     def Flag_cut(self, rdf: RNode) -> RNode:
         return super().Flag_cut(rdf)

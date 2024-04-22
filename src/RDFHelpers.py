@@ -56,6 +56,7 @@ def parse_arguments():
     parser.add_argument('-MC', '--is_MC', action='store_true', help='Set if running on MC')
     parser.add_argument('-raw', '--run_raw', action='store_true', help='Run on raw data (no corrections applied)')
     parser.add_argument('-sel', '--selection_only', action='store_false', default=0, help='Run only "selected" (Jet_jetId > 4 and Flag_) histograms')
+    parser.add_argument('-header_dir', '--header_dir', type=str, default='src', help='Path to header files related to RDAnalyzer class and any other class that inherits it')
 
     # Corrections and filtering files
     parser.add_argument('-gjson', '--golden_json', type=str, default='', help='Path to the golden JSON file') # good job son
