@@ -65,6 +65,8 @@ def parse_arguments():
     parser.add_argument('-L2Res', '--L2L3Residual', type=str, help='Path to the L2L3Residual txt correction file')
     parser.add_argument('-JER', '--JER', type=str, help='Path to the JER txt correction file')
     parser.add_argument('-JER_SF', '--JER_SF', type=str, help='Path to the JER scale factor txt correction file')
+    parser.add_argument('-corrf', '--correctionlib_file', type=str, help='Path to the correction library file')
+    parser.add_argument('-corrs', '--correctionlib_string', type=str, help='Correction library string')
 
     # Performance and logging
     parser.add_argument('-nThreads', '--nThreads', type=int, default=2, help='Number of threads to use')

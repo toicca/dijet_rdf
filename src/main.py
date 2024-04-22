@@ -43,6 +43,8 @@ if __name__ == "__main__":
     L2L3Residual = args.L2L3Residual
     JER = args.JER
     JER_SF = args.JER_SF
+    correctionlib_file = args.correctionlib_file
+    correctionlib_set = args.correctionlib_set
     nThreads = args.nThreads
     verbosity = args.verbosity
     progress_bar = args.progress_bar
@@ -52,9 +54,9 @@ if __name__ == "__main__":
     selection_only = args.selection_only
 
     ROOT.EnableImplicitMT(nThreads)
-    
+
     print("Creating analysis object " + ("(MC)" if is_mc else "(Data)"))
-    corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
+    corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF, (correctionlib_file, correctionlib_set))
     
     standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, \
                                     nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
