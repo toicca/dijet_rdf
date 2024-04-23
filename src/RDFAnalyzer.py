@@ -76,7 +76,7 @@ class RDFAnalyzer:
                     .Define("JEC", "1.0")
                     )
         if not self.isMC:
-            self.bins = self.bins #update_run_bins(self.rdf, self.bins)
+            self.bins = update_run_bins(self.rdf, self.bins)
         
         # MC cuts, to be implemented elsewhere
         if self.isMC:
