@@ -1,0 +1,4 @@
+[Summer23Prompt23_RunCv123_V1_DATA_L2Relative_AK4PFPuppi]
+file=/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23/jet_jerc.json.gz
+variables=Jet_eta,Jet_pt
+types=RVec<float>,RVec<float>
