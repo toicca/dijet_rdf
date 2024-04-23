@@ -58,7 +58,7 @@ if __name__ == "__main__":
                                     nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                     selection_only=selection_only, header_dir=header_dir)
     
-    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict,\
+    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict, \
                            nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                            selection_only=selection_only, header_dir=header_dir)
     
