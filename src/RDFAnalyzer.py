@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import List, Tuple, Dict
 from RDFHelpers import get_bins, get_fill_range, find_era, update_run_bins
 import numpy as np
-from make_JEC import compile_JEC, load_JEC, clean_JEC
 import copy
 correctionlib.register_pyroot_binding()
 
@@ -77,7 +76,7 @@ class RDFAnalyzer:
                     .Define("JEC", "1.0")
                     )
         if not self.isMC:
-            self.bins = self.bins #update_run_bins(self.rdf, self.bins)
+            self.bins = update_run_bins(self.rdf, self.bins)
         
         # MC cuts, to be implemented elsewhere
         if self.isMC:
