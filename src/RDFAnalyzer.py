@@ -1,40 +1,26 @@
 import ROOT
+import correctionlib
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple, Dict
 from RDFHelpers import get_bins, get_fill_range, find_era, update_run_bins
 import numpy as np
 from make_JEC import compile_JEC, load_JEC, clean_JEC
 import copy
+correctionlib.register_pyroot_binding()
 
 
 RDataFrame = ROOT.RDataFrame
 RNode = ROOT.RDF.RNode
 RunGraphs = ROOT.RDF.RunGraphs
+initialize = ROOT.RDF.Experimental.Distributed.initialize
 
-@dataclass
-class JEC_corrections:
-    L1 : str = ""
-    L2Relative : str = ""
-    L2L3 : str = ""
-    JER : str = ""
-    JERSF : str = ""
-    
-    def check_empty(self):
-        return all(value == "" or value is None for value in self.__dict__.values())
-    
-    def check_empty_JEC(self):
-        return self.L1 == "" and self.L2Relative == "" and self.L2L3 == ""
-    
-    def check_empty_JER(self):
-        return self.JER == "" and self.JERSF == ""
-    
 
 class RDFAnalyzer:
     def __init__(self, filelist : List[str],
                 trigger_list : List[str] = [""],
                 json_file : str = "",
                 nFiles : int = -1,
-                JEC : JEC_corrections = JEC_corrections("", "", "", "", ""),
+                JEC : Dict = {},
                 nThreads : int = 1,
                 progress_bar : bool = False,
                 isMC : bool = False,
@@ -44,6 +30,7 @@ class RDFAnalyzer:
                 selection_only : bool = True,
                 header_dir : str = "src"
                 ):
+
         self.nThreads = nThreads
         self.trigger_list = copy.deepcopy(trigger_list)
         self.histograms = {"all" : []} # format : {trigger : [histograms]}
@@ -87,9 +74,10 @@ class RDFAnalyzer:
                     .Define("all", "1")
                     .Define("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
                     .Define("Jet_eta_leading", "Jet_eta[Jet_order[0]]")
+                    .Define("JEC", "1.0")
                     )
         if not self.isMC:
-            self.bins = update_run_bins(self.rdf, self.bins)
+            self.bins = self.bins #update_run_bins(self.rdf, self.bins)
         
         # MC cuts, to be implemented elsewhere
         if self.isMC:
@@ -137,14 +125,8 @@ class RDFAnalyzer:
                         )
             
         # JECs and JERs
-        if not JEC.check_empty():
-            # clean_JEC()
-            # compile_JEC()
-            load_JEC()
-            if not JEC.check_empty_JEC():
-                self.rdf = self.__redo_JEC(JEC)
-            if not JEC.check_empty_JER():
-                self.rdf = self.do_smear_JER(JEC)
+        if JEC:
+            self.rdf = self.apply_correction(self.rdf, JEC)
 
         # Check if raw pt run
         if self.run_raw:
@@ -226,35 +208,43 @@ class RDFAnalyzer:
         
         return rdf
  
-    def __redo_JEC(self, jec : JEC_corrections) -> RNode:
-        ROOT.gInterpreter.Declare(f'#include "{self.header_dir}/JECRDF_code.h"')
+    def apply_correction(self, in_rdf: RNode, JEC: Dict) -> RNode:
+        out_rdf = in_rdf 
+        for cset in JEC.keys():
+            file_name = JEC[cset]["file"]
+            func_call = JEC[cset]["func_call"]
+            rdf_call = JEC[cset]["rdf_call"]
+            eval_call = JEC[cset]["eval_call"]
             
-        # Replace None with "" for the JECs
-        if jec.L1 is None:
-            jec.L1 = ""
-        if jec.L2Relative is None:
-            jec.L2Relative = ""
-        if jec.L2L3 is None:
-            jec.L2L3 = ""
-            
-        # Remember that this might alter the leading jets!
-        ROOT.init_JEC(L1 = jec.L1, L2Relative = jec.L2Relative, L2L3 = jec.L2L3, nThreads = self.nThreads)
-        
-        # self.histograms["all"].extend([
-        #     self.rdf.Histo1D(("JEC_Jet_pt_original", "Jet_pt_original;p_{T} (GeV);N_{events}", self.bins["pt"]["n"], self.bins["pt"]["bins"]), "Jet_pt", "weight"),
-        #     ])
+            ROOT.gInterpreter.Declare(f"""
+            #ifndef INCLUDE_CORRECTIONLIB_CODE{cset}
+            #define INCLUDE_CORRECTIONLIB_CODE{cset}
+            auto correctionSet{cset} = correction::CorrectionSet::from_file("{file_name}");
+            auto correctionEvaluator{cset} = correctionSet{cset}->at("{cset}");
+            #endif
+            """)
+            ROOT.gInterpreter.Declare(f"""
+            #ifndef INCLUDE_CORRECTIONLIB_FUNC{cset}
+            #define INCLUDE_CORRECTIONLIB_FUNC{cset}
+            """+func_call+""" {
+            ROOT::VecOps::RVec<float> JECs;
+                for (int i = 0; i < Jet_pt.size(); i++) {
+                    JECs.push_back(correctionEvaluator"""+cset+"""->evaluate("""+eval_call+"""));
+                }
+                return JECs;
+            }
+            #endif
+                                    """
+            )
+            # initialize(init)
+            out_rdf =( out_rdf.Redefine("JEC", rdf_call)
+                    .Redefine("Jet_pt", "Jet_rawPt * JEC")
+                    .Redefine("Jet_rawFactor", "1.0 - 1.0 / JEC")
+                    .Redefine("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
+                    .Redefine("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
+            )
 
-        rdf = (self.rdf.Define("JEC", "getJEC(rdfslot_, Jet_pt, Jet_eta, Jet_area, Rho_fixedGridRhoFastjetAll)")
-               .Redefine("Jet_pt", "Jet_rawPt * JEC")
-               .Redefine("Jet_rawFactor", "1.0 - 1.0 / JEC")
-               .Redefine("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
-               .Redefine("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
-        )
-        # self.histograms["all"].extend([
-        #     rdf.Histo1D(("JEC", "JEC;JEC;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JEC", "weight"),
-        #     ])
-
-        return rdf
+        return out_rdf
     
     def __do_cut_golden_json(self, json_file : str) -> RNode:
         print("Applying golden JSON cut")
@@ -293,36 +283,6 @@ class RDFAnalyzer:
             ])
         return rdf
     
-    def do_smear_JER(self, jec : JEC_corrections) -> RNode:
-        if not self.JEC_included:
-            ROOT.gInterpreter.Declare(f'#include "{self.header_dir}/JECRDF_code.h"')
-            self.JEC_included = True
-            
-        ROOT.init_JER(Res = jec.JER, SF = jec.JERSF, nThreads = self.nThreads)
-        
-        rdf = (self.rdf.Define("JER", "getJER(rdfslot_, Jet_pt, Jet_eta, Rho_fixedGridRhoFastjetAll)")
-               .Define("JER_noGen", "JER[Jet_genJetIdx < 0]")
-               .Define("JER_SF", "getJER_SF(rdfslot_, Jet_pt, Jet_eta, Rho_fixedGridRhoFastjetAll)")
-               .Define("JER_SF_withGen", "JER_SF[Jet_genJetIdx >= 0]")
-               .Define("JER_SF_noGen", "JER_SF[Jet_genJetIdx < 0]")
-               .Define("JER_correctionWithGen", "1.0 + (JER_SF_withGen - 1.0) * (JetWithGen_pt - GenJet_pt) / JetWithGen_pt")
-               .Redefine("JetWithGen_pt", "JetWithGen_pt * JER_correctionWithGen")
-               .Redefine("JetWithGen_order", "ROOT::VecOps::Argsort(JetWithGen_pt)")
-               .Redefine("JetWithGen_pt_leading", "JetWithGen_pt[JetWithGen_order[0]]")    
-               .Define("JER_correctionNoGen", "noGenPairSmearing(JER_noGen, JER_SF_noGen)")
-               .Redefine("JetNoGen_pt", "JetNoGen_pt * JER_correctionNoGen")
-               .Redefine("JetNoGen_order", "ROOT::VecOps::Argsort(JetNoGen_pt)")
-               .Redefine("JetNoGen_pt_leading", "JetNoGen_pt[JetNoGen_order[0]]")
-        )
-        self.histograms["all"].extend([
-            rdf.Histo1D(("JER", "JER;JER;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JER", "weight"),
-            rdf.Histo1D(("JER_SF", "JER_SF;JER_SF;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JER_SF", "weight"),
-            rdf.Histo1D(("JER_correctionWithGen", "JER_correction;JER_correction;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JER_correctionWithGen", "weight"),
-            rdf.Histo1D(("JER_correctionNoGen", "JER_correction;JER_correction;N_{events}", self.bins["response"]["n"], self.bins["response"]["bins"]), "JER_correctionNoGen", "weight")
-        ])
-        
-        return rdf
-            
     def get_histograms(self) -> dict:
         if not self.has_run:
             print("Please run histograms first")

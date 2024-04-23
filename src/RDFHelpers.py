@@ -38,6 +38,49 @@ def read_config_file(config_file: str) -> configparser.ConfigParser:
     config.read(config_file)
     return config
     
+def read_correction_config(config_file: str) -> Dict:
+    types_in_ROOT = {
+        "RVec<float>": "ROOT::VecOps::RVec<float>",
+    }
+
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(config_file)
+
+    corrections = {}
+    for section in config.sections():
+        corrections[section] = {}
+        corrections[section]["file"] = config[section]["file"]
+
+        types = config[section]["types"].split(",")
+        types = [types_in_ROOT[type] if type in types_in_ROOT else type for type in types]
+        variables = config[section]["variables"].split(",")
+
+        func_call = f"ROOT::VecOps::RVec<float> getJEC{section}("
+        for t, v in zip(types, variables):
+            func_call += f"{t} {v}, "
+        func_call = func_call[:-2] + ")"
+
+        corrections[section]["func_call"] = func_call
+
+        rdf_call = f"getJEC{section}("
+        for v in variables:
+            rdf_call += f"{v}, "
+        rdf_call = rdf_call[:-2] + ")"
+        corrections[section]["rdf_call"] = rdf_call
+
+        eval_call = "{"
+        for t, v in zip(types, variables):
+            if "vec" in t.lower():
+                eval_call += v + "[i], "
+            else:
+                eval_call += v + ", "
+        eval_call = eval_call[:-2] + "}"
+        corrections[section]["eval_call"] = eval_call
+
+    return corrections
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='JEC4PROMPT Analyzer')
     
@@ -61,11 +104,7 @@ def parse_arguments():
     # Corrections and filtering files
     parser.add_argument('-gjson', '--golden_json', type=str, default='', help='Path to the golden JSON file') # good job son
     parser.add_argument('-jetvm', '--jetvetomap', type=str, help='Path to the jetvetomap file')
-    parser.add_argument('-L1', '--L1FastJet', type=str, help='Path to the L1FastJet txt correction file (legacy option)')
-    parser.add_argument('-L2Rel', '--L2Relative', type=str, help='Path to the L2Relative txt correction file')
-    parser.add_argument('-L2Res', '--L2L3Residual', type=str, help='Path to the L2L3Residual txt correction file')
-    parser.add_argument('-JER', '--JER', type=str, help='Path to the JER txt correction file')
-    parser.add_argument('-JER_SF', '--JER_SF', type=str, help='Path to the JER scale factor txt correction file')
+    parser.add_argument('-cconf', '--correction_config', type=str, help='Path to the correction config file')
 
     # Performance and logging
     parser.add_argument('-nThreads', '--nThreads', type=int, default=2, help='Number of threads to use')
@@ -103,6 +142,9 @@ def parse_arguments():
         args.triggerlist = args.triggerlist.split(",")
     elif args.triggerpath:
         args.triggerpath = file_read_lines(args.triggerpath)
+
+    if args.correction_config:
+        args.correction_config = read_correction_config(args.correction_config)
 
     return args
 

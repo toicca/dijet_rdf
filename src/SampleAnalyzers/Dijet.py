@@ -1,7 +1,7 @@
 import ROOT
-from typing import List
+from typing import List, Dict
 import numpy as np
-from RDFAnalyzer import RDFAnalyzer, JEC_corrections, RNode
+from RDFAnalyzer import RDFAnalyzer
     
 RDataFrame = ROOT.RDataFrame
 RunGraphs = ROOT.RDF.RunGraphs
@@ -12,7 +12,7 @@ class DijetAnalyzer(RDFAnalyzer):
                 trigger_list : List[str],
                 json_file : str,
                 nFiles : int = -1,
-                JEC : JEC_corrections = JEC_corrections("", "", ""),
+                JEC : Dict = {}, 
                 nThreads : int = 1,
                 progress_bar : bool = False,
                 isMC : bool = False,

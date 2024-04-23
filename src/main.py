@@ -1,9 +1,11 @@
 import ROOT
 from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
-from RDFAnalyzer import JEC_corrections, RDFAnalyzer
+from RDFAnalyzer import RDFAnalyzer
 from RDFHelpers import parse_arguments
 
+ 
+verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kDebug+10)
 from filewriter import FileWriter
 
 nThreads = 4
@@ -38,11 +40,7 @@ if __name__ == "__main__":
     is_local = args.is_local
     json_file = args.golden_json
     jetvetomap = args.jetvetomap
-    L1FastJet = args.L1FastJet
-    L2Relative = args.L2Relative
-    L2L3Residual = args.L2L3Residual
-    JER = args.JER
-    JER_SF = args.JER_SF
+    correction_dict = args.correction_config
     nThreads = args.nThreads
     verbosity = args.verbosity
     progress_bar = args.progress_bar
@@ -53,19 +51,18 @@ if __name__ == "__main__":
     header_dir = args.header_dir
 
     ROOT.EnableImplicitMT(nThreads)
-    
+
     print("Creating analysis object " + ("(MC)" if is_mc else "(Data)"))
-    corrections = JEC_corrections(L1FastJet, L2Relative, L2L3Residual, JER, JER_SF)
     
-    standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, \
+    standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict, \
                                     nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                     selection_only=selection_only, header_dir=header_dir)
     
-    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections,\
+    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict,\
                            nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                            selection_only=selection_only, header_dir=header_dir)
     
-    multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=corrections, \
+    multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict, \
                                 nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                 selection_only=selection_only, header_dir=header_dir)
     
