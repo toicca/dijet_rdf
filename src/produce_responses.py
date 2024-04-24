@@ -1,5 +1,5 @@
 import ROOT
-from ..RDFHelpers import file_read_lines, read_config_file, get_bins
+from RDFHelpers import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
@@ -31,7 +31,7 @@ derived_histos = (("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsB"),
 )
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Dijet responses for dijet_rdf: https://github.com/toicca/dijet_rdf")
+    parser = argparse.ArgumentParser(description="Responses for dijet_rdf: https://github.com/toicca/dijet_rdf")
 
     files = parser.add_mutually_exclusive_group(required=True)
     files.add_argument("--filelist", type=str, help="Comma separated list of root files produced by dijet_rdf")

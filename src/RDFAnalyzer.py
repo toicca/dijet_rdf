@@ -235,11 +235,11 @@ class RDFAnalyzer:
             #endif
                                     """
             )
-            # initialize(init)
-            out_rdf =( out_rdf.Redefine("JEC", rdf_call)
+
+            out_rdf =( out_rdf.Redefine("JEC", "JEC * "+rdf_call)
                     .Redefine("Jet_pt", "Jet_rawPt * JEC")
                     .Redefine("Jet_rawFactor", "1.0 - 1.0 / JEC")
-                    .Redefine("Jet_order", "ROOT::VecOps::Argsort(Jet_pt)")
+                    .Redefine("Jet_order", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Jet_pt))") 
                     .Redefine("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
             )
 

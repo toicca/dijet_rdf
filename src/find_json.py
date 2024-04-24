@@ -41,4 +41,3 @@ if __name__ == "__main__":
 
     if newest_json != "":
         os.system(f"cp -r {newest_json} {output_file}")
-
