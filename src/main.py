@@ -1,6 +1,7 @@
 import ROOT
 from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
+from SampleAnalyzers.MultijetM import MultijetMAnalyzer as multijetM
 from RDFAnalyzer import RDFAnalyzer
 from RDFHelpers import parse_arguments
 
@@ -21,13 +22,20 @@ if __name__ == "__main__":
         filelist = args.filelist
     else:
         raise ValueError("No file list provided")
+
     if args.triggerpath:
         triggerlist = args.triggerpath
+        triggers = {}
+        for trigger in triggerlist:
+            triggers[trigger] = trigger
     elif args.triggerlist:
         triggerlist = args.triggerlist
-    else:
-        triggerlist = []
-        
+        triggers = {}
+        for trigger in triggerlist:
+            triggers[trigger] = trigger
+    elif args.triggerconfig:
+        triggers = args.triggerconfig
+
     nFiles = args.number_of_files
     if not nFiles:
         nFiles = len(filelist)
@@ -54,15 +62,19 @@ if __name__ == "__main__":
 
     print("Creating analysis object " + ("(MC)" if is_mc else "(Data)"))
     
-    standard_analysis = RDFAnalyzer(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict, \
+    standard_analysis = RDFAnalyzer(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
                                     nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                     selection_only=selection_only, header_dir=header_dir)
     
-    dijet_analysis = dijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict, \
+    dijet_analysis = dijet(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
                            nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                            selection_only=selection_only, header_dir=header_dir)
     
-    multijet_analysis = multijet(filelist, triggerlist, json_file, nFiles=nFiles, JEC=correction_dict, \
+    # multijet_analysis = multijet(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
+                                # nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
+                                # selection_only=selection_only, header_dir=header_dir)
+
+    multijet_analysis = multijetM(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
                                 nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                 selection_only=selection_only, header_dir=header_dir)
     
@@ -74,9 +86,9 @@ if __name__ == "__main__":
     if is_mc:
         standard_analysis.do_MC()
     
-    dijet_analysis.do_DB()
-    dijet_analysis.do_sample_control()
-    dijet_analysis.do_MPF()
+    # dijet_analysis.do_DB()
+    # dijet_analysis.do_sample_control()
+    # dijet_analysis.do_MPF()
     multijet_analysis.do_sample_control()
     multijet_analysis.do_DB()
     multijet_analysis.do_MPF()

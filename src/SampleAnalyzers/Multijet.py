@@ -88,10 +88,10 @@ class MultijetAnalyzer(RDFAnalyzer):
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_dbResponseCorrected", "weight"),
                 # Average distributions for pT in barrel
-                db_rdf.Profile1D((f"DB_{system}_PtRecoilVsResponse", "DB_"+ str(system) + "_PtRecoilVsResponse;p_{T, lead} (GeV);response;N_{events}",
+                db_rdf.Profile1D((f"DB_{system}_PtRecoilVsResponseCorrected", "DB_"+ str(system) + "_PtRecoilVsResponse;p_{T, lead} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_recoilPt", "Multijet_dbResponseCorrected", "weight"),
-                db_rdf.Profile1D((f"DB_{system}_PtRecoilVsR_b2b", "DB_"+ str(system) + "_PtRecoilVsR_b2b;p_{T, recoil} (GeV);response;N_{events}",
+                db_rdf.Profile1D((f"DB_{system}_PtRecoilVsResponse", "DB_"+ str(system) + "_PtRecoilVsR_b2b;p_{T, recoil} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_recoilPt", "Multijet_dbResponse", "weight"),
             ])
@@ -99,7 +99,7 @@ class MultijetAnalyzer(RDFAnalyzer):
             self.histograms[trigger].extend([
                 db_gt100_rdf.Profile1D((f"DB_{system}_RunVsResponse", "DB_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                          self.bins["runs"]["n"], self.bins["runs"]["bins"]),
-                                            "run", "Multijet_dbResponse", "weight"),
+                                            "run", "Multijet_dbResponseCorrected", "weight"),
             ])
         return self
     
@@ -127,7 +127,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                 mpf_gt100_rdf.Profile1D((f"MPF_{system}_RunVsResponse", "MPF_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                          self.bins["runs"]["n"], self.bins["runs"]["bins"]),
                                             "run", "Multijet_mpfResponse", "weight"),
-            ])
+           ])
 
         return self
     
@@ -147,7 +147,10 @@ class MultijetAnalyzer(RDFAnalyzer):
                 }
                 return sum;
             }
-            
+            """)
+
+        if not hasattr(ROOT, "DeltaR_to_lead"):
+            ROOT.gInterpreter.Declare(""" 
             ROOT::RVec<float> DeltaR_to_lead(float lead_eta, ROOT::RVec<float> recoil_eta, float lead_phi, ROOT::RVec<float> recoil_phi){
                 ROOT::RVec<float> result(recoil_eta.size());
                 
