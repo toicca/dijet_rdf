@@ -1,12 +1,13 @@
 [GENERAL]
-filepath = data/testfiles.txt
+filepath = data/testfiles23D.txt
 filelist =
-triggerpath = data/testtrigger.txt
+triggerpath = 
 triggerlist =
-number_of_files = 60
+trigger_config = data/testtrgconf.txt
+number_of_files = 10
 is_local = 1
 output_path = out
-run_id = rerun36
+run_id = rerun40
 is_mc =
 run_raw =
 selection_only =1

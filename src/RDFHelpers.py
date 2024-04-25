@@ -37,6 +37,20 @@ def read_config_file(config_file: str) -> configparser.ConfigParser:
     config.optionxform = str
     config.read(config_file)
     return config
+
+def read_trigger_config(config_file: str) -> Dict:
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(config_file)
+
+    triggers = {}
+    for section in config.sections():
+        if "filter" not in config[section]:
+            triggers[section] = section
+        else:
+            triggers[section] = "(" + config[section]["filter"] + " && " + section + ")"
+
+    return triggers
     
 def read_correction_config(config_file: str) -> Dict:
     types_in_ROOT = {
@@ -92,6 +106,7 @@ def parse_arguments():
     trigger_group = parser.add_mutually_exclusive_group()
     trigger_group.add_argument('-tp', '--triggerpath', type=str, help='Path to the trigger list')
     trigger_group.add_argument('-tl','--triggerlist', type=str, help='Input files separated by commas')
+    trigger_group.add_argument('-tc', '--trigger_config', type=str, help='Path to the trigger config file')
     parser.add_argument('-nof', '--number_of_files', type=int, default=-1, help='How many files to be processed. -1 for all files in the list')
     parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not set will append root://cms-xrd-global.cern.ch/ to the start of file names')
     parser.add_argument('-out', '--output_path', type=str, help='Path where to write output files')
@@ -137,11 +152,14 @@ def parse_arguments():
         args.filelist = args.filelist.split(",")
     elif args.filepath:
         args.filepath = file_read_lines(args.filepath, find_ROOT=True)
+    
         
     if args.triggerlist:
         args.triggerlist = args.triggerlist.split(",")
     elif args.triggerpath:
         args.triggerpath = file_read_lines(args.triggerpath)
+    elif args.trigger_config:
+        args.trigger_config = read_trigger_config(args.trigger_config)
 
     if args.correction_config:
         args.correction_config = read_correction_config(args.correction_config)

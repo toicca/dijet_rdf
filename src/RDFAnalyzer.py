@@ -16,7 +16,7 @@ initialize = ROOT.RDF.Experimental.Distributed.initialize
 
 class RDFAnalyzer:
     def __init__(self, filelist : List[str],
-                trigger_list : List[str] = [""],
+                triggers : Dict = {},
                 json_file : str = "",
                 nFiles : int = -1,
                 JEC : Dict = {},
@@ -31,7 +31,8 @@ class RDFAnalyzer:
                 ):
 
         self.nThreads = nThreads
-        self.trigger_list = copy.deepcopy(trigger_list)
+        self.triggers = triggers
+        self.trigger_list = copy.deepcopy(list(triggers.keys())) # Is deepcopy required if list(.keys())?
         self.histograms = {"all" : []} # format : {trigger : [histograms]}
         self.trigger_rdfs = {} # format : {trigger : rdf}. self.rdf is not initialized here due to order of operations
         self.has_run = False # possibly unnecessary
@@ -56,7 +57,11 @@ class RDFAnalyzer:
         if progress_bar:
             ROOT.RDF.Experimental.AddProgressBar(self.rdf)
             
-        trigger_string = " || ".join(trigger_list)
+        trigger_string = ""
+        for trigger in triggers:
+            trigger_string += triggers[trigger] + " || "
+        trigger_string = trigger_string[:-4]
+
         if trigger_string == "":
             trigger_string = "1"
         
