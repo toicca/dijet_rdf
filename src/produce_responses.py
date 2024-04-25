@@ -68,8 +68,7 @@ def produce_resolutions(file: str, trigger_list: List[str], output_path : str):
         for system, method, histogram in resolution_histos:
             path = f"{trg}/{system}/{method}/"
             resolution_path = f"{trg}/{system}/Resolutions"
-            if not file.GetDirectory(path):
-                file.mkdir(path)
+
             if not file.GetDirectory(resolution_path):
                 file.mkdir(resolution_path)
 
@@ -133,8 +132,7 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
         for system, method, histogram in response_histos:
             path = f"{trg}/{system}/{method}/"
             response_path = f"{trg}/{system}/Responses"
-            if not file.GetDirectory(path):
-                file.mkdir(path)
+
             if not file.GetDirectory(response_path):
                 file.mkdir(response_path)
 

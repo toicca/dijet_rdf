@@ -119,7 +119,7 @@ if __name__ == '__main__':
         config_file = args.config
         config = read_config_file(config_file)
 
-    # create root file
+    # create root file, there could be an option to update
     outf = ROOT.TFile(output_path, "RECREATE")
     outf.Close()
 

@@ -21,7 +21,7 @@ class DijetMAnalyzer(RDFAnalyzer):
                 selection_only : bool = True,
                 header_dir : str = "src"
                 ):
-        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="dijet", run_raw=run_raw, selection_only=selection_only, header_dir=header_dir)
+        super().__init__(filelist, trigger_list, json_file, nFiles, JEC, nThreads, progress_bar, isMC=isMC, local=local, system="dijetM", run_raw=run_raw, selection_only=selection_only, header_dir=header_dir)
         
     def Flag_cut(self, rdf: RNode) -> RNode:
         return super().Flag_cut(rdf)
@@ -45,10 +45,10 @@ class DijetMAnalyzer(RDFAnalyzer):
                                     self.bins["eta"]["n"], self.bins["eta"]["bins"]),
                                     "Dijet_probeEta", "weight"),
                 # Direct response as a function of pT
-                control_rdf.Profile1D((f"Control_{self.system}_ResponseVsPtAvg", "Control_"+ str(self.system) + "_ResponseVsPt;p_{T, avg} (GeV);response;N_{events}",
+                control_rdf.Profile1D((f"Control_{self.system}_DirectResponseVsPtAvg", "Control_"+ str(self.system) + "_ResponseVsPt;p_{T, avg} (GeV);response;N_{events}",
                                     self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                     "Dijet_avgPt", "Dijet_dbDirectResponse", "weight"),
-                control_rdf.Profile1D((f"Control_{self.system}_angResponseVsPt", "Control_"+ str(self.system) + "_angResponseVsPt;p_{T, avg} (GeV);response;N_{events}",
+                control_rdf.Profile1D((f"Control_{self.system}_DotResponseVsPt", "Control_"+ str(self.system) + "_angResponseVsPt;p_{T, avg} (GeV);response;N_{events}",
                                     self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                     "Dijet_avgPt", "Dijet_dbAngleResponse", "weight"),
                 control_rdf.Profile1D((f"Control_{self.system}_angCorrectionVsPt", "Control_"+ str(self.system) + "_angCorrectionVsPt;p_{T, avg} (GeV);angle correction;N_{events}",
@@ -69,13 +69,13 @@ class DijetMAnalyzer(RDFAnalyzer):
                 # 3D Distributions from which information can be projected out
                 db_rdf.Histo3D((f"DB_{system}_PtAvgVsEtaVsResponse", "MPF_"+ str(system) + "_PtVsEtaVsResponse;p_{T, ave} (GeV);#eta_{probe};response;N_{events}",
                                  self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
-                                "Dijet_avgPt", "Dijet_probeEta", "Dijet_dbResponse", "weight"),
+                                "Dijet_avgPt", "Dijet_probeEta", "Dijet_dbAvgResponse", "weight"),
                 db_rdf.Histo3D((f"DB_{system}_PtProbeVsEtaVsResponse", "MPF_"+ str(system) + "_PtVsEtaVsResponse;p_{T, probe} (GeV);#eta_{probe};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
-                                "Dijet_probePt", "Dijet_probeEta", "Dijet_dbResponse", "weight"),
+                                "Dijet_probePt", "Dijet_probeEta", "Dijet_dbProbeResponse", "weight"),
                 db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsResponse", "MPF_"+ str(system) + "_PtVsEtaVsResponse;p_{T, tag} (GeV);#eta_{probe};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
-                                "Dijet_tagPt", "Dijet_probeEta", "Dijet_dbResponse", "weight"),
+                                "Dijet_tagPt", "Dijet_probeEta", "Dijet_dbTagResponse", "weight"),
                 # 3D asymmetry distribution for JER 
                 db_rdf.Histo3D((f"DB_{system}_PtAvgVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, ave} (GeV);#eta_{probe};asymmetry;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
@@ -93,6 +93,16 @@ class DijetMAnalyzer(RDFAnalyzer):
                 db_rdf.Profile2D((f"DB_{system}_EtaprobeVsPhiprobeVsAsymmetry", "DB_"+ str(system) + "_EtaprobeVsPhiprobeVsAsymmetry;#eta_{probe};#phi_{probe};asymmetry;N_{events}",
                                   self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]),
                                   "Dijet_probeEta", "Dijet_probePhi", "Dijet_A", "weight"),
+                # 1D Distributions
+                db_rdf.Profile1D((f"DB_{system}_PtAvgVsResponse", "DB_"+ str(system) + "_PtVsResponse;p_{T, ave} (GeV);response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_avgPt", "Dijet_dbAvgResponse", "weight"),
+                db_rdf.Profile1D((f"DB_{system}_PtProbeVsResponse", "DB_"+ str(system) + "_PtVsResponse;p_{T, probe} (GeV);response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_probePt", "Dijet_dbProbeResponse", "weight"),
+                db_rdf.Profile1D((f"DB_{system}_PtTagVsResponse", "DB_"+ str(system) + "_PtVsResponse;p_{T, tag} (GeV);response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_tagPt", "Dijet_dbTagResponse", "weight"),
             ])
 
         return self
@@ -116,6 +126,16 @@ class DijetMAnalyzer(RDFAnalyzer):
                 mpf_rdf.Histo3D((f"MPF_{system}_PtTagVsEtaVsResponse", "MPF_"+ str(system) + "_PtVsEtaVsResponse;p_{T, tag} (GeV);#eta_{probe};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Dijet_tagPt", "Dijet_probeEta", "Dijet_mpfResponse", "weight"),
+                # 1D Distributions
+                mpf_rdf.Profile1D((f"MPF_{system}_PtAvgVsResponse", "MPF_"+ str(system) + "_PtVsResponse;p_{T, ave} (GeV);response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_avgPt", "Dijet_mpfAvgResponse", "weight"),
+                mpf_rdf.Profile1D((f"MPF_{system}_PtProbeVsResponse", "MPF_"+ str(system) + "_PtVsResponse;p_{T, probe} (GeV);response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_probePt", "Dijet_mpfProbeResponse", "weight"),
+                mpf_rdf.Profile1D((f"MPF_{system}_PtTagVsResponse", "MPF_"+ str(system) + "_PtVsResponse;p_{T, tag} (GeV);response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_tagPt", "Dijet_mpfTagResponse", "weight"),
             ])
 
         return self
@@ -130,18 +150,15 @@ class DijetMAnalyzer(RDFAnalyzer):
                     # Choose tag and probe jets, use gRandom-Rndm()
                     .Define("tag_idx", "int(round(gRandom->Rndm()))")
                     .Define("probe_idx", "tag_idx == 0")
-
                     .Filter(f"Jet_pt[tag_idx] > {min_pt} && Jet_pt[probe_idx] > {min_pt}")
                     .Filter("Jet_jetId[tag_idx] >= 4 && Jet_jetId[probe_idx] >= 4")
                     .Define("deltaPhi_dijet", "abs(Jet_phi[tag_idx] - Jet_phi[probe_idx])")
                     .Redefine("deltaPhi_dijet", "deltaPhi_dijet > TMath::Pi() ? TMath::TwoPi() - deltaPhi_dijet : deltaPhi_dijet")
                     .Filter(f"abs(Jet_eta[tag_idx]) < {tag_eta} && deltaPhi_dijet > {delta_phi}")
                     # Vectors for the tag and probe jets
-                    .Define("Dijet_tagVector", "ROOT::Math::PtEtaPhiMVector(Jet_pt[tag_idx], Jet_eta[tag_idx], Jet_phi[tag_idx], Jet_mass[tag_idx])")
                     .Define("Dijet_tagPolar", "ROOT::Math::Polar2DVectorF(Jet_pt[tag_idx], Jet_phi[tag_idx])")
                     .Define("Dijet_probePolar", "ROOT::Math::Polar2DVectorF(Jet_pt[probe_idx], Jet_phi[probe_idx])")
                     .Define("Dijet_bisectorPolar", "ROOT::Math::Polar2DVectorF(1.0, (Dijet_tagPolar - Dijet_probePolar).Phi())")
-                    .Define("Dijet_probeVector", "ROOT::Math::PtEtaPhiMVector(Jet_pt[probe_idx], Jet_eta[probe_idx], Jet_phi[probe_idx], Jet_mass[probe_idx])")
                     .Define("Dijet_metPolar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
                     .Define("deltaEta_dijet", "abs(Jet_eta[tag_idx] - Jet_eta[probe_idx])")
                     .Define("deltaR_dijet", "sqrt(deltaPhi_dijet*deltaPhi_dijet + deltaEta_dijet*deltaEta_dijet)")
@@ -157,12 +174,18 @@ class DijetMAnalyzer(RDFAnalyzer):
                     # Responses
                     .Define("Dijet_A", "(Jet_pt[probe_idx] - Jet_pt[tag_idx]) / (2.0 * Dijet_avgPt)")
                     .Define("Dijet_B", "Dijet_metPolar.Dot(Dijet_tagPolar) / (2.0 * Dijet_avgPt * Dijet_tagPolar.R())")
-                    .Define("Dijet_ptAvp", "0.5 * (Dijet_tagPolar.Dot(Dijet_probePolar) - Dijet_probePolar.Dot(Dijet_probePolar))")
+                    .Define("Dijet_ptAvp", "0.5 * (Dijet_tagPolar.Dot(Dijet_bisectorPolar) - Dijet_probePolar.Dot(Dijet_bisectorPolar))")
                     .Define("Dijet_mpfResponse", "(1.0 + Dijet_B) / (1.0 - Dijet_B)")
                     .Define("Dijet_dbResponse", "(1.0 + Dijet_A) / (1.0 - Dijet_A)")
-                    .Define("Dijet_dbDirectResponse", "Dijet_probeVector.Pt() / Dijet_tagVector.Pt()")
-                    .Define("Dijet_dbAngleResponse", "-Dijet_probePolar.Dot(Dijet_tagPolar) / (Dijet_tagVector.Pt() * Dijet_tagVector.Pt())")
+                    .Define("Dijet_dbDirectResponse", "Dijet_probePolar.R() / Dijet_tagPolar.R()")
+                    .Define("Dijet_dbAngleResponse", "-Dijet_probePolar.Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())")
                     .Define("Dijet_angleCorrection", "-ROOT::VecOps::DeltaPhi(Dijet_tagPolar.Phi(), Dijet_probePolar.Phi())")
+                    .Define("Dijet_mpfTagResponse", "1.0 + (Dijet_metPolar.Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())) ")
+                    .Define("Dijet_dbTagResponse", "1.0 + ((-Dijet_tagPolar - Dijet_probePolar).Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R()))")
+                    .Define("Dijet_mpfProbeResponse", "1.0 + (Dijet_metPolar.Dot(-Dijet_probePolar) / (Dijet_probePolar.R() * Dijet_probePolar.R()))")
+                    .Define("Dijet_dbProbeResponse", "1.0 + ((-Dijet_tagPolar - Dijet_probePolar).Dot(-Dijet_probePolar) / (Dijet_probePolar.R() * Dijet_probePolar.R()))")
+                    .Define("Dijet_mpfAvgResponse", "1.0 + (Dijet_metPolar.Dot(Dijet_bisectorPolar) / (Dijet_bisectorPolar.R() * Dijet_avgPt))")
+                    .Define("Dijet_dbAvgResponse", "1.0 + ((-Dijet_tagPolar - Dijet_probePolar).Dot(Dijet_bisectorPolar) / (Dijet_bisectorPolar.R() * Dijet_avgPt))")
                     )
         return rdf_dijet
     

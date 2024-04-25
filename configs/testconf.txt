@@ -1,13 +1,13 @@
 [GENERAL]
 filepath = data/testfiles23D.txt
 filelist =
-triggerpath = 
+triggerpath = data/JME_triggers.txt
 triggerlist =
-triggerconfig = data/testtrgconf.txt
-number_of_files = 60
+triggerconfig =
+number_of_files = 50
 is_local = 1
 output_path = out
-run_id = rerun39
+run_id = rerun40
 is_mc =
 run_raw =
 selection_only =1
