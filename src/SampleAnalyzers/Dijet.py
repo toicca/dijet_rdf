@@ -67,6 +67,15 @@ class DijetAnalyzer(RDFAnalyzer):
                 db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsResponse", "MPF_"+ str(system) + "_PtVsEtaVsResponse;p_{T, tag} (GeV);#eta_{probe};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Dijet_tagPt", "Dijet_probeEta", "Dijet_dbResponseCorrected", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsTagResponse", "MPF_"+ str(system) + "_PtVsEtaVsTagResponse;p_{T, tag} (GeV);#eta_{probe};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_tagPt", "Dijet_probeEta", "Dijet_dbTagResponse", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtProbeVsEtaVsProbeResponse", "MPF_"+ str(system) + "_PtVsEtaVsProbeResponse;p_{T, probe} (GeV);#eta_{probe};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_probePt", "Dijet_probeEta", "Dijet_dbProbeResponse", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtAvgVsEtaVsAvgResponse", "MPF_"+ str(system) + "_PtVsEtaVsAvgResponse;p_{T, avg} (GeV);#eta_{probe};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_avgPt", "Dijet_probeEta", "Dijet_dbAvgResponse", "weight"),
                 # 3D asymmetry distribution for JER 
                 db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, tag} (GeV);#eta_{probe};asymmetry;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
@@ -105,6 +114,15 @@ class DijetAnalyzer(RDFAnalyzer):
                 mpf_rdf.Histo3D((f"MPF_{system}_PtTagVsEtaVsResponse", "MPF_"+ str(system) + "_PtVsEtaVsResponse;p_{T, tag} (GeV);#eta_{probe};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Dijet_tagPt", "Dijet_probeEta", "Dijet_mpfResponseCorrected", "weight"),
+                mpf_rdf.Histo3D((f"MPF_{system}_PtTagVsEtaVsTagResponse", "MPF_"+ str(system) + "_PtVsEtaVsTagResponse;p_{T, tag} (GeV);#eta_{probe};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_tagPt", "Dijet_probeEta", "Dijet_mpfTagResponse", "weight"),
+                mpf_rdf.Histo3D((f"MPF_{system}_PtProbeVsEtaVsProbeResponse", "MPF_"+ str(system) + "_PtVsEtaVsProbeResponse;p_{T, probe} (GeV);#eta_{probe};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_probePt", "Dijet_probeEta", "Dijet_mpfProbeResponse", "weight"),
+                mpf_rdf.Histo3D((f"MPF_{system}_PtAvgVsEtaVsAvgResponse", "MPF_"+ str(system) + "_PtVsEtaVsAvgResponse;p_{T, avg} (GeV);#eta_{probe};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_avgPt", "Dijet_probeEta", "Dijet_mpfAvgResponse", "weight"),
                 # 1D Distributions
                 mpf_rdf.Profile1D((f"MPF_{system}_PtTagVsResponse", "MPF_"+ str(system) + "_PtTagVsResponse;p_{T, tag} (GeV);response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"]),
@@ -177,6 +195,13 @@ class DijetAnalyzer(RDFAnalyzer):
                     .Define("Dijet_mpfResponse", "1 + Dijet_metPolar.Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())")
                     .Define("Dijet_mpfResponseCorrected", "Dijet_mpfResponse - (Dijet_tagPolar.Dot(Dijet_activityPolar + Dijet_unclusteredPolar)) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())")
                     .Define("Dijet_angleCorrection", "-ROOT::VecOps::DeltaPhi(Dijet_tagPolar.Phi(), Dijet_probePolar.Phi())")
+                    # Responses as defined in the previous Dijet code
+                    .Define("Dijet_mpfTagResponse", "1.0 + (Dijet_metPolar.Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())) ")
+                    .Define("Dijet_dbTagResponse", "1.0 + ((-Dijet_tagPolar - Dijet_probePolar).Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R()))")
+                    .Define("Dijet_mpfProbeResponse", "1.0 + (Dijet_metPolar.Dot(-Dijet_probePolar) / (Dijet_probePolar.R() * Dijet_probePolar.R()))")
+                    .Define("Dijet_dbProbeResponse", "1.0 + ((-Dijet_tagPolar - Dijet_probePolar).Dot(-Dijet_probePolar) / (Dijet_probePolar.R() * Dijet_probePolar.R()))")
+                    .Define("Dijet_mpfAvgResponse", "1.0 + (Dijet_metPolar.Dot(Dijet_bisectorPolar) / (Dijet_bisectorPolar.R() * Dijet_avgPt))")
+                    .Define("Dijet_dbAvgResponse", "1.0 + ((-Dijet_tagPolar - Dijet_probePolar).Dot(Dijet_bisectorPolar) / (Dijet_bisectorPolar.R() * Dijet_avgPt))")
                     )
         return rdf_dijet
     

@@ -1,10 +1,10 @@
 [GENERAL]
 filepath = data/testfiles23D.txt
 filelist =
-triggerpath = data/JME_triggers.txt
+triggerpath = 
 triggerlist =
-triggerconfig =
-number_of_files = 50
+trigger_config = data/testtrgconf.txt
+number_of_files = 10
 is_local = 1
 output_path = out
 run_id = rerun40

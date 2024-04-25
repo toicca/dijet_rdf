@@ -1,8 +1,6 @@
 import ROOT
 from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
-from SampleAnalyzers.MultijetM import MultijetMAnalyzer as multijetM
-from SampleAnalyzers.DijetM import DijetMAnalyzer as dijetM
 from RDFAnalyzer import RDFAnalyzer
 from RDFHelpers import parse_arguments
 
@@ -34,8 +32,8 @@ if __name__ == "__main__":
         triggers = {}
         for trigger in triggerlist:
             triggers[trigger] = trigger
-    elif args.triggerconfig:
-        triggers = args.triggerconfig
+    elif args.trigger_config:
+        triggers = args.trigger_config
 
     nFiles = args.number_of_files
     if not nFiles:
@@ -67,22 +65,18 @@ if __name__ == "__main__":
                                     nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                     selection_only=selection_only, header_dir=header_dir)
     
-    dijet_analysis = dijetM(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
+    dijet_analysis = dijet(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
                            nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                            selection_only=selection_only, header_dir=header_dir)
     
-    # multijet_analysis = multijet(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
-                                # nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
-                                # selection_only=selection_only, header_dir=header_dir)
-
-    multijet_analysis = multijetM(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
+    multijet_analysis = multijet(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
                                 nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                 selection_only=selection_only, header_dir=header_dir)
-    
-    # standard_analysis.do_inclusive()
-    # standard_analysis.do_inclusive_control()
-    # standard_analysis.do_PFComposition()
-    # standard_analysis.do_RunsAndLumis()
+
+    standard_analysis.do_inclusive()
+    standard_analysis.do_inclusive_control()
+    standard_analysis.do_PFComposition()
+    standard_analysis.do_RunsAndLumis()
     
     if is_mc:
         standard_analysis.do_MC()
@@ -97,7 +91,7 @@ if __name__ == "__main__":
     standard_analysis.run_histograms()
     dijet_analysis.run_histograms()
     multijet_analysis.run_histograms()
-    
+
     hists1 = standard_analysis.get_histograms()
     hists2 = dijet_analysis.get_histograms()
     hists3 = multijet_analysis.get_histograms()
