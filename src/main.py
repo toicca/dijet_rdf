@@ -56,20 +56,21 @@ if __name__ == "__main__":
     run_raw = args.run_raw
     selection_only = args.selection_only
     header_dir = args.header_dir
+    trigger_details = args.trigger_details
 
     ROOT.EnableImplicitMT(nThreads)
 
     print("Creating analysis object " + ("(MC)" if is_mc else "(Data)"))
     
-    standard_analysis = RDFAnalyzer(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
+    standard_analysis = RDFAnalyzer(filelist, triggers, trigger_details=trigger_details, json_file= json_file, nFiles=nFiles, JEC=correction_dict, \
                                     nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                     selection_only=selection_only, header_dir=header_dir)
     
-    dijet_analysis = dijet(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
+    dijet_analysis = dijet(filelist, triggers, trigger_details=trigger_details, json_file= json_file, nFiles=nFiles, JEC=correction_dict, \
                            nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                            selection_only=selection_only, header_dir=header_dir)
     
-    multijet_analysis = multijet(filelist, triggers, json_file, nFiles=nFiles, JEC=correction_dict, \
+    multijet_analysis = multijet(filelist, triggers, trigger_details=trigger_details, json_file= json_file, nFiles=nFiles, JEC=correction_dict, \
                                 nThreads=nThreads, progress_bar=progress_bar, isMC=is_mc, local=is_local, run_raw=run_raw, \
                                 selection_only=selection_only, header_dir=header_dir)
 

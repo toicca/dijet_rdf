@@ -1,19 +1,21 @@
 [GENERAL]
-filepath = data/testfiles23D.txt
+filepath = data/testfiles_23D.txt
 filelist =
 triggerpath = 
 triggerlist =
 trigger_config = data/testtrgconf.txt
-number_of_files = 1
+number_of_files = 10
 is_local = 1
 output_path = out
-run_id = rerun41
+run_id = rerun42
 is_mc =
 run_raw =
 selection_only =1
-golden_json = 
+header_dir=src
+trigger_details=
+golden_json = /eos/user/c/cmsdqm/www/CAF/certification/Collisions24/DCSOnly_JSONS/dailyDCSOnlyJSON/Collisions24_13p6TeV_378981_379866_DCSOnly_TkPx.json
 jetvetomap =
-correction_config = data/testcorrections.txt
+correction_config =
 nThreads = 8
 verbosity =
 progress_bar = 1
