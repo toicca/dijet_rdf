@@ -189,7 +189,7 @@ def update_run_bins(rdf: ROOT.RDF.RNode, bins: Dict) -> Dict:
 
 def get_fill_range(IOV : str) -> tuple:
     fill_dict = {
-        "Run2024C": (379412, 380100),
+        "Run2024C": (379412, 382000),
         "Run2024B": (378981, 379411),
         "Run2024A": (376370, 378980),
         "Commissioning2023": (363380, 365738),
