@@ -44,6 +44,8 @@ class RDFAnalyzer:
         self.run_raw= run_raw
         self.selection_only = selection_only
         self.header_dir = header_dir
+        # TODO:
+        # self.verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kDebug)
 
         if not self.isMC:
             # Find the Run from filename
@@ -56,6 +58,9 @@ class RDFAnalyzer:
         
         self.rdf = self.__loadRDF(filelist, nFiles = nFiles, local = local)
 
+        if not self.isMC:
+            self.bins = update_run_bins(self.rdf, self.bins)
+        
         if progress_bar:
             ROOT.RDF.Experimental.AddProgressBar(self.rdf)
 
@@ -87,9 +92,7 @@ class RDFAnalyzer:
         if (json_file != "") and (not self.isMC):
             self.rdf = self.__do_cut_golden_json(json_file)
 
-        if not self.isMC:
-            self.bins = update_run_bins(self.rdf, self.bins)
-        
+
         # MC cuts, to be implemented elsewhere
         if self.isMC:
             self.rdf = (self.rdf.Filter("fabs(PV_z - GenVtx_z) < 0.2", "Vertex_z_cut")
@@ -151,7 +154,7 @@ class RDFAnalyzer:
             if (trigger != "") and (trigger in self.triggers.keys()) and (trigger_details):
                 self.trigger_rdfs[trigger] = self.rdf.Filter(self.triggers[trigger], f"{trigger} Filter")
                 self.histograms[trigger] = []
-            elif trigger != "": # This part is only for the all and all_triggers, which should always be included
+            elif (trigger != "") and (trigger not in self.triggers.keys()): # This part is only for the all and all_triggers, which should always be included
                 self.trigger_rdfs[trigger] = self.rdf.Filter(trigger, f"{trigger} Filter")
                 self.histograms[trigger] = []
 
@@ -270,7 +273,7 @@ class RDFAnalyzer:
         ROOT.init_json(json_file)
         rdf = self.rdf.Define("goldenJSON", "isGoodLumi(run, luminosityBlock)")
         self.histograms["all"].extend([
-            rdf.Histo1D(("GoldenJSON", "GoldenJSON;GoldenJSON;N_{events}", 2, 0, 2), "goldenJSON", "weight")
+            rdf.Histo1D(("GoldenJSON", "GoldenJSON;"+json_file+";N_{events}", 2, 0, 2), "goldenJSON", "weight")
         ])
         rdf = rdf.Filter("goldenJSON", "GoldenJSON Filter")
         
@@ -305,7 +308,7 @@ class RDFAnalyzer:
     def run_histograms(self) -> "RDFAnalyzer":
         if not self.has_run:
             print(f"Running histograms for system: {self.system}")
-            for trigger in self.trigger_list:
+            for trigger in self.histograms.keys():
                 if trigger != "":
                     RunGraphs(self.histograms[trigger])
             

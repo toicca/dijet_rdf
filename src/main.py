@@ -58,7 +58,10 @@ if __name__ == "__main__":
     header_dir = args.header_dir
     trigger_details = args.trigger_details
 
-    ROOT.EnableImplicitMT(nThreads)
+    if nThreads > 0:
+        ROOT.EnableImplicitMT(nThreads)
+    else:
+        ROOT.DisableImplicitMT()
 
     print("Creating analysis object " + ("(MC)" if is_mc else "(Data)"))
     
@@ -97,7 +100,7 @@ if __name__ == "__main__":
     hists2 = dijet_analysis.get_histograms()
     hists3 = multijet_analysis.get_histograms()
     
-    filewriter = FileWriter(output_path + "/multisample_" + run_id + ".root", standard_analysis.trigger_list, cut_hist_names)
+    filewriter = FileWriter(output_path + "/multisample_" + run_id + ".root", standard_analysis.histograms.keys(), cut_hist_names)
     filewriter.write_samples([standard_analysis, dijet_analysis, multijet_analysis])
     filewriter.close()
     print("Done")
