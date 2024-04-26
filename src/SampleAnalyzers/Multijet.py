@@ -147,7 +147,7 @@ class MultijetAnalyzer(RDFAnalyzer):
             self.histograms[trigger].extend([
                 mpf_gt100_rdf.Profile1D((f"MPF_{system}_RunVsResponse", "MPF_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                          self.bins["runs"]["n"], self.bins["runs"]["bins"]),
-                                            "run", "Multijet_mpfResponse", "weight"),
+                                            "run", "Multijet_mpfResponseCorrected", "weight"),
            ])
 
         return self
