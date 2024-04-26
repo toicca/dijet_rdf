@@ -9,7 +9,7 @@ def parse_arguments():
 
     parser.add_argument("--run", required=True, type=str, help="Run number")
 
-    parser.add_argument("--out", required=True, type=str, help="Output file")
+    parser.add_argument("--out", required=False, type=str, help="Output file")
 
     args = parser.parse_args()
     
@@ -19,11 +19,13 @@ if __name__ == "__main__":
     args = parse_arguments()
     json_files = [s.strip() for s in args.json_files.split(",")]
     run = int(args.run)
-    output_file = args.out
+    if args.out:
+        output_file = args.out
+    else:
+        output_file = ""
 
     print(f"json_files: {json_files}")
     print(f"run: {run}")
-    print(f"out: {output_file}")
 
     newest_run = 0
     newest_json = ""
@@ -39,5 +41,10 @@ if __name__ == "__main__":
                 newest_run = max_run
                 newest_json = json_file
 
-    if newest_json != "":
+    if newest_json != "" and output_file != "":
         os.system(f"cp -r {newest_json} {output_file}")
+    elif newest_json != "":
+        output_file = newest_json.split("/")[-1]
+        os.system(f"cp -r {newest_json} {output_file}")
+        
+    print(f"out: \n{output_file}")

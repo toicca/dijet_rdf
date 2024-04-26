@@ -88,6 +88,15 @@ class MultijetAnalyzer(RDFAnalyzer):
                 db_rdf.Histo3D((f"DB_{system}_PtRecoilVsEtaVsResponse", "DB_"+ str(system) + "_PtVsEtaVsResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_dbResponseCorrected", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtRecoilVsEtaVsRecoilResponse", "DB_"+ str(system) + "_PtVsEtaVsRecoilResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_dbRecoilResponse", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtRecoilVsEtaVsLeadResponse", "DB_"+ str(system) + "_PtVsEtaVsLeadResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_dbLeadResponse", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtRecoilVsEtaVsAvgResponse", "DB_"+ str(system) + "_PtVsEtaVsAvgResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_dbAvgResponse", "weight"),
                 # Average distributions for pT in barrel
                 db_rdf.Profile1D((f"DB_{system}_PtRecoilVsResponseCorrected", "DB_"+ str(system) + "_PtRecoilVsResponse;p_{T, lead} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
@@ -104,6 +113,7 @@ class MultijetAnalyzer(RDFAnalyzer):
             ])
         return self
     
+
     def do_MPF(self) -> "MultijetAnalyzer":
         system = "multijet"
         print(f"Creating MPF histograms for system: {self.system}")
@@ -115,6 +125,16 @@ class MultijetAnalyzer(RDFAnalyzer):
                 mpf_rdf.Histo3D((f"MPF_{system}_PtRecoilVsEtaVsResponse", "MPF_"+ str(system) + "_PtRecoilVsEtaVsResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_mpfResponseCorrected", "weight"),
+                mpf_rdf.Histo3D((f"MPF_{system}_PtRecoilVsEtaVsRecoilResponse", "MPF_"+ str(system) + "_PtRecoilVsEtaVsRecoilResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_mpfRecoilResponse", "weight"),
+                mpf_rdf.Histo3D((f"MPF_{system}_PtRecoilVsEtaVsLeadResponse", "MPF_"+ str(system) + "_PtRecoilVsEtaVsLeadResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_mpfLeadResponse", "weight"),
+                mpf_rdf.Histo3D((f"MPF_{system}_PtRecoilVsEtaVsAvgResponse", "MPF_"+ str(system) + "_PtRecoilVsEtaVsAvgResponse;p_{T, recoil} (GeV);#eta_{recoil};response;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Multijet_recoilPt", "Multijet_recoilEta", "Multijet_mpfAvgResponse", "weight"),
+
                 # Average distributions for pT in barrel
                 mpf_rdf.Profile1D((f"MPF_{system}_PtRecoilVsResponse", "MPF_"+ str(system) + "_PtRecoilVsResponse;p_{T, recoil} (GeV);response;N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),

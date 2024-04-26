@@ -101,6 +101,20 @@ class DijetAnalyzer(RDFAnalyzer):
                                 "run", "Dijet_dbResponseCorrected", "weight"),
             ])
 
+            barrel_rdf = db_rdf.Filter("abs(Dijet_probeEta) < 1.3")
+
+            self.histograms[trigger].extend([
+                barrel_rdf.Histo2D((f"DB_{system}_PtAvgVsA_Barrel", "DB_"+ str(system) + "_PtAvgVsA_Barrel;p_{T, avg} (GeV);asymmetry;N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                    "Dijet_avgPt", "Dijet_A", "weight"),
+                barrel_rdf.Histo2D((f"DB_{system}_PtTagVsA_Barrel", "DB_"+ str(system) + "_PtTagVsA_Barrel;p_{T, tag} (GeV);response;N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                    "Dijet_tagPt", "Dijet_A", "weight"),
+                barrel_rdf.Histo2D((f"DB_{system}_PtTagVsA_Barrel", "DB_"+ str(system) + "_PtTagVsA_Barrel;p_{T, tag} (GeV);response;N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                    "Dijet_tagPt", "Dijet_A", "weight"),
+            ])
+
         return self
 
     
