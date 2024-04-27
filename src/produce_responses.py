@@ -5,22 +5,26 @@ import argparse, configparser
 import numpy as np
 
 response_histos = (
-                    # ("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsResponse"),
                     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsResponse"),
-                    # ("multijet", "MPF", "MPF_multijet_PtLeadVsEtaVsResponse"),
-                    # ("multijet", "DB", "DB_multijet_PtAvgVsEtaVsResponse"),
+                    ("multijet", "MPF", "MPF_multijet_PtAvpVsEtaVsAvgResponse"),
+                    ("multijet", "MPF", "MPF_multijet_PtLeadVsEtaVsLeadResponse"),
+                    ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsRecoilResponse"),
                     ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsResponse"),
-                    # ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsResponse"),
-                    # ("dijet", "MPF", "MPF_dijet_PtAvgVsEtaVsResponse"),
-                    # ("dijet", "MPF", "MPF_dijet_PtProbeVsEtaVsResponse"),
+                    ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsRecoilResponse"),
+                    ("multijet", "DB", "DB_multijet_PtAvpVsEtaVsAvgResponse"),
+                    ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsLeadResponse"),
                     ("dijet", "MPF", "MPF_dijet_PtTagVsEtaVsResponse"),
-                    # ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsResponse"),
-                    # ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtTagVsEtaVsTagResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtAvgVsEtaVsAvgResponse"),
+                    ("dijet", "MPF", "MPF_dijet_PtProbeVsEtaVsProbeResponse"),
                     ("dijet", "DB", "DB_dijet_PtTagVsEtaVsResponse"),
+                    ("dijet", "DB", "DB_dijet_PtTagVsEtaVsTagResponse"),
+                    ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsAvgResponse"),
+                    ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsProbeResponse"),
 )
 resolution_histos = (# ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsA"),
                     # ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsA"),
-                    ("dijet", "DB", "DB_dijet_PtTagVsEtaVsA"),
+                    ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsA"),
 )
 
 derived_histos = ()
