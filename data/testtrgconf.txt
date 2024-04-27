@@ -10,7 +10,7 @@ filter=(Jet_pt[0] > 85) && (Jet_pt[0] < 100)
 filter=(Jet_pt[0] > 100) && (Jet_pt[0] < 155)
 
 [HLT_DiPFJetAve140]
-filter=(Jet_pt[0] > 155) && (Jet_pt[0] < 210)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 155) && ((Jet_pt[0] + Jet_pt[1]) < 210)
 
 [HLT_DiPFJetAve200]
 filter=(Jet_pt[0] > 210) && (Jet_pt[0] < 300)

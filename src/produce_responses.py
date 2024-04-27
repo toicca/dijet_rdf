@@ -6,12 +6,12 @@ import numpy as np
 
 response_histos = (
                     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsResponse"),
-                    ("multijet", "MPF", "MPF_multijet_PtAvgVsEtaVsAvgResponse"),
+                    ("multijet", "MPF", "MPF_multijet_PtAvpVsEtaVsAvgResponse"),
                     ("multijet", "MPF", "MPF_multijet_PtLeadVsEtaVsLeadResponse"),
                     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsRecoilResponse"),
                     ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsResponse"),
                     ("multijet", "DB", "DB_multijet_PtRecoilVsEtaVsRecoilResponse"),
-                    ("multijet", "DB", "DB_multijet_PtAvgVsEtaVsAvgResponse"),
+                    ("multijet", "DB", "DB_multijet_PtAvpVsEtaVsAvgResponse"),
                     ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsLeadResponse"),
                     ("dijet", "MPF", "MPF_dijet_PtTagVsEtaVsResponse"),
                     ("dijet", "MPF", "MPF_dijet_PtTagVsEtaVsTagResponse"),
@@ -24,7 +24,7 @@ response_histos = (
 )
 resolution_histos = (# ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsA"),
                     # ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsA"),
-                    ("dijet", "DB", "DB_dijet_PtTagVsEtaVsA"),
+                    ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsA"),
 )
 
 derived_histos = ()
@@ -137,7 +137,6 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
             path = f"{trg}/{system}/{method}/"
             response_path = f"{trg}/{system}/Responses"
 
-            print("Processing hist", histogram)
             if not file.GetDirectory(response_path):
                 file.mkdir(response_path)
 

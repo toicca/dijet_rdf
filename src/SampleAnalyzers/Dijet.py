@@ -78,9 +78,9 @@ class DijetAnalyzer(RDFAnalyzer):
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Dijet_avgPt", "Dijet_probeEta", "Dijet_dbAvgResponse", "weight"),
                 # 3D asymmetry distribution for JER 
-                db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, tag} (GeV);#eta_{probe};asymmetry;N_{events}",
+                db_rdf.Histo3D((f"DB_{system}_PtAvgVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, avg} (GeV);#eta_{probe};asymmetry;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
-                                "Dijet_tagPt", "Dijet_probeEta", "Dijet_A", "weight"),
+                                "Dijet_avgPt", "Dijet_probeEta", "Dijet_A", "weight"),
                 db_rdf.Histo2D((f"DB_{system}_PtAvgVsA", "DB_"+ str(system) + "_PtVsAsymmetry;p_{T, ave} (GeV);asymmetry;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
                                 "Dijet_avgPt", "Dijet_A", "weight"),
