@@ -179,8 +179,13 @@ def update_run_bins(rdf: ROOT.RDF.RNode, bins: Dict) -> Dict:
     run_hist = rdf.Histo1D(("run", "run", bins["runs"]["n"], bins["runs"]["bins"]), "run")
     run_hist = run_hist.GetValue()
     # Find non-zero bins
-    run_bins = np.array([int(run_hist.GetBinLowEdge(i)) for i in range(1, run_hist.GetNbinsX()+1) if run_hist.GetBinContent(i) > 0], dtype=float)
-    run_bins = np.sort(run_bins)
+    run_bins = np.array([], dtype=float)
+    last_bin = 0
+    for i in range(1, run_hist.GetNbinsX()+1):
+        if run_hist.GetBinContent(i) > 0:
+            run_bins = np.append(run_bins, run_hist.GetBinLowEdge(i))
+            last_bin = i
+    run_bins = np.append(run_bins, run_hist.GetBinLowEdge(last_bin+1))
     if len(run_bins) > 1: 
         # Suspect inplace modification
         bins["runs"]["bins"] = run_bins
