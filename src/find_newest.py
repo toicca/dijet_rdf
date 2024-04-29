@@ -19,13 +19,21 @@ def parse_arguments():
     
     return args
 
-def find_newest_files(root_dir, starts_with, ends_with):
+def find_newest_files(root_dir, starts_with, ends_with, max_depth=2):
     newest_files = defaultdict(lambda: {"path": None, "mtime": 0})
 
     # Walk through the directory tree
     for dirpath, _, filenames in os.walk(root_dir):
+        # Calculate the current directory depth relative to root_dir
+        current_depth = dirpath[len(root_dir.split(os.path.sep)[0]):].count(os.path.sep)
+        
+        # Check if we exceed the maximum allowed depth
+        if max_depth is not None and current_depth > max_depth:
+            # Skip processing files in directories beyond max_depth
+            continue
+
         for filename in filenames:
-            if filename.endswith('.root') and filename.startswith(starts_with) and filename.endswith(ends_with):
+            if filename.startswith(starts_with) and filename.endswith(ends_with):
                 file_path = os.path.join(dirpath, filename)
                 mtime = os.path.getmtime(file_path)
 
@@ -45,7 +53,8 @@ if __name__ == "__main__":
         starts_with = args.starts_with
     if args.ends_with:
         ends_with = args.ends_with
+    print(f"Searching for files starting with '{starts_with}' and ending with '{ends_with}' in '{root_directory}'")
     newest_files = find_newest_files(root_directory, starts_with, ends_with)
-
-    for file_path in newest_files:
-        print(file_path)
+    print(newest_files)
+    # Print the list comma-separated
+    print(",".join(newest_files))
