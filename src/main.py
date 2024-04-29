@@ -100,7 +100,7 @@ if __name__ == "__main__":
     hists2 = dijet_analysis.get_histograms()
     hists3 = multijet_analysis.get_histograms()
     
-    filewriter = FileWriter(output_path + "/multisample_" + run_id + ".root", standard_analysis.histograms.keys(), cut_hist_names)
+    filewriter = FileWriter(output_path + f"/{run_id}_era{standard_analysis.era}_runs{standard_analysis.run_range[0]}to{standard_analysis.run_range[1]}.root", standard_analysis.histograms.keys(), cut_hist_names)
     filewriter.write_samples([standard_analysis, dijet_analysis, multijet_analysis])
     filewriter.close()
     print("Done")

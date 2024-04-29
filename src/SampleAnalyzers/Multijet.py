@@ -105,7 +105,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_recoilPt", "Multijet_dbResponse", "weight"),
             ])
-            db_gt100_rdf = self.__sample_cut(self.Flag_cut(rdf)).Filter("Multijet_recoilPt > 100")
+            db_gt100_rdf = self.__sample_cut(self.Flag_cut(rdf)) # .Filter("Multijet_recoilPt > 100")
             self.histograms[trigger].extend([
                 db_gt100_rdf.Profile1D((f"DB_{system}_RunVsResponse", "DB_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                          self.bins["runs"]["n"], self.bins["runs"]["bins"]),
@@ -131,7 +131,7 @@ class MultijetAnalyzer(RDFAnalyzer):
                 mpf_rdf.Histo3D((f"MPF_{system}_PtLeadVsEtaVsLeadResponse", "MPF_"+ str(system) + "_PtLeadVsEtaVsLeadResponse;p_{T, lead} (GeV);#eta_{recoil};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Multijet_leadPt", "Multijet_recoilEta", "Multijet_mpfLeadResponse", "weight"),
-                mpf_rdf.Histo3D((f"MPF_{system}_PtAvpVsEtaVsAvgResponse", "MPF_"+ str(system) + "_PtRecoilVsEtaVsAvgResponse;p_{T, avp} (GeV);#eta_{recoil};response;N_{events}",
+                mpf_rdf.Histo3D((f"MPF_{system}_PtAvpVsEtaVsAvgResponse", "MPF_"+ str(system) + "_PtAvpVsEtaVsAvgResponse;p_{T, avp} (GeV);#eta_{recoil};response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
                                 "Multijet_ptAvp", "Multijet_recoilEta", "Multijet_mpfAvgResponse", "weight"),
 

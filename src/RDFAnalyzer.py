@@ -40,10 +40,12 @@ class RDFAnalyzer:
         self.chain = None
         self.isMC = isMC
         self.era = ""
+        self.run_range = (1,1)
         self.system = system
         self.run_raw= run_raw
         self.selection_only = selection_only
         self.header_dir = header_dir
+
         # TODO:
         # self.verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kDebug)
 
@@ -52,7 +54,6 @@ class RDFAnalyzer:
             self.era = find_era(filelist)
             frange = get_fill_range(self.era)
             self.bins = get_bins(fill_range=frange)
-            print(f"Using fill range {frange} for run {self.era}")
         else:
             self.bins = get_bins()
         
@@ -60,6 +61,8 @@ class RDFAnalyzer:
 
         if not self.isMC:
             self.bins = update_run_bins(self.rdf, self.bins)
+            self.run_range = (int(np.min(self.bins["runs"]["bins"])), int(np.max(self.bins["runs"]["bins"])))
+            print(f"Using fill range {self.run_range} for era {self.era}")
         
         if progress_bar:
             ROOT.RDF.Experimental.AddProgressBar(self.rdf)
