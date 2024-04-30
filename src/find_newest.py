@@ -5,8 +5,8 @@ import argparse
 
 # Specify the root directory to search within
 root_directory = '/eos/user/j/jecpcl/public/test/2024C/jec_perIntLumi'
-starts_with = 'combined'
-ends_with = '.root'
+starts_with = 'JEC4PROMPT'
+ends_with = '_plain.root'
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Script to find the newest files in subdirectories for dijet_rdf: https://github.com/toicca/dijet_rdf")
@@ -14,18 +14,27 @@ def parse_arguments():
     parser.add_argument("--root_directory", type=str, help="Directory to search for files in")
     parser.add_argument("--starts_with", type=str, help="Choose a prefix for the files to search for")
     parser.add_argument("--ends_with", type=str, help="Choose a suffix for the files to search for")
+    parser.add_argument("--spaces", action="store_true", help="Use spaces instead of commas to separate the file paths")
 
     args = parser.parse_args()
     
     return args
 
-def find_newest_files(root_dir, starts_with, ends_with):
+def find_newest_files(root_dir, starts_with, ends_with, max_depth=None):
     newest_files = defaultdict(lambda: {"path": None, "mtime": 0})
 
     # Walk through the directory tree
     for dirpath, _, filenames in os.walk(root_dir):
+        # Calculate the current directory depth relative to root_dir
+        current_depth = dirpath[len(root_dir.split(os.path.sep)[0]):].count(os.path.sep)
+        
+        # Check if we exceed the maximum allowed depth
+        if max_depth is not None and current_depth > max_depth:
+            # Skip processing files in directories beyond max_depth
+            continue
+
         for filename in filenames:
-            if filename.endswith('.root') and filename.startswith(starts_with) and filename.endswith(ends_with):
+            if filename.startswith(starts_with):#  and filename.endswith(ends_with):
                 file_path = os.path.join(dirpath, filename)
                 mtime = os.path.getmtime(file_path)
 
@@ -46,6 +55,9 @@ if __name__ == "__main__":
     if args.ends_with:
         ends_with = args.ends_with
     newest_files = find_newest_files(root_directory, starts_with, ends_with)
-
-    for file_path in newest_files:
-        print(file_path)
+    if not args.spaces:
+        # Print the list comma-separated
+        print(",".join(newest_files))
+    else:
+        # Print the list space-separated
+        print(" ".join(newest_files))

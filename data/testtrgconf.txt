@@ -1,49 +1,49 @@
 [HLT_ZeroBias]
 
 [HLT_DiPFJetAve40]
-filter=(Jet_pt[0] > 40) && (Jet_pt[0] < 85)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 40) && ((Jet_pt[0] + Jet_pt[1]) < 85)
 
 [HLT_DiPFJetAve60]
-filter=(Jet_pt[0] > 85) && (Jet_pt[0] < 100)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 85) && ((Jet_pt[0] + Jet_pt[1]) < 100)
 
 [HLT_DiPFJetAve80]
-filter=(Jet_pt[0] > 100) && (Jet_pt[0] < 155)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 100) && ((Jet_pt[0] + Jet_pt[1]) < 155)
 
 [HLT_DiPFJetAve140]
 filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 155) && ((Jet_pt[0] + Jet_pt[1]) < 210)
 
 [HLT_DiPFJetAve200]
-filter=(Jet_pt[0] > 210) && (Jet_pt[0] < 300)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 210) && ((Jet_pt[0] + Jet_pt[1]) < 300)
 
 [HLT_DiPFJetAve260]
-filter=(Jet_pt[0] > 300) && (Jet_pt[0] < 400)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 300) && ((Jet_pt[0] + Jet_pt[1]) < 400)
 
 [HLT_DiPFJetAve320]
-filter=(Jet_pt[0] > 400) && (Jet_pt[0] < 500)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 400) && ((Jet_pt[0] + Jet_pt[1]) < 500)
 
 [HLT_DiPFJetAve400]
-filter=(Jet_pt[0] > 500) && (Jet_pt[0] < 600)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 500) && ((Jet_pt[0] + Jet_pt[1]) < 600)
 
 [HLT_DiPFJetAve500]
-filter=(Jet_pt[0] > 600) && (Jet_pt[0] < 6500)
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 600) && ((Jet_pt[0] + Jet_pt[1]) < 6500)
 
 [HLT_DiPFJetAve60_HFJEC]
-filter=(Jet_pt[0] > 85) && (Jet_pt[0] < 100) && (abs(Jet_eta[0]) > 3.139)
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 85) && ((Jet_pt[0] + Jet_pt[1]) < 100) && (abs(Jet_eta[0]) > 3.139))
 
 [HLT_DiPFJetAve80_HFJEC]
-filter=(Jet_pt[0] > 100) && (Jet_pt[0] < 125) && (abs(Jet_eta[0]) > 3.139)
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 100) && ((Jet_pt[0] + Jet_pt[1]) < 125) && (abs(Jet_eta[0]) > 3.139))
 
 [HLT_DiPFJetAve100_HFJEC]
-filter=(Jet_pt[0] > 125) && (Jet_pt[0] < 180) && (abs(Jet_eta[0]) > 3.139)
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 125) && ((Jet_pt[0] + Jet_pt[1]) < 180) && (abs(Jet_eta[0]) > 3.139))
 
 [HLT_DiPFJetAve160_HFJEC]
-filter=(Jet_pt[0] > 180) && (Jet_pt[0] < 250) && (abs(Jet_eta[0]) > 3.139)
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 180) && ((Jet_pt[0] + Jet_pt[1]) < 250) && (abs(Jet_eta[0]) > 3.139))
 
 [HLT_DiPFJetAve220_HFJEC]
-filter=(Jet_pt[0] > 250) && (Jet_pt[0] < 350) && (abs(Jet_eta[0]) > 2.964)
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 250) && ((Jet_pt[0] + Jet_pt[1]) < 350) && (abs(Jet_eta[0]) > 2.964))
 
 [HLT_DiPFJetAve300_HFJEC]
-filter=(Jet_pt[0] > 350) && (Jet_pt[0] < 6500) && (abs(Jet_eta[0]) > 2.964)
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 350) && ((Jet_pt[0] + Jet_pt[1]) < 6500) && (abs(Jet_eta[0]) > 2.964))
 
 [HLT_PFJet40]
 filter=(Jet_pt[0] > 40) && (Jet_pt[0] < 85)

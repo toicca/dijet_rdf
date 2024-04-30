@@ -15,7 +15,7 @@ def parse_arguments():
     triggers.add_argument("--triggerlist", type=str, help="Comma separated list of triggers for which plots will be produced (default value 'all')")
     triggers.add_argument("--triggerpath", type=str, help="Path to a file containing a list of triggers for which plots will be produced")
 
-    parser.add_argument("--out", type=str, default="", help="Output path")
+    parser.add_argument("--out", type=str, required=True, default="", help="Name of the output root file")
 
     parser.add_argument("--config", type=str, default="", help="Path to config file")
 
@@ -111,6 +111,7 @@ if __name__ == '__main__':
     if args.filepath:
         files = file_read_lines(args.filepath)
     else:
+        print(args.filelist)
         files = [s.strip() for s in args.filelist.split(',')]
 
     output_path = args.out
