@@ -3,13 +3,12 @@
 #include <fstream>
 #include <string>
 
-
 using json = nlohmann::json;
     
 json golden_json;
 
 void init_json(std::string jsonFile) {
-    std::cout << "Initializing variables" << std::endl;
+    std::cout << "Initializing JSON file" << std::endl;
     std::ifstream f(jsonFile);
     golden_json = json::parse(f);
 }

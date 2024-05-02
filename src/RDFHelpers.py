@@ -37,6 +37,20 @@ def read_config_file(config_file: str) -> configparser.ConfigParser:
     config.optionxform = str
     config.read(config_file)
     return config
+
+def read_trigger_config(config_file: str) -> Dict:
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(config_file)
+
+    triggers = {}
+    for section in config.sections():
+        if "filter" not in config[section]:
+            triggers[section] = section
+        else:
+            triggers[section] = "(" + config[section]["filter"] + " && " + section + ")"
+
+    return triggers
     
 def read_correction_config(config_file: str) -> Dict:
     types_in_ROOT = {
@@ -92,6 +106,7 @@ def parse_arguments():
     trigger_group = parser.add_mutually_exclusive_group()
     trigger_group.add_argument('-tp', '--triggerpath', type=str, help='Path to the trigger list')
     trigger_group.add_argument('-tl','--triggerlist', type=str, help='Input files separated by commas')
+    trigger_group.add_argument('-tc', '--trigger_config', type=str, help='Path to the trigger config file')
     parser.add_argument('-nof', '--number_of_files', type=int, default=-1, help='How many files to be processed. -1 for all files in the list')
     parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not set will append root://cms-xrd-global.cern.ch/ to the start of file names')
     parser.add_argument('-out', '--output_path', type=str, help='Path where to write output files')
@@ -100,6 +115,7 @@ def parse_arguments():
     parser.add_argument('-raw', '--run_raw', action='store_true', help='Run on raw data (no corrections applied)')
     parser.add_argument('-sel', '--selection_only', action='store_false', default=0, help='Run only "selected" (Jet_jetId > 4 and Flag_) histograms')
     parser.add_argument('-header_dir', '--header_dir', type=str, default='src', help='Path to header files related to RDAnalyzer class and any other class that inherits it')
+    parser.add_argument('-td', '--trigger_details', action='store_true', default=0, help='Produce per trigger results.')
 
     # Corrections and filtering files
     parser.add_argument('-gjson', '--golden_json', type=str, default='', help='Path to the golden JSON file') # good job son
@@ -124,7 +140,8 @@ def parse_arguments():
             if arg == "number_of_files" or arg == "nThreads" \
             or arg == "verbosity" or arg == "is_local" \
             or arg == "is_mc" or arg == "progress_bar" \
-            or arg == "cutflow_report"  or arg == "cut_histogram_names":
+            or arg == "cutflow_report"  or arg == "cut_histogram_names" \
+            or arg == "selection_only" or arg == "trigger_details":
                 if value == "":
                     setattr(args, arg, 0)
                 else:
@@ -137,11 +154,14 @@ def parse_arguments():
         args.filelist = args.filelist.split(",")
     elif args.filepath:
         args.filepath = file_read_lines(args.filepath, find_ROOT=True)
+    
         
     if args.triggerlist:
         args.triggerlist = args.triggerlist.split(",")
     elif args.triggerpath:
         args.triggerpath = file_read_lines(args.triggerpath)
+    elif args.trigger_config:
+        args.trigger_config = read_trigger_config(args.trigger_config)
 
     if args.correction_config:
         args.correction_config = read_correction_config(args.correction_config)
@@ -159,15 +179,22 @@ def update_run_bins(rdf: ROOT.RDF.RNode, bins: Dict) -> Dict:
     run_hist = rdf.Histo1D(("run", "run", bins["runs"]["n"], bins["runs"]["bins"]), "run")
     run_hist = run_hist.GetValue()
     # Find non-zero bins
-    run_bins = np.array([int(run_hist.GetBinLowEdge(i)) for i in range(1, run_hist.GetNbinsX()+1) if run_hist.GetBinContent(i) > 0], dtype=float)
-    # Suspect inplace modification
-    bins["runs"]["bins"] = run_bins
-    bins["runs"]["n"] = len(run_bins) - 1
+    run_bins = np.array([], dtype=float)
+    last_bin = 0
+    for i in range(1, run_hist.GetNbinsX()+1):
+        if run_hist.GetBinContent(i) > 0:
+            run_bins = np.append(run_bins, run_hist.GetBinLowEdge(i))
+            last_bin = i
+    run_bins = np.append(run_bins, run_hist.GetBinLowEdge(last_bin+1))
+    if len(run_bins) > 1: 
+        # Suspect inplace modification
+        bins["runs"]["bins"] = run_bins
+        bins["runs"]["n"] = len(run_bins) - 1
     return bins
 
 def get_fill_range(IOV : str) -> tuple:
     fill_dict = {
-        "Run2024C": (379412, 380100),
+        "Run2024C": (379412, 382000),
         "Run2024B": (378981, 379411),
         "Run2024A": (376370, 378980),
         "Commissioning2023": (363380, 365738),

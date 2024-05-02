@@ -16,7 +16,8 @@ initialize = ROOT.RDF.Experimental.Distributed.initialize
 
 class RDFAnalyzer:
     def __init__(self, filelist : List[str],
-                trigger_list : List[str] = [""],
+                triggers : Dict = {},
+                trigger_details: bool = False,
                 json_file : str = "",
                 nFiles : int = -1,
                 JEC : Dict = {},
@@ -31,32 +32,46 @@ class RDFAnalyzer:
                 ):
 
         self.nThreads = nThreads
-        self.trigger_list = copy.deepcopy(trigger_list)
+        self.triggers = triggers
+        self.trigger_list = copy.deepcopy(list(triggers.keys())) # Is deepcopy required if list(.keys())?
         self.histograms = {"all" : []} # format : {trigger : [histograms]}
         self.trigger_rdfs = {} # format : {trigger : rdf}. self.rdf is not initialized here due to order of operations
         self.has_run = False # possibly unnecessary
         self.chain = None
         self.isMC = isMC
         self.era = ""
+        self.run_range = (1,1)
         self.system = system
         self.run_raw= run_raw
         self.selection_only = selection_only
         self.header_dir = header_dir
+
+        # TODO:
+        # self.verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kDebug)
 
         if not self.isMC:
             # Find the Run from filename
             self.era = find_era(filelist)
             frange = get_fill_range(self.era)
             self.bins = get_bins(fill_range=frange)
-            print(f"Using fill range {frange} for run {self.era}")
         else:
             self.bins = get_bins()
         
         self.rdf = self.__loadRDF(filelist, nFiles = nFiles, local = local)
+
+        if not self.isMC:
+            self.bins = update_run_bins(self.rdf, self.bins)
+            self.run_range = (int(np.min(self.bins["runs"]["bins"])), int(np.max(self.bins["runs"]["bins"])))
+            print(f"Using fill range {self.run_range} for era {self.era}")
+        
         if progress_bar:
             ROOT.RDF.Experimental.AddProgressBar(self.rdf)
-            
-        trigger_string = " || ".join(trigger_list)
+
+        trigger_string = ""
+        for trigger in triggers:
+            trigger_string += triggers[trigger] + " || "
+        trigger_string = trigger_string[:-4]
+
         if trigger_string == "":
             trigger_string = "1"
         
@@ -75,9 +90,12 @@ class RDFAnalyzer:
                     .Define("Jet_eta_leading", "Jet_eta[Jet_order[0]]")
                     .Define("JEC", "1.0")
                     )
-        if not self.isMC:
-            self.bins = update_run_bins(self.rdf, self.bins)
-        
+            
+        # JSON cut
+        if (json_file != "") and (not self.isMC):
+            self.rdf = self.__do_cut_golden_json(json_file)
+
+
         # MC cuts, to be implemented elsewhere
         if self.isMC:
             self.rdf = (self.rdf.Filter("fabs(PV_z - GenVtx_z) < 0.2", "Vertex_z_cut")
@@ -134,14 +152,13 @@ class RDFAnalyzer:
                         .Redefine("Jet_pt_leading", "Jet_pt[Jet_order[0]]")
             )
 
-        # JSON cut
-        if (json_file != "") and (not self.isMC):
-            self.rdf = self.__do_cut_golden_json(json_file)
-
         # Triggers 
         for trigger in self.trigger_list:
-            if trigger != "":
-                self.trigger_rdfs[trigger] = self.rdf.Filter(trigger)
+            if (trigger != "") and (trigger in self.triggers.keys()) and (trigger_details):
+                self.trigger_rdfs[trigger] = self.rdf.Filter(self.triggers[trigger], f"{trigger} Filter")
+                self.histograms[trigger] = []
+            elif (trigger != "") and (trigger not in self.triggers.keys()): # This part is only for the all and all_triggers, which should always be included
+                self.trigger_rdfs[trigger] = self.rdf.Filter(trigger, f"{trigger} Filter")
                 self.histograms[trigger] = []
 
         # Only after JECs, common cuts etc. have been applied, we can create the inclusive rdf
@@ -257,10 +274,12 @@ class RDFAnalyzer:
         ''')
 
         ROOT.init_json(json_file)
-        rdf = self.rdf.Define("goldenJSON", "isGoodLumi(run, luminosityBlock)").Filter("goldenJSON", "JSON Filter")
+        rdf = self.rdf.Define("goldenJSON", "isGoodLumi(run, luminosityBlock)")
         self.histograms["all"].extend([
-            rdf.Histo1D(("GoldenJSON", "GoldenJSON;GoldenJSON;N_{events}", 2, 0, 2), "goldenJSON", "weight")
+            rdf.Histo1D(("GoldenJSON", "GoldenJSON;"+json_file+";N_{events}", 2, 0, 2), "goldenJSON", "weight")
         ])
+        rdf = rdf.Filter("goldenJSON", "GoldenJSON Filter")
+        
         return rdf
     
     def __do_cut_veto_map(self, veto_map_file : str) -> RNode:
@@ -292,7 +311,7 @@ class RDFAnalyzer:
     def run_histograms(self) -> "RDFAnalyzer":
         if not self.has_run:
             print(f"Running histograms for system: {self.system}")
-            for trigger in self.trigger_list:
+            for trigger in self.histograms.keys():
                 if trigger != "":
                     RunGraphs(self.histograms[trigger])
             

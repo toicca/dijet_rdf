@@ -1,0 +1,23 @@
+[GENERAL]
+filepath = data/testfiles_23D.txt
+filelist =
+triggerpath = 
+triggerlist =
+trigger_config = data/testtrgconf.txt
+number_of_files = 2
+is_local = 1
+output_path = out
+run_id = rerun45
+is_mc =
+run_raw =
+selection_only =1
+header_dir=src
+trigger_details=0
+golden_json = 
+jetvetomap =
+correction_config =
+nThreads = 8
+verbosity =
+progress_bar = 1
+cutflow_report =
+cut_histogram_names =

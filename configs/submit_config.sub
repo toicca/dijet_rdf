@@ -1,0 +1,14 @@
++JobFlavour = "longlunch"
+MY.XRDCP_CREATE_DIR = True
+executable = configs/submit_script.sh
+arguments = configs/testconf.txt
+transfer_input_files = configs/testconf.txt
+output = /eos/user/n/ntoikka/HTCondor_out/out/$(ClusterId).$(ProcId).out
+error = /eos/user/n/ntoikka/HTCondor_out/errs/$(ClusterId).$(ProcId).err
+log = /eos/user/n/ntoikka/HTCondor_out/logs/$(ClusterId).$(ProcId).log
+output_destination = root://eosuser.cern.ch//eos/user/n/ntoikka/dijet_rdf/out/
+x509userproxy = /afs/cern.ch/user/n/ntoikka/grid_proxy.x509
+MY.WantOS = "el9"
+
+max_retries = 3
+queue

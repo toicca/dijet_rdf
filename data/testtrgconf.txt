@@ -1,0 +1,109 @@
+[HLT_ZeroBias]
+
+[HLT_DiPFJetAve40]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 40) && ((Jet_pt[0] + Jet_pt[1]) < 85)
+
+[HLT_DiPFJetAve60]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 85) && ((Jet_pt[0] + Jet_pt[1]) < 100)
+
+[HLT_DiPFJetAve80]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 100) && ((Jet_pt[0] + Jet_pt[1]) < 155)
+
+[HLT_DiPFJetAve140]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 155) && ((Jet_pt[0] + Jet_pt[1]) < 210)
+
+[HLT_DiPFJetAve200]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 210) && ((Jet_pt[0] + Jet_pt[1]) < 300)
+
+[HLT_DiPFJetAve260]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 300) && ((Jet_pt[0] + Jet_pt[1]) < 400)
+
+[HLT_DiPFJetAve320]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 400) && ((Jet_pt[0] + Jet_pt[1]) < 500)
+
+[HLT_DiPFJetAve400]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 500) && ((Jet_pt[0] + Jet_pt[1]) < 600)
+
+[HLT_DiPFJetAve500]
+filter=((nJet > 1) && (Jet_pt[0] + Jet_pt[1]) > 600) && ((Jet_pt[0] + Jet_pt[1]) < 6500)
+
+[HLT_DiPFJetAve60_HFJEC]
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 85) && ((Jet_pt[0] + Jet_pt[1]) < 100) && (abs(Jet_eta[0]) > 3.139))
+
+[HLT_DiPFJetAve80_HFJEC]
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 100) && ((Jet_pt[0] + Jet_pt[1]) < 125) && (abs(Jet_eta[0]) > 3.139))
+
+[HLT_DiPFJetAve100_HFJEC]
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 125) && ((Jet_pt[0] + Jet_pt[1]) < 180) && (abs(Jet_eta[0]) > 3.139))
+
+[HLT_DiPFJetAve160_HFJEC]
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 180) && ((Jet_pt[0] + Jet_pt[1]) < 250) && (abs(Jet_eta[0]) > 3.139))
+
+[HLT_DiPFJetAve220_HFJEC]
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 250) && ((Jet_pt[0] + Jet_pt[1]) < 350) && (abs(Jet_eta[0]) > 2.964))
+
+[HLT_DiPFJetAve300_HFJEC]
+filter=((nJet > 1) && ((Jet_pt[0] + Jet_pt[1]) > 350) && ((Jet_pt[0] + Jet_pt[1]) < 6500) && (abs(Jet_eta[0]) > 2.964))
+
+[HLT_PFJet40]
+filter=(Jet_pt[0] > 40) && (Jet_pt[0] < 85)
+
+[HLT_PFJet60]
+filter=(Jet_pt[0] > 85) && (Jet_pt[0] < 100)
+
+[HLT_PFJet80]
+filter=(Jet_pt[0] > 100) && (Jet_pt[0] < 155)
+
+[HLT_PFJet140]
+filter=(Jet_pt[0] > 155) && (Jet_pt[0] < 210)
+
+[HLT_PFJet200]
+filter=(Jet_pt[0] > 210) && (Jet_pt[0] < 300)
+
+[HLT_PFJet260]
+filter=(Jet_pt[0] > 300) && (Jet_pt[0] < 400)
+
+[HLT_PFJet320]
+filter=(Jet_pt[0] > 400) && (Jet_pt[0] < 500)
+
+[HLT_PFJet400]
+filter=(Jet_pt[0] > 500) && (Jet_pt[0] < 600)
+
+[HLT_PFJet450]
+filter=(Jet_pt[0] > 500) && (Jet_pt[0] < 600)
+
+[HLT_PFJet500]
+filter=(Jet_pt[0] > 600) && (Jet_pt[0] < 6500)
+
+[HLT_PFJet550]
+filter=(Jet_pt[0] > 700) && (Jet_pt[0] < 6500)
+
+[HLT_PFJetFwd40]
+filter=(Jet_pt[0] > 40) && (Jet_pt[0] < 85) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd60]
+filter=(Jet_pt[0] > 85) && (Jet_pt[0] < 100) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd80]
+filter=(Jet_pt[0] > 100) && (Jet_pt[0] < 155) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd140]
+filter=(Jet_pt[0] > 155) && (Jet_pt[0] < 210) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd200]
+filter=(Jet_pt[0] > 210) && (Jet_pt[0] < 300) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd260]
+filter=(Jet_pt[0] > 300) && (Jet_pt[0] < 400) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd320]
+filter=(Jet_pt[0] > 400) && (Jet_pt[0] < 500) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd400]
+filter=(Jet_pt[0] > 500) && (Jet_pt[0] < 600) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd450]
+filter=(Jet_pt[0] > 500) && (Jet_pt[0] < 600) && (abs(Jet_eta[0]) > 2.964)
+
+[HLT_PFJetFwd500]
+filter=(Jet_pt[0] > 600) && (Jet_pt[0] < 6500) && (abs(Jet_eta[0]) > 2.964)
