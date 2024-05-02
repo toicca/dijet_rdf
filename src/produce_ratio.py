@@ -1,5 +1,3 @@
-import pathlib
-import gc
 import ROOT
 from RDFHelpers import file_read_lines, read_config_file, get_bins
 from typing import List
@@ -22,7 +20,7 @@ def parse_arguments():
     triggers.add_argument("--triggerlist", type=str, help="Comma separated list of triggers for which plots will be produced (default value 'all')")
     triggers.add_argument("--triggerpath", type=str, help="Path to a file containing a list of triggers for which plots will be produced")
 
-    parser.add_argument("--out", type=str, required=True, default="", help="Output path")
+    parser.add_argument("--out", type=str, required=True, default="", help="Output path (output file name included)")
 
     parser.add_argument("--config", type=str, default="", help="Path to config file")
 
@@ -40,7 +38,6 @@ def produce_ratio(input_file_numerator: str, input_file_denominator: str, trigge
         trigger_keys_denominator = {tkey.GetName() for tkey in file_denominator.GetListOfKeys()}
         trigger_list = trigger_keys_numerator.intersection(trigger_keys_denominator)
 
-    #pathlib.Path(output_path).mkdir(exist_ok=True, parents=True)
     file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
 
     for trigger_name in trigger_list:
