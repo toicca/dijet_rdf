@@ -6,8 +6,7 @@ import numpy as np
 
 hist_info = [
         "multijet/MPF/MPF_multijet_PtRecoilVsResponse",
-        "multijet/DB/DB_multijet_PtRecoilVsResponse",
-        "multijet/DB/DB_multijet_PtRecoilVsEtaVsResponse",
+        "multijet/DB/DB_multijet_PtRecoilVsResponse"
         ]
 
 def parse_arguments():
