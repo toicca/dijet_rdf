@@ -77,6 +77,9 @@ def produce_resolutions(file: str, trigger_list: List[str], output_path : str):
                 file.mkdir(resolution_path)
 
             h = file.Get(path + histogram)
+            if not h:
+                print(f"Could not find {path + histogram}")
+                continue
             h.RebinY(4)
             resolutions = ROOT.TH2D("resolutions_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
                                     bins["pt"]["n"], bins["pt"]["bins"], h.GetNbinsY(), h.GetYaxis().GetXmin(), h.GetYaxis().GetXmax())
@@ -141,6 +144,9 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
                 file.mkdir(response_path)
 
             h = file.Get(path + histogram)
+            if not h:
+                print(f"Could not find {path + histogram}")
+                continue
             # Get the projection w.r.t. y-axis
             h.GetYaxis().SetRangeUser(-2.5, 2.5)
             h2 = h.Project3D("zx")
