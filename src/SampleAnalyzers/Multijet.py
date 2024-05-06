@@ -73,7 +73,31 @@ class MultijetAnalyzer(RDFAnalyzer):
                 control_rdf.Profile1D((f"Control_{self.system}_PtRecoilVsNRecoil", "MPF_"+ str(self.system) + "_PtRecoilVsNRecoil;p_{T, recoil} (GeV);N_{recoil};N_{events}",
                                         self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                         "Multijet_recoilPt", "Multijet_nRecoil", "weight"),
-            ])
+                                    
+                # Unclustered energy and activity
+                control_rdf.Histo1D((f"Control_{self.system}_UnclusteredPt", "Control_"+ str(self.system) + "_UnclusteredPt;p_{T, unclustered} (GeV);N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                    "Multijet_unclusteredPt", "weight"),
+                control_rdf.Histo1D((f"Control_{self.system}_UnclusteredPhi", "Control_"+ str(self.system) + "_UnclusteredPhi;#phi_{unclustered};N_{events}",
+                                    self.bins["phi"]["n"], self.bins["phi"]["bins"]),
+                                    "Multijet_unclusteredPhi", "weight"),
+                control_rdf.Histo1D((f"Control_{self.system}_ActivityPt", "Control_"+ str(self.system) + "_ActivityPt;p_{T, activity} (GeV);N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                    "Multijet_activityPt", "weight"),
+                control_rdf.Histo1D((f"Control_{self.system}_ActivityPhi", "Control_"+ str(self.system) + "_ActivityPhi;#phi_{activity};N_{events}",
+                                    self.bins["phi"]["n"], self.bins["phi"]["bins"]),
+                                    "Multijet_activityPhi", "weight"),
+                control_rdf.Profile1D((f"Control_{self.system}_PtRecoilVsActivityPt", "Control_"+ str(self.system) + "_PtRecoilVsActivityPt;p_{T, recoil} (GeV);p_{T, activity} (GeV);N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                    "Multijet_recoilPt", "Multijet_activityPt", "weight"),
+                control_rdf.Profile1D((f"Control_{self.system}_PtRecoilVsUnclusteredPt", "Control_"+ str(self.system) + "_PtRecoilVsUnclusteredPt;p_{T, recoil} (GeV);p_{T, unclustered} (GeV);N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                    "Multijet_recoilPt", "Multijet_unclusteredPt", "weight"),
+                # T1MET
+                control_rdf.Profile1D((f"Control_{self.system}_PtRecoilVst1METPt", "Control_"+ str(self.system) + "_PtRecoilVst1METPt;p_{T, recoil} (GeV);p_{T, t1MET} (GeV);N_{events}",
+                                    self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                    "Multijet_recoilPt", "Multijet_t1METPt", "weight"),
+        ])
             
         return self
 
@@ -109,7 +133,7 @@ class MultijetAnalyzer(RDFAnalyzer):
             self.histograms[trigger].extend([
                 db_gt100_rdf.Profile1D((f"DB_{system}_RunVsResponse", "DB_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                          self.bins["runs"]["n"], self.bins["runs"]["bins"]),
-                                            "run", "Multijet_dbResponseCorrected", "weight"),
+                                            "run", "Multijet_dbResponse", "weight"),
             ])
         return self
     
@@ -147,12 +171,13 @@ class MultijetAnalyzer(RDFAnalyzer):
             self.histograms[trigger].extend([
                 mpf_gt100_rdf.Profile1D((f"MPF_{system}_RunVsResponse", "MPF_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                          self.bins["runs"]["n"], self.bins["runs"]["bins"]),
-                                            "run", "Multijet_mpfResponseCorrected", "weight"),
+                                            "run", "Multijet_mpfResponse", "weight"),
            ])
 
         return self
     
     def __sample_cut(self, rdf : RNode) -> RNode:
+        evt_min_pt = 15
         min_pt = 30
         lead_eta = 1.3
         recoil_eta = 2.5
@@ -193,7 +218,6 @@ class MultijetAnalyzer(RDFAnalyzer):
             }
                                     """)
                                   
-        # TODO: p4l1rc vector for each recoil to do p4l1rc - p4 MET
         rdf_multijet = (rdf.Filter("nJet >= 3")
                     .Filter(f"Jet_pt[Jet_order[0]] > {min_pt} && abs(Jet_eta[Jet_order[0]]) < {lead_eta} && Jet_jetId[Jet_order[0]] >= 4")
                     .Filter(f"Jet_pt[Jet_order[1]] > {min_pt} && abs(Jet_eta[Jet_order[1]]) < {recoil_eta} && Jet_jetId[Jet_order[1]] >= 4")
@@ -209,16 +233,17 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Jet_phi_recoil", f"Jet_phi[(Jet_order != lead_idx) && (Jet_pt >= {min_pt}) && (abs(Jet_eta) <= {recoil_eta}) && (Multijet_deltaPhi_to_lead > 1.0)]")
                     .Define("Jet_order_recoil", f"Jet_order[(Jet_order != lead_idx) && (Jet_pt >= {min_pt}) && (abs(Jet_eta) <= {recoil_eta}) && (Multijet_deltaPhi_to_lead > 1.0)]")
                     .Filter("Jet_pt_recoil.size() >= 2")
-                    .Define("Jet_pt_activity", f"Jet_pt[(Jet_order != lead_idx) && (Jet_pt < {min_pt})]")
-                    .Define("Jet_eta_activity", f"Jet_eta[(Jet_order != lead_idx) && (Jet_pt < {min_pt})]")
-                    .Define("Jet_mass_activity", f"Jet_mass[(Jet_order != lead_idx) && (Jet_pt < {min_pt})]")
-                    .Define("Jet_phi_activity", f"Jet_phi[(Jet_order != lead_idx) && (Jet_pt < {min_pt})]")
+                    .Define("Jet_pt_activity", f"Jet_pt[(Jet_order != lead_idx) && ((Jet_pt < {min_pt}) || (Jet_eta > {recoil_eta})) && (Jet_pt >= {evt_min_pt})]")
+                    .Define("Jet_eta_activity", f"Jet_eta[(Jet_order != lead_idx) && ((Jet_pt < {min_pt}) || Jet_eta > {recoil_eta}) && (Jet_pt >= {evt_min_pt})]")
+                    .Define("Jet_mass_activity", f"Jet_mass[(Jet_order != lead_idx) && ((Jet_pt < {min_pt}) || Jet_eta > {recoil_eta}) && (Jet_pt >= {evt_min_pt})]")
+                    .Define("Jet_phi_activity", f"Jet_phi[(Jet_order != lead_idx) && ((Jet_pt < {min_pt}) || Jet_eta > {recoil_eta}) && (Jet_pt >= {evt_min_pt})]")
                     .Define("Multijet_activityVector", "sum_as_four_vectors(Jet_pt_activity, Jet_eta_activity, Jet_phi_activity, Jet_mass_activity)")
                     .Define("Multijet_recoilVector", "sum_as_four_vectors(Jet_pt_recoil, Jet_eta_recoil, Jet_phi_recoil, Jet_mass_recoil)")
-                    .Define("Multijet_eventVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {min_pt}], Jet_eta[Jet_pt >= {min_pt}], Jet_phi[Jet_pt >= {min_pt}], Jet_mass[Jet_pt >= {min_pt}])")
-                    .Define("Multijet_rawVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {min_pt}]), Jet_eta[Jet_pt >= {min_pt}], Jet_phi[Jet_pt >= {min_pt}], Jet_mass[Jet_pt >= {min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {min_pt}]))")
+                    .Define("Multijet_eventVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {evt_min_pt}], Jet_eta[Jet_pt >= {evt_min_pt}], Jet_phi[Jet_pt >= {evt_min_pt}], Jet_mass[Jet_pt >= {evt_min_pt}])")
+                    .Define("Multijet_rawVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {evt_min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {evt_min_pt}]), Jet_eta[Jet_pt >= {evt_min_pt}], Jet_phi[Jet_pt >= {evt_min_pt}], Jet_mass[Jet_pt >= {evt_min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {evt_min_pt}]))")
                     .Define("Multijet_t1METVector", "Multijet_rawVector - Multijet_eventVector")
                     .Define("Multijet_t1METPolar", "ROOT::Math::Polar2DVectorF(Multijet_t1METVector.Pt(), Multijet_t1METVector.Phi())")
+                    .Define("Multijet_t1METPt", "Multijet_t1METVector.Pt()")
                     .Define("Multijet_recoilPt", "Multijet_recoilVector.Pt()")
                     .Filter(f"Jet_pt[Jet_order_recoil[0]] < 0.6 * Multijet_recoilPt")
                     .Filter(f"Jet_pt[Jet_order_recoil[1]] < 0.6 * Multijet_recoilPt")
@@ -230,7 +255,11 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Multijet_leadPolar", "ROOT::Math::Polar2DVectorF(Jet_pt[lead_idx], Jet_phi[lead_idx])")
                     .Define("Multijet_recoilPolar", "ROOT::Math::Polar2DVectorF(Multijet_recoilPt, Multijet_recoilPhi)")
                     .Define("Multijet_activityPolar", "ROOT::Math::Polar2DVectorF(Multijet_activityVector.Pt(), Multijet_activityVector.Phi())")
-                    .Define("Multijet_unclusteredPolar", "Multijet_recoilPolar + Multijet_activityPolar + RawPuppiMET_polar + Multijet_leadPolar")
+                    .Define("Multijet_activityPt", "Multijet_activityVector.Pt()")
+                    .Define("Multijet_activityPhi", "Multijet_activityVector.Phi()")
+                    .Define("Multijet_unclusteredPolar", "Multijet_recoilPolar + Multijet_activityPolar - Multijet_t1METPolar + Multijet_leadPolar")
+                    .Define("Multijet_unclusteredPt", "Multijet_unclusteredPolar.R()")
+                    .Define("Multijet_unclusteredPhi", "Multijet_unclusteredPolar.Phi()")
                     .Define("Multijet_avgPolar", "(Multijet_recoilPolar - Multijet_leadPolar) / 2.0")
                     .Define("Multijet_bisectorPolar", "ROOT::Math::Polar2DVectorF(1.0, (Multijet_recoilPolar / (Multijet_recoilPolar.R()) - Multijet_leadPolar / (Multijet_leadPolar.R())).Phi())")
                     .Define("Multijet_nRecoil", "Jet_pt_recoil.size()")
@@ -238,8 +267,8 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Multijet_ptAvp", "0.5 * (Multijet_recoilPolar.Dot(Multijet_bisectorPolar) - Multijet_leadPolar.Dot(Multijet_bisectorPolar))")
                     .Define("Multijet_deltaPhi", "ROOT::VecOps::DeltaPhi(Multijet_leadVector.Phi(), Multijet_recoilVector.Phi())")
                     .Filter(f"abs(Multijet_deltaPhi - TMath::Pi()) < 0.3")
-                    .Define("Multijet_METdotRecoil", "RawPuppiMET_polar.Dot(Multijet_recoilPolar) / (Multijet_recoilPolar.R() * RawPuppiMET_polar.R())")
-                    .Define("Multijet_METdotLead", "RawPuppiMET_polar.Dot(Multijet_leadPolar) / (Multijet_leadPolar.R() * RawPuppiMET_polar.R())")
+                    .Define("Multijet_METdotRecoil", "Multijet_t1METPolar.Dot(Multijet_recoilPolar) / (Multijet_recoilPolar.R() * Multijet_t1METPolar.R())")
+                    .Define("Multijet_METdotLead", "Multijet_t1METPolar.Dot(Multijet_leadPolar) / (Multijet_leadPolar.R() * Multijet_t1METPolar.R())")
                     # Responses
                     # DB
                     .Define("Multijet_A", "(Multijet_recoilPolar.R() - Multijet_leadPolar.R()) / (Multijet_recoilPolar.R() + Multijet_leadPolar.R())")
@@ -247,10 +276,10 @@ class MultijetAnalyzer(RDFAnalyzer):
                     .Define("Multijet_dbResponse", "Multijet_leadVector.Pt() / Multijet_recoilVector.Pt()")
                     # MPF
                     .Define("Multijet_mpfResponse", "1.0 + Multijet_t1METPolar.Dot(Multijet_recoilPolar) / (Multijet_recoilPolar.R() * Multijet_recoilPolar.R())")
-                    .Define("Multijet_mpfResponseCorrected", "Multijet_mpfResponse - Multijet_recoilPolar.Dot(Multijet_activityPolar + Multijet_unclusteredPolar) / (Multijet_recoilPolar.R() * Multijet_recoilPolar.R())")
+                    .Define("Multijet_mpfResponseCorrected", "Multijet_mpfResponse - Multijet_recoilPolar.Dot(Multijet_activityPolar) / (Multijet_recoilPolar.R() * Multijet_recoilPolar.R())")
                     # Responses from the previous dijet code
                     .Define("Multijet_p4m3", "-Multijet_leadPolar - Multijet_recoilPolar")
-                    .Define("Multijet_dbLeadResponse", "1.0 + Multijet_p4m3.Dot(Multijet_leadPolar) / (Multijet_leadPolar.R() * Multijet_leadPolar.R())")
+                    .Define("Multijet_dbLeadResponse", "1.0 - Multijet_p4m3.Dot(Multijet_leadPolar) / (Multijet_leadPolar.R() * Multijet_leadPolar.R())")
                     .Define("Multijet_dbAvgResponse", "1.0 + Multijet_p4m3.Dot(Multijet_bisectorPolar) / (Multijet_ptAvg)")
                     .Define("Multijet_dbRecoilResponse", "1.0 + Multijet_p4m3.Dot(Multijet_recoilPolar) / (Multijet_recoilPolar.R() * Multijet_recoilPolar.R())")
                     .Define("Multijet_mpfLeadResponse", "1.0 + Multijet_t1METPolar.Dot(Multijet_leadPolar) / (Multijet_leadPolar.R() * Multijet_leadPolar.R())")
