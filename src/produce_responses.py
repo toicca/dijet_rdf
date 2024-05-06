@@ -80,7 +80,7 @@ def produce_resolutions(file: str, trigger_list: List[str], output_path : str):
             if not h:
                 print(f"Could not find {path + histogram}")
                 continue
-            h.RebinY(4)
+            # h.RebinY(4)
             resolutions = ROOT.TH2D("resolutions_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
                                     bins["pt"]["n"], bins["pt"]["bins"], h.GetNbinsY(), h.GetYaxis().GetXmin(), h.GetYaxis().GetXmax())
             projections = ROOT.TH2D("projections_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
