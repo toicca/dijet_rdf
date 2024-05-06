@@ -42,17 +42,24 @@ def time_evolution(filelist: List[str], trigger_list: List[str], output_path: st
             bins = []
             vals = []
             yerrs = []
-            xerrs = []
+            upper_edges = []
             for file in files:
                 h = file.Get(trigger + "/" + hist)
                 h.Rebin(h.GetNbinsX())
-                bins.append(h.GetXaxis().GetBinCenter(1))
+                bins.append(h.GetBinLowEdge(1))
                 vals.append(h.GetBinContent(1))
-                xerrs.append(h.GetXaxis().GetBinWidth(1) / 2)
                 yerrs.append(h.GetBinError(1))
+                upper_edges.append(h.GetBinWidth(1) + h.GetBinLowEdge(1))
 
-            out_hist = ROOT.TGraphErrors(len(bins), np.array(bins), np.array(vals), np.array(xerrs), np.array(yerrs))
-            out_hist.SetName(hist.split("/")[-1] + "_Evolution") 
+            # Sort the bins and values by the bin edges
+            bins, vals, yerrs, upper_edges = zip(*sorted(zip(bins, vals, yerrs, upper_edges)))
+            bins = list(bins) + [upper_edges[-1]]
+
+            out_hist = ROOT.TH1D(hist.split("/")[-1] + "_Evolution", hist.split("/")[-1] + "_Evolution", len(bins)-1, np.array(bins, dtype=float))
+
+            for i in range(len(vals)):
+                out_hist.SetBinContent(i+1, vals[i])
+                out_hist.SetBinError(i+1, yerrs[i])
             
             if not out_file.GetDirectory(trigger + "/TimeEvolution/" + hist.split("/")[0]):
                 out_file.mkdir(trigger+"/TimeEvolution/"+hist.split("/")[0])
