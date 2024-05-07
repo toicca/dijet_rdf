@@ -194,7 +194,8 @@ def update_run_bins(rdf: ROOT.RDF.RNode, bins: Dict) -> Dict:
 
 def get_fill_range(IOV : str) -> tuple:
     fill_dict = {
-        "Run2024C": (379412, 382000),
+        "Run2024D": (380253, 382000),
+        "Run2024C": (379412, 380252),
         "Run2024B": (378981, 379411),
         "Run2024A": (376370, 378980),
         "Commissioning2023": (363380, 365738),
@@ -212,6 +213,11 @@ def get_fill_range(IOV : str) -> tuple:
         "Run2022E": (359022, 360331),
         "Run2022F": (360332, 362180)
     }
+    if IOV not in fill_dict:
+        print(f"IOV {IOV} not found in fill_dict")
+        print(f"Returning default fill range (0, 1)")
+        return (0, 1)
+
     return fill_dict[IOV]
     
 def get_bins(fill_range : tuple = (376370, 380100)) -> dict:
