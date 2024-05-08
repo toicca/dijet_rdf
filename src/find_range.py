@@ -1,5 +1,5 @@
 import ROOT
-import ctypes
+import argparse
 
 from RDFHelpers import file_read_lines
 
@@ -31,13 +31,13 @@ if __name__ == "__main__":
     chain = ROOT.TChain("Events")
     for file in files:
         if args.is_local:
-            chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-        else:
             chain.Add(file)
+        else:
+            chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
 
     rdf = ROOT.RDataFrame(chain)
     min_run, max_run = find_run_range(rdf)
     if args.for_brilcalc:
-        print(f"--begin {} --end {}", min_run, max_run);
+        print(f"--begin {min_run} --end {max_run}");
     else:
         print(min_run, max_run)
