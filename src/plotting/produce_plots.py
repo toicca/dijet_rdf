@@ -90,7 +90,6 @@ def produce_plots_all(file, output_path):
                     fstyle = hist.GetFillStyle()
                     fcolor = hist.GetFillColor()
                     CMS.cmsDraw(hist, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
-                    canv.Draw()
 
                     CMS.SaveCanvas(canv, "{}/{}/{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger_name, system_name, method_name, hist_name))
 
@@ -119,11 +118,16 @@ def produce_plots_from_config(file, output_path, config, plots):
                         method_hist_str = f"{method_name}/{hist_name}"
                         system_method_hist_str = f"{system_name}/{method_name}/{hist_name}"
                         if hist_name in hists_config or method_hist_str in hists_config or system_method_hist_str in hists_config:
-                            hist = hists.Get(hist_name)
-                            collected_plots.append(hist)
+                            collected_plots.append(hists.Get(hist_name))
             
             if len(collected_plots) == 0: continue
-            
+
+            all_1D = all(p.InheritsFrom("TH1D") or p.InheritsFrom("TProfile1D") for p in collected_plots)
+            all_2D = all(p.InheritsFrom("TH2D") or p.InheritsFrom("TProfile2D") for p in collected_plots)
+
+            if not (all_1D or all_2D):
+                print(f"Skipping plotting of [{plot_name}], histogram list given in the config file contains both 1D and 2D histograms")
+
             pathlib.Path("{}/{}/{}".format(output_path, subfolder_name, trigger)).mkdir(exist_ok=True, parents=True)
 
             xtitle = collected_plots[0].GetXaxis().GetTitle()
@@ -132,13 +136,13 @@ def produce_plots_from_config(file, output_path, config, plots):
             (x_min, x_max) = (min([p.GetXaxis().GetXmin() for p in collected_plots]), max([p.GetXaxis().GetXmax() for p in collected_plots]))
             (y_min, y_max) = (min([p.GetYaxis().GetXmin() for p in collected_plots]), max([p.GetYaxis().GetXmax() for p in collected_plots]))
 
-            if hist.InheritsFrom("TH1D") or hist.InheritsFrom("TProfile1D"):
+            if all_1D:
                 (x_min, x_max) = (min([p.GetXaxis().GetXmin() for p in collected_plots]), max([p.GetXaxis().GetXmax() for p in collected_plots]))
                 (y_min, y_max) = (min([p.GetBinContent(p.GetMinimumBin()) for p in collected_plots]), max([p.GetBinContent(p.GetMaximumBin()) for p in collected_plots]))
                 y_max = 1.05*y_max
 
             iPos = 33
-            if collected_plots[0].InheritsFrom("TH2D") or collected_plots[0].InheritsFrom("TProfile2D"):
+            if all_2D:
                 iPos = 0
 
             extraSpace = 0.0
@@ -197,7 +201,7 @@ def produce_plots_from_config(file, output_path, config, plots):
                 CMS.GetcmsCanvasHist(canv).GetXaxis().SetTitleOffset(xtitleoffset)
 
             if config[plot_name]["ytitleoffset"] != "":
-                xtitleoffset = float(config[plot_name]["ytitleoffset"])
+                ytitleoffset = float(config[plot_name]["ytitleoffset"])
                 CMS.GetcmsCanvasHist(canv).GetYaxis().SetTitleOffset(ytitleoffset)
 
             for plot in collected_plots:
@@ -209,8 +213,8 @@ def produce_plots_from_config(file, output_path, config, plots):
                 lcolor = plot.GetLineColor()
                 fstyle = plot.GetFillStyle()
                 fcolor = plot.GetFillColor()
-                CMS.cmsDraw(plot, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
-            canv.Draw()
+                CMS.cmsDraw(plot, "", marker=marker, msize=msize, mcolor=mcolor, lstyle=lstyle, lwidth=lwidth, lcolor=lcolor, fstyle=fstyle, fcolor=fcolor)
+
             CMS.SaveCanvas(canv, "{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger, plot_name))
 
 if __name__ == "__main__":
