@@ -12,6 +12,8 @@ def parse_arguments():
 
     parser.add_argument("-loc", "--is_local", action="store_true", help='Run locally. If not set will append root://cms-xrd-global.cern.ch/ to the start of file names')
 
+    parser.add_argument("--for_brilcalc", action="store_true", help='Prints the range in a form compatible with the brilcalc command line tool')
+
     args = parser.parse_args()
     
     return args
@@ -35,4 +37,7 @@ if __name__ == "__main__":
 
     rdf = ROOT.RDataFrame(chain)
     min_run, max_run = find_run_range(rdf)
-    print(min_run, max_run)
+    if args.for_brilcalc:
+        print(f"--begin {} --end {}", min_run, max_run);
+    else:
+        print(min_run, max_run)
