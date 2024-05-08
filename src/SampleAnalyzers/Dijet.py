@@ -148,7 +148,7 @@ class DijetAnalyzer(RDFAnalyzer):
                 # Vs Run
                 mpf_rdf.Profile1D((f"MPF_{system}_RunVsResponse", "MPF_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                 self.bins["runs"]["n"], self.bins["runs"]["bins"]),
-                                "run", "Dijet_mpfResponseCorrected", "weight"),
+                                "run", "Dijet_mpfResponse", "weight"),
             ])
 
         return self
@@ -186,11 +186,17 @@ class DijetAnalyzer(RDFAnalyzer):
                     .Define("Dijet_activityMass", "Jet_mass[Jet_order != tag_idx && Jet_order != probe_idx]")
                     .Define("Dijet_activityVector", "sum_as_four_vectors(Dijet_activityPt, Dijet_activityEta, Dijet_activityPhi, Dijet_activityMass)")
                     .Define("Dijet_activityPolar", "ROOT::Math::Polar2DVectorF(Dijet_activityVector.Pt(), Dijet_activityVector.Phi())")
+                    .Define("Dijet_eventVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {min_pt}], Jet_eta[Jet_pt >= {min_pt}], Jet_phi[Jet_pt >= {min_pt}], Jet_mass[Jet_pt >= {min_pt}])")
+                    .Define("Dijet_eventPolar", "ROOT::Math::Polar2DVectorF(Dijet_eventVector.Pt(), Dijet_eventVector.Phi())")
+                    .Define("Dijet_rawVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {min_pt}]), Jet_eta[Jet_pt >= {min_pt}], Jet_phi[Jet_pt >= {min_pt}], Jet_mass[Jet_pt >= {min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {min_pt}]))")
+                    .Define("Dijet_rawPolar", "ROOT::Math::Polar2DVectorF(Dijet_rawVector.Pt(), Dijet_rawVector.Phi())")
+                    .Define("Dijet_t1METVector", "Dijet_rawVector - Dijet_eventVector")
+                    .Define("Dijet_t1METPolar", "ROOT::Math::Polar2DVectorF(Dijet_t1METVector.Pt(), Dijet_t1METVector.Phi())")
                     # Vectors for the tag and probe jets
                     .Define("Dijet_tagPolar", "ROOT::Math::Polar2DVectorF(Jet_pt[tag_idx], Jet_phi[tag_idx])")
                     .Define("Dijet_probePolar", "ROOT::Math::Polar2DVectorF(Jet_pt[probe_idx], Jet_phi[probe_idx])")
                     .Define("Dijet_bisectorPolar", "ROOT::Math::Polar2DVectorF(1.0, (Dijet_tagPolar - Dijet_probePolar).Phi())")
-                    .Define("Dijet_metPolar", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
+                    .Define("Dijet_metPolar", "ROOT::Math::Polar2DVectorF(Dijet_t1METPolar.R(), Dijet_t1METPolar.Phi())") # Define through T1MET
                     .Define("Dijet_unclusteredPolar", "Dijet_metPolar + Dijet_activityPolar + Dijet_tagPolar + Dijet_probePolar")
                     .Define("deltaEta_dijet", "abs(Jet_eta[tag_idx] - Jet_eta[probe_idx])")
                     .Define("deltaR_dijet", "sqrt(deltaPhi_dijet*deltaPhi_dijet + deltaEta_dijet*deltaEta_dijet)")
