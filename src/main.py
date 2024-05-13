@@ -3,8 +3,10 @@ from SampleAnalyzers.Dijet import DijetAnalyzer as dijet
 from SampleAnalyzers.Multijet import MultijetAnalyzer as multijet
 from RDFAnalyzer import RDFAnalyzer
 from RDFHelpers import parse_arguments
-
  
+import pandas as pd
+import numpy as np
+
 verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kDebug+10)
 from filewriter import FileWriter
 
@@ -57,6 +59,11 @@ if __name__ == "__main__":
     selection_only = args.selection_only
     header_dir = args.header_dir
     trigger_details = args.trigger_details
+
+    if args.lumi:
+        df = pd.read_csv(args.lumi, comment='#', names=["run:fill", "time", "nls", "ncms", "delivered(/fb)", "recorded(/fb)"])
+        recorded_luminosity = df["recorded(/fb)"].to_numpy()
+        print(f"Running on {np.sum(recorded_luminosity)} 1/fb luminosity")
 
     if nThreads > 0:
         ROOT.EnableImplicitMT(nThreads)
