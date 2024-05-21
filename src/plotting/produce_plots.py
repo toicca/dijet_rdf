@@ -18,7 +18,7 @@ def parse_arguments():
 
     files = parser.add_mutually_exclusive_group(required=True)
     files.add_argument("--filelist", type=str, help="Comma separated list of root files produced by dijet_rdf")
-    files.add_argument("--filepath", type=str, help="Path to a root file containing a list of output files produced by dijet_rdf")
+    files.add_argument("--filepath", type=str, help="Path to a text file containing a list of output files produced by dijet_rdf")
 
     parser.add_argument("--out", required=True, type=str, help="Output path")
 
@@ -73,7 +73,7 @@ def produce_plots_all(file, output_path):
                         (y_min, y_max) = (hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax())
                         iPos = 0
 
-                    CMS.SetExtraText("Private")
+                    CMS.SetExtraText("Preliminary")
                     CMS.SetEnergy("13.6")
                     CMS.SetLumi("")
                     canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xtitle, ytitle, square = True, extraSpace=0.0, iPos=iPos)
@@ -117,8 +117,16 @@ def produce_plots_from_config(file, output_path, config, plots):
                         hist_name = hist_key.GetName()
                         method_hist_str = f"{method_name}/{hist_name}"
                         system_method_hist_str = f"{system_name}/{method_name}/{hist_name}"
+                        #print(system_name, method_name, hist_name)
                         if hist_name in hists_config or method_hist_str in hists_config or system_method_hist_str in hists_config:
-                            collected_plots.append(hists.Get(hist_name))
+                            if config[plot_name]["projection"] == "x":
+                                collected_plots.append(hists.Get(hist_name).ProjectionX())
+                            elif config[plot_name]["projection"] == "y":
+                                collected_plots.append(hists.Get(hist_name).ProjectionY())
+                            elif config[plot_name]["projection"] == "z":
+                                collected_plots.append(hists.Get(hist_name).ProjectionZ())
+                            else:
+                                collected_plots.append(hists.Get(hist_name))
             
             if len(collected_plots) == 0: continue
 
@@ -147,7 +155,7 @@ def produce_plots_from_config(file, output_path, config, plots):
 
             extraSpace = 0.0
 
-            CMS.SetExtraText("Private")
+            CMS.SetExtraText("Preliminary")
             CMS.SetEnergy("13.6")
             if config[plot_name]["energy"] != "":
                 CMS.SetEnergy(config[plot_name]["energy"])
@@ -204,15 +212,45 @@ def produce_plots_from_config(file, output_path, config, plots):
                 ytitleoffset = float(config[plot_name]["ytitleoffset"])
                 CMS.GetcmsCanvasHist(canv).GetYaxis().SetTitleOffset(ytitleoffset)
 
-            for plot in collected_plots:
-                marker = plot.GetMarkerStyle()
-                msize = plot.GetMarkerSize()
-                mcolor = plot.GetMarkerColor()
+            markers = []
+            if config[plot_name]["markers"] != "":
+                markers = [s.strip() for s in config[plot_name]["markers"].split(",")]
+            
+            colors = []
+            if config[plot_name]["markers"] != "":
+                colors = [s.strip() for s in config[plot_name]["colors"].split(",")]
+
+            leg = None
+            entries = []
+            if config[plot_name]["legend"] != "" and config[plot_name]["legendPos"] != "":
+                entries = [s.strip() for s in config[plot_name]["legend"].split("@")]
+                pos = [float(s.strip()) for s in config[plot_name]["legendPos"].split(",")]
+                leg = CMS.cmsLeg(pos[0], pos[1], pos[2], pos[3])
+
+            for (i, plot) in enumerate(collected_plots):
+
+                if leg is not None and len(entries) > 0:
+                    leg.AddEntry(plot, entries[i])
+
+                if (len(markers) > 0):
+                    marker = int(markers[i])
+                    fstyle = int(markers[i])
+                else:
+                    marker = plot.GetMarkerStyle()
+                    fstyle = plot.GetFillStyle()
+
+                if (len(colors) > 0):
+                    mcolor = int(colors[i])
+                    lcolor = int(colors[i])
+                    fcolor = int(colors[i])
+                else:
+                    mcolor = plot.GetMarkerColor()
+                    lcolor = plot.GetLineColor()
+                    fcolor = plot.GetFillColor()
+                
                 lstyle = plot.GetLineStyle()
+                msize = plot.GetMarkerSize()
                 lwidth = plot.GetLineWidth()
-                lcolor = plot.GetLineColor()
-                fstyle = plot.GetFillStyle()
-                fcolor = plot.GetFillColor()
                 CMS.cmsDraw(plot, "", marker=marker, msize=msize, mcolor=mcolor, lstyle=lstyle, lwidth=lwidth, lcolor=lcolor, fstyle=fstyle, fcolor=fcolor)
 
             CMS.SaveCanvas(canv, "{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger, plot_name))
