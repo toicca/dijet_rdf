@@ -47,5 +47,5 @@ if __name__ == "__main__":
         output_file = newest_json.split("/")[-1]
         os.system(f"cp -r {newest_json} {output_file}")
 
-    # print(f"out: \n{newest_json}")
-    print(f"out: \n{output_file}")
+    print(f"out: \n{newest_json}")
+    # print(f"out: \n{output_file}")
