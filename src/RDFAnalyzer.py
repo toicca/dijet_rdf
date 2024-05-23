@@ -55,7 +55,7 @@ class RDFAnalyzer:
             frange = get_fill_range(self.era)
             self.bins = get_bins(fill_range=frange)
         else:
-            self.bins = get_bins()
+            self.bins = get_bins(isMC = True)
         
         self.rdf = self.__loadRDF(filelist, nFiles = nFiles, local = local)
 
