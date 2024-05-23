@@ -95,12 +95,15 @@ class DijetAnalyzer(RDFAnalyzer):
                 db_rdf.Profile1D((f"DB_{system}_PtTagVsResponseCorrected", "DB_"+ str(system) + "_PtTagVsResponse;p_{T, tag} (GeV);response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                 "Dijet_tagPt", "Dijet_dbResponseCorrected", "weight"),
-                # Vs Run
-                db_rdf.Profile1D((f"DB_{system}_RunVsResponse", "DB_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
-                                self.bins["runs"]["n"], self.bins["runs"]["bins"]),
-                                "run", "Dijet_dbResponseCorrected", "weight"),
             ])
 
+            if not self.isMC:
+                self.histograms[trigger].extend([
+                    # Vs Run
+                    db_rdf.Profile1D((f"DB_{system}_RunVsResponse", "DB_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
+                                    self.bins["runs"]["n"], self.bins["runs"]["bins"]),
+                                    "run", "Dijet_dbResponseCorrected", "weight"),
+                ])
             barrel_rdf = db_rdf.Filter("abs(Dijet_probeEta) < 1.3")
 
             self.histograms[trigger].extend([
@@ -145,11 +148,78 @@ class DijetAnalyzer(RDFAnalyzer):
                 mpf_rdf.Profile1D((f"MPF_{system}_PtTagVsResponseCorrected", "MPF_"+ str(system) + "_PtTagVsResponse;p_{T, tag} (GeV);response;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"]),
                                 "Dijet_tagPt", "Dijet_mpfResponseCorrected", "weight"),
+            ])
+            if not self.isMC:
+                self.histograms[trigger].extend([
                 # Vs Run
                 mpf_rdf.Profile1D((f"MPF_{system}_RunVsResponse", "MPF_"+ str(system) + "_RunVsResponse;Run;response;N_{events}",
                                 self.bins["runs"]["n"], self.bins["runs"]["bins"]),
                                 "run", "Dijet_mpfResponse", "weight"),
+                ])
+
+
+        return self
+
+    def do_Activity(self) -> "DijetAnalyzer":
+        system = self.system
+        print(f"Creating resolution histograms for system: {self.system}")
+        for trigger, rdf in self.trigger_rdfs.items():
+            res_rdf = self.__sample_cut(self.Flag_cut(rdf)).Filter("Jet_pt[0] > 400").Filter("Dijet_probeEta < 1.3")
+            
+            self.histograms[trigger].extend([
+                res_rdf.Histo1D((f"Activity_{system}_AId", "Activity_"+ str(system) + "_Id;JetId;N_{events}",
+                                7, 0, 7),
+                                "Dijet_activityId", "weight"),
+                res_rdf.Histo1D((f"Activity_{system}_JetId", "Activity_"+ str(system) + "_JetId;JetId;N_{events}",
+                                7, 0, 7),
+                                "Jet_jetId", "weight"),
+                res_rdf.Histo2D((f"Activity_{system}_APtVsMPF", "Activity_"+ str(system) + "_Pt;p_{T,activity} (GeV);MPF",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_activityPtLen", "Dijet_mpfResponse", "weight"),
+                res_rdf.Histo2D((f"Activity_{system}_IdSumVsMPF", "Activity_"+ str(system) + "_IdSum;IdSum;MPF",
+                                 20, 0, 20, self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_activityIdSum", "Dijet_mpfResponse", "weight"),
+                res_rdf.Profile1D((f"Activity_{system}_ProfileAPtVsMPF", "Activity_"+ str(system) + "_Pt;p_{T,activity} (GeV);MPF",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_activityPtLen", "Dijet_mpfResponse", "weight"),
+                res_rdf.Profile1D((f"Activity_{system}_ProfileIdSumVsMPF", "Activity_"+ str(system) + "_IdSum;Average JetId;MPF",
+                                7, 0, 7),
+                                "Dijet_activityIdSum", "Dijet_mpfResponse", "weight"),
+                res_rdf.Histo1D((f"Activity_{system}_MPF", "Activity_"+ str(system) + "_MPF;MPF;N_{events}",
+                                self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_mpfResponse", "weight"),
+                res_rdf.Histo1D((f"Activity_{system}_MPFCorrected", "Activity_"+ str(system) + "_MPF;MPF;N_{events}",
+                                self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_mpfResponseCorrected", "weight"),
             ])
+
+
+            cut_id_rdf = res_rdf.Filter("Dijet_activityIdSum > 3")
+
+            self.histograms[trigger].extend([
+                cut_id_rdf.Histo1D((f"Activity_{system}_AId_Cut", "Activity_"+ str(system) + "_Id;JetId;N_{events}",
+                                7, 0, 7),
+                                "Dijet_activityId", "weight"),
+                cut_id_rdf.Histo2D((f"Activity_{system}_APtVsMPF_Cut", "Activity_"+ str(system) + "_Pt;p_{T,activity} (GeV);MPF",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_activityPtLen", "Dijet_mpfResponse", "weight"),
+                cut_id_rdf.Histo2D((f"Activity_{system}_IdSumVsMPF_Cut", "Activity_"+ str(system) + "_IdSum;IdSum;MPF",
+                                 20, 0, 20, self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_activityIdSum", "Dijet_mpfResponse", "weight"),
+                cut_id_rdf.Profile1D((f"Activity_{system}_ProfileAPtVsMPF_Cut", "Activity_"+ str(system) + "_Pt;p_{T,activity} (GeV);MPF",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"]),
+                                "Dijet_activityPtLen", "Dijet_mpfResponse", "weight"),
+                cut_id_rdf.Profile1D((f"Activity_{system}_ProfileIdSumVsMPF_Cut", "Activity_"+ str(system) + "_IdSum;Average JetId;MPF",
+                                7, 0, 7),
+                                "Dijet_activityIdSum", "Dijet_mpfResponse", "weight"),
+                cut_id_rdf.Histo1D((f"Activity_{system}_MPF_Cut", "Activity_"+ str(system) + "_MPF;MPF;N_{events}",
+                                self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_mpfResponse", "weight"),
+                cut_id_rdf.Histo1D((f"Activity_{system}_MPFCorrected_Cut", "Activity_"+ str(system) + "_MPF;MPF;N_{events}",
+                                self.bins["response"]["n"], self.bins["response"]["bins"]),
+                                "Dijet_mpfResponseCorrected", "weight"),
+            ])
+                                    
 
         return self
     
@@ -157,7 +227,7 @@ class DijetAnalyzer(RDFAnalyzer):
     def __sample_cut(self, rdf : RNode) -> RNode:
         min_pt = 15
         tag_eta = 1.3
-        asymmetry_alpha = 0.7
+        asymmetry_alpha = 0.0
         delta_phi = 2.7
 
         if not hasattr(ROOT, "sum_as_four_vectors"):
@@ -181,11 +251,16 @@ class DijetAnalyzer(RDFAnalyzer):
                     .Redefine("deltaPhi_dijet", "deltaPhi_dijet > TMath::Pi() ? TMath::TwoPi() - deltaPhi_dijet : deltaPhi_dijet")
                     .Filter(f"abs(Jet_eta[tag_idx]) < {tag_eta} && deltaPhi_dijet > {delta_phi}")
                     .Define("Dijet_activityPt", "Jet_pt[Jet_order != tag_idx && Jet_order != probe_idx]")
+                    .Define("Dijet_activityPtSum", "ROOT::VecOps::Sum(Dijet_activityPt)")
+                    .Filter("(Jet_pt[tag_idx] + Jet_pt[probe_idx]) > Dijet_activityPtSum * 2")
                     .Define("Dijet_activityEta", "Jet_eta[Jet_order != tag_idx && Jet_order != probe_idx]")
                     .Define("Dijet_activityPhi", "Jet_phi[Jet_order != tag_idx && Jet_order != probe_idx]")
                     .Define("Dijet_activityMass", "Jet_mass[Jet_order != tag_idx && Jet_order != probe_idx]")
+                    .Define("Dijet_activityId", "Jet_jetId[Jet_order != tag_idx && Jet_order != probe_idx]")
+                    .Define("Dijet_activityIdSum", "float(ROOT::VecOps::Sum(Dijet_activityId)) / float(Dijet_activityId.size())")
                     .Define("Dijet_activityVector", "sum_as_four_vectors(Dijet_activityPt, Dijet_activityEta, Dijet_activityPhi, Dijet_activityMass)")
                     .Define("Dijet_activityPolar", "ROOT::Math::Polar2DVectorF(Dijet_activityVector.Pt(), Dijet_activityVector.Phi())")
+                    .Define("Dijet_activityPtLen", "Dijet_activityVector.Pt()")
                     .Define("Dijet_eventVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {min_pt}], Jet_eta[Jet_pt >= {min_pt}], Jet_phi[Jet_pt >= {min_pt}], Jet_mass[Jet_pt >= {min_pt}])")
                     .Define("Dijet_eventPolar", "ROOT::Math::Polar2DVectorF(Dijet_eventVector.Pt(), Dijet_eventVector.Phi())")
                     .Define("Dijet_rawVector", f"sum_as_four_vectors(Jet_pt[Jet_pt >= {min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {min_pt}]), Jet_eta[Jet_pt >= {min_pt}], Jet_phi[Jet_pt >= {min_pt}], Jet_mass[Jet_pt >= {min_pt}] * (1.0 - Jet_rawFactor[Jet_pt >= {min_pt}]))")
@@ -214,7 +289,7 @@ class DijetAnalyzer(RDFAnalyzer):
                     .Define("Dijet_dbResponse", "Dijet_probePolar.R() / Dijet_tagPolar.R()")
                     .Define("Dijet_dbResponseCorrected", "-Dijet_probePolar.Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())")
                     .Define("Dijet_mpfResponse", "1 + Dijet_metPolar.Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())")
-                    .Define("Dijet_mpfResponseCorrected", "Dijet_mpfResponse - (Dijet_tagPolar.Dot(Dijet_activityPolar + Dijet_unclusteredPolar)) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())")
+                    .Define("Dijet_mpfResponseCorrected", "Dijet_mpfResponse - (Dijet_tagPolar.Dot(Dijet_activityPolar)) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())")
                     .Define("Dijet_angleCorrection", "-ROOT::VecOps::DeltaPhi(Dijet_tagPolar.Phi(), Dijet_probePolar.Phi())")
                     # Responses as defined in the previous Dijet code
                     .Define("Dijet_mpfTagResponse", "1.0 + (Dijet_metPolar.Dot(Dijet_tagPolar) / (Dijet_tagPolar.R() * Dijet_tagPolar.R())) ")
