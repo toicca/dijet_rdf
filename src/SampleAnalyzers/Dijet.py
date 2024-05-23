@@ -81,9 +81,21 @@ class DijetAnalyzer(RDFAnalyzer):
                 db_rdf.Histo3D((f"DB_{system}_PtAvgVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, avg} (GeV);#eta_{probe};asymmetry;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
                                 "Dijet_avgPt", "Dijet_probeEta", "Dijet_A", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtProbeVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, probe} (GeV);#eta_{probe};asymmetry;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                "Dijet_probePt", "Dijet_probeEta", "Dijet_A", "weight"),
+                db_rdf.Histo3D((f"DB_{system}_PtTagVsEtaVsA", "DB_"+ str(system) + "_PtVsEtaVsAsymmetry;p_{T, tag} (GeV);#eta_{probe};asymmetry;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                "Dijet_tagPt", "Dijet_probeEta", "Dijet_A", "weight"),
                 db_rdf.Histo2D((f"DB_{system}_PtAvgVsA", "DB_"+ str(system) + "_PtVsAsymmetry;p_{T, ave} (GeV);asymmetry;N_{events}",
                                 self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
                                 "Dijet_avgPt", "Dijet_A", "weight"),
+                db_rdf.Histo2D((f"DB_{system}_PtProbeVsA", "DB_"+ str(system) + "_PtVsAsymmetry;p_{T, probe} (GeV);asymmetry;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                "Dijet_probePt", "Dijet_A", "weight"),
+                db_rdf.Histo2D((f"DB_{system}_PtTagVsA", "DB_"+ str(system) + "_PtVsAsymmetry;p_{T, tag} (GeV);asymmetry;N_{events}",
+                                self.bins["pt"]["n"], self.bins["pt"]["bins"], self.bins["asymmetry"]["n"], self.bins["asymmetry"]["bins"]),
+                                "Dijet_tagPt", "Dijet_A", "weight"),
                 # 2D Asymmetry histogram for veto maps
                 db_rdf.Profile2D((f"DB_{system}_EtaprobeVsPhiprobeVsAsymmetry", "DB_"+ str(system) + "_EtaprobeVsPhiprobeVsAsymmetry;#eta_{probe};#phi_{probe};asymmetry;N_{events}",
                                   self.bins["eta"]["n"], self.bins["eta"]["bins"], self.bins["phi"]["n"], self.bins["phi"]["bins"]),
@@ -227,7 +239,7 @@ class DijetAnalyzer(RDFAnalyzer):
     def __sample_cut(self, rdf : RNode) -> RNode:
         min_pt = 15
         tag_eta = 1.3
-        asymmetry_alpha = 0.0
+        asymmetry_alpha = 1.7
         delta_phi = 2.7
 
         if not hasattr(ROOT, "sum_as_four_vectors"):

@@ -22,8 +22,8 @@ response_histos = (
                     ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsAvgResponse"),
                     ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsProbeResponse"),
 )
-resolution_histos = (# ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsA"),
-                    # ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsA"),
+resolution_histos = (("dijet", "DB", "DB_dijet_PtTagVsEtaVsA"),
+                    ("dijet", "DB", "DB_dijet_PtProbeVsEtaVsA"),
                     ("dijet", "DB", "DB_dijet_PtAvgVsEtaVsA"),
 )
 
@@ -81,7 +81,15 @@ def produce_resolutions(file: str, trigger_list: List[str], output_path : str):
                 print(f"Could not find {path + histogram}")
                 continue
             # h.RebinY(4)
-            resolutions = ROOT.TH2D("resolutions_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
+            xlabel = ""
+            if "PtTag" in histogram:
+                xlabel = "p_{T, tag}"
+            elif "PtProbe" in histogram:
+                xlabel = "p_{T, probe}"
+            elif "PtAvg" in histogram:
+                xlabel = "p_{T, avg}"
+
+            resolutions = ROOT.TH2D("resolutions_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle()+";"+xlabel+";#eta_{probe}",
                                     bins["pt"]["n"], bins["pt"]["bins"], h.GetNbinsY(), h.GetYaxis().GetXmin(), h.GetYaxis().GetXmax())
             projections = ROOT.TH2D("projections_"+histogram.replace("VsA", "").replace("VsEta", "").replace(f"_{method}_{system}", ""), h.GetTitle(),
                                     bins["pt"]["n"], bins["pt"]["bins"], bins["pt"]["n"], bins["pt"]["bins"])
