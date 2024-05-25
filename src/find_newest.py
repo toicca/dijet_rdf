@@ -4,9 +4,10 @@ from collections import defaultdict
 import argparse
 
 # Specify the root directory to search within
-root_directory = '/eos/user/j/jecpcl/public/test/2024C/jec_perIntLumi'
+root_directory = '/eos/user/j/jecpcl/public/test/jec_perIntLumi'
 starts_with = 'JEC4PROMPT'
 ends_with = '_plain.root'
+max_depth = None
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Script to find the newest files in subdirectories for dijet_rdf: https://github.com/toicca/dijet_rdf")
@@ -15,6 +16,7 @@ def parse_arguments():
     parser.add_argument("--starts_with", type=str, help="Choose a prefix for the files to search for")
     parser.add_argument("--ends_with", type=str, help="Choose a suffix for the files to search for")
     parser.add_argument("--spaces", action="store_true", help="Use spaces instead of commas to separate the file paths")
+    parser.add_argument("--max_depth", type=int, help="Depth of files to search for in the directory tree (default: None)")
 
     args = parser.parse_args()
     
@@ -54,7 +56,9 @@ if __name__ == "__main__":
         starts_with = args.starts_with
     if args.ends_with:
         ends_with = args.ends_with
-    newest_files = find_newest_files(root_directory, starts_with, ends_with)
+    if args.max_depth:
+        max_depth = args.max_depth
+    newest_files = find_newest_files(root_directory, starts_with, ends_with, max_depth)
     if not args.spaces:
         # Print the list comma-separated
         print(",".join(newest_files))
