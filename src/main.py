@@ -95,6 +95,7 @@ if __name__ == "__main__":
     dijet_analysis.do_DB()
     dijet_analysis.do_sample_control()
     dijet_analysis.do_MPF()
+    dijet_analysis.do_Activity()
     multijet_analysis.do_sample_control()
     multijet_analysis.do_DB()
     multijet_analysis.do_MPF()

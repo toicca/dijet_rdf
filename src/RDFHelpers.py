@@ -222,7 +222,7 @@ def get_fill_range(IOV : str) -> tuple:
 
     return fill_dict[IOV]
     
-def get_bins(fill_range : tuple = (376370, 380100)) -> dict:
+def get_bins(fill_range : tuple = (376370, 380100), isMC : bool = False) -> dict:
     bins = {}
     
     # These pt and eta bins are some JEC bins
@@ -269,9 +269,13 @@ def get_bins(fill_range : tuple = (376370, 380100)) -> dict:
     bins["asymmetry"]["n"] = len(bins["asymmetry"]["bins"]) - 1
     
     bins["runs"] = {}
-    # bins["runs"]["bins"] = np.linspace(355065, 391370, int((391370-355065) / 10000), dtype=float)
-    bins["runs"]["bins"] = np.linspace(fill_range[0], fill_range[1], int((fill_range[1] - fill_range[0])), dtype=float)
-    bins["runs"]["n"] = len(bins["runs"]["bins"]) - 1
+    if not isMC:
+        # bins["runs"]["bins"] = np.linspace(355065, 391370, int((391370-355065) / 10000), dtype=float)
+        bins["runs"]["bins"] = np.linspace(fill_range[0], fill_range[1], int((fill_range[1] - fill_range[0])), dtype=float)
+        bins["runs"]["n"] = len(bins["runs"]["bins"]) - 1
+    else:
+        bins["runs"]["bins"] = np.linspace(0, 2, 2, dtype=float)
+        bins["runs"]["n"] = len(bins["runs"]["bins"]) - 1
     
     bins["bx"] = {}
     bins["bx"]["bins"] = np.linspace(0, 3564, 3564, dtype=float)
