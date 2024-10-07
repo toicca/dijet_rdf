@@ -2,21 +2,7 @@ import argparse
 import json
 import os
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Plot producer for dijet_rdf: https://github.com/toicca/dijet_rdf")
-
-    parser.add_argument("--json_files", required=True, type=str, help="Comma separated list of json files")
-
-    parser.add_argument("--run", required=True, type=str, help="Run number")
-
-    parser.add_argument("--out", required=False, type=str, help="Output file")
-
-    args = parser.parse_args()
-    
-    return args
-
-if __name__ == "__main__":
-    args = parse_arguments()
+def run(args):
     json_files = [s.strip() for s in args.json_files.split(",")]
     run = int(args.run)
     if args.out:

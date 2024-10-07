@@ -5,3 +5,4 @@ src/JetMETObjects/src/*.pcm
 out/
 .vscode/
 CMSSW_14_0_4/
+*.swp

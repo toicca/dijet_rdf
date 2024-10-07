@@ -9,24 +9,6 @@ hist_info = [
         "multijet/DB/DB_multijet_PtRecoilVsResponse"
         ]
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Plot comparison producer for dijet_rdf: https://github.com/toicca/dijet_rdf")
-
-    parser.add_argument("--numerator", type=str, required=True, help="A root file produced by dijet_rdf separated by comma")
-    parser.add_argument("--denominator", type=str, required=True, help="A root file produced by dijet_rdf separated by comma")
-
-    triggers = parser.add_mutually_exclusive_group()
-    triggers.add_argument("--triggerlist", type=str, help="Comma separated list of triggers for which plots will be produced (default value 'all')")
-    triggers.add_argument("--triggerpath", type=str, help="Path to a file containing a list of triggers for which plots will be produced")
-
-    parser.add_argument("--out", type=str, required=True, default="", help="Output path (output file name included)")
-
-    parser.add_argument("--config", type=str, default="", help="Path to config file")
-
-    args = parser.parse_args()
-    
-    return args
-
 def produce_ratio(input_file_numerator: str, input_file_denominator: str, trigger_list: List[str], output_path: str):
     file_numerator = ROOT.TFile(input_file_numerator)
     file_denominator = ROOT.TFile(input_file_denominator)
@@ -76,17 +58,14 @@ def produce_ratio(input_file_numerator: str, input_file_denominator: str, trigge
                 h_ratio.Write()
                 file_ratio.cd()
 
-if __name__ == '__main__':
-    
-    args = parse_arguments()
-    
+def run(args):
     trigger_list: List[str] = []
     files: List[str] = []
     
-    if args.triggerpath:
+    if args.triggerlist:
+        trigger_list = args.triggerlist.split(",")
+    elif args.triggerpath:
         trigger_list = file_read_lines(args.triggerpath)
-    elif args.triggerlist:
-        trigger_list = [s.strip() for s in args.triggerlist.split(',')]
 
     file_numerator = args.numerator
     file_denominator = args.denominator

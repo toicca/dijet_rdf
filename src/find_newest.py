@@ -3,25 +3,6 @@ import os
 from collections import defaultdict
 import argparse
 
-# Specify the root directory to search within
-root_directory = '/eos/user/j/jecpcl/public/test/jec_perIntLumi'
-starts_with = 'JEC4PROMPT'
-ends_with = '_plain.root'
-max_depth = None
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Script to find the newest files in subdirectories for dijet_rdf: https://github.com/toicca/dijet_rdf")
-
-    parser.add_argument("--root_directory", type=str, help="Directory to search for files in")
-    parser.add_argument("--starts_with", type=str, help="Choose a prefix for the files to search for")
-    parser.add_argument("--ends_with", type=str, help="Choose a suffix for the files to search for")
-    parser.add_argument("--spaces", action="store_true", help="Use spaces instead of commas to separate the file paths")
-    parser.add_argument("--max_depth", type=int, help="Depth of files to search for in the directory tree (default: None)")
-
-    args = parser.parse_args()
-    
-    return args
-
 def find_newest_files(root_dir, starts_with, ends_with, max_depth=None):
     newest_files = defaultdict(lambda: {"path": None, "mtime": 0})
 
@@ -48,8 +29,13 @@ def find_newest_files(root_dir, starts_with, ends_with, max_depth=None):
     # Return a list of newest file paths
     return [entry["path"] for entry in newest_files.values()]
 
-if __name__ == "__main__":
-    args = parse_arguments()
+def run(args):
+    # Specify the root directory to search within
+    root_directory = '/eos/user/j/jecpcl/public/test/jec_perIntLumi'
+    starts_with = 'JEC4PROMPT'
+    ends_with = '_plain.root'
+    max_depth = None
+
     if args.root_directory:
         root_directory = args.root_directory
     if args.starts_with:
