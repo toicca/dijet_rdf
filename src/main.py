@@ -19,6 +19,7 @@ import produce_responses
 import produce_time_evolution
 import produce_vetomaps
 from plotting import produce_plots
+from skimming import skim
 
 nThreads = 4
 
@@ -44,9 +45,11 @@ if __name__ == "__main__":
         produce_ratio.run(args)
     elif command ==  "produce_responses":
         produce_responses.run(args)
+    elif command == "skim":
+        skim.run(args)
     elif command == "produce_time_evolution":
         produce_time_evolution.run(args)
-    elif command == "produce_vetomaps":
-        produce_vetomaps.run(args)
     elif command == "produce_plots":
         produce_plots.run(args)
+    elif command == "produce_vetomaps":
+        produce_vetomaps.run(args)
