@@ -7,7 +7,7 @@ import ctypes
 import numpy as np
 
 from RDFHelpers import file_read_lines
-from skimming.processing_utils import find_site
+from processing_utils import find_site
 
 jet_columns = [
     "Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass", "Jet_jetId",
@@ -204,19 +204,6 @@ def run(args):
     run_range = args.run_range.split(",")
     assert(len(run_range) == 2)
 
-    # Determine most frequent era for output file naming.
-    # This is required in order for the analysis code to
-    # find appropriate fill ranges.
-    eras = {}
-    for file in files:
-        idx = file.find("Run")
-        if idx != -1:
-            era = file[idx:idx+8]
-            if era in eras:
-                eras[era] += 1
-            else:
-                eras[era] = 1
-    selected_era = max(eras, key=eras.get)
     # Load the files
     print("Loading files")
 
@@ -305,7 +292,7 @@ def run(args):
     snapshot_opts = ROOT.RDF.RSnapshotOptions()
     snapshot_opts.fCompressionLevel = 9
     print(f"Run range: ({run_range[0]}, {run_range[1]})");
-    output_path = os.path.join(args.out, f"J4PSkim_{selected_era}_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
+    output_path = os.path.join(args.out, f"J4PSkim_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
 
     print("Writing output")
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)

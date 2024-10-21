@@ -10,16 +10,16 @@ import numpy as np
 verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kDebug+10)
 from filewriter import FileWriter
 
-import analysis
 import find_json
 import find_newest
 import find_range
+import histograms
 import produce_ratio
 import produce_responses
 import produce_time_evolution
 import produce_vetomaps
 from plotting import produce_plots
-from skimming import skim
+import skim
 
 nThreads = 4
 
@@ -33,14 +33,14 @@ if __name__ == "__main__":
     
     # One day when Python version >= 3.10.0
     # is used implement match here instead.
-    if command == "analysis":
-        analysis.run(args)
-    elif command == "find_json":
+    if command == "find_json":
         find_json.run(args)
     elif command == "find_newest":
         find_newest.run(args)
     elif command == "find_range":
         find_range.run(args)
+    elif command == "hist":
+        histograms.run(args)
     elif command == "produce_ratio":
         produce_ratio.run(args)
     elif command ==  "produce_responses":

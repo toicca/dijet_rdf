@@ -5,6 +5,7 @@ import subprocess
 import json
 # import tomllib
 from processing_utils import find_site, get_bins
+from RDFHelpers import read_config_file
 
 def create_histogram(rdf, hist_config, bins):
     if hist_config["type"] == "Histo1D":
@@ -40,15 +41,24 @@ def create_histogram(rdf, hist_config, bins):
     else:
         raise ValueError(f"Unknown histogram type: {hist_config['type']}")
 
-def make_histograms(config):
-    ROOT.EnableImplicitMT(config['nThreads'])
+def make_histograms(args):
+    if args.nThreads:
+        ROOT.EnableImplicitMT(args.nThreads)
 
     events_chain = ROOT.TChain("Events")
     runs_chain = ROOT.TChain("Runs")
+                
+    # Split the file list and trigger list if they are given as a string
+    if args.filelist:
+        filelist = args.filelist.split(",")
+    elif args.filepath:
+        filelist = file_read_lines(args.filepath, find_ROOT=True)
+    else:
+        raise ValueError("No file list provided")
 
     # Load the files
-    for file in config['filelist']:
-        if not config['is_local']:
+    for file in filelist:
+        if not args.is_local:
             # Find the available T1, T2 sites
             site_paths = find_site(file)
             if not site_paths:
@@ -71,13 +81,13 @@ def make_histograms(config):
     events_rdf = ROOT.RDataFrame(events_chain)
     runs_rdf = ROOT.RDataFrame(runs_chain)
 
-    if config['progress_bar']:
+    if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
     # with open(config['histogram_config'], 'rb') as f:
         # hist_config = tomllib.load(f)
     hist_config = configparser.ConfigParser()
-    hist_config.read('histograms.ini')
+    hist_config.read(args.hist_config)
     hist_config = dict(hist_config)
     
     bins = get_bins()
@@ -97,16 +107,24 @@ def get_values(histograms):
         values[hist] = histograms[hist].GetValue()
     return values
 
-def save_histograms(histograms, config):
-    output_file = ROOT.TFile(f"J4PHists_runs{config['run_range'][0]}to{config['run_range'][1]}_{config['run_tag']}.root", "RECREATE")
+def save_histograms(histograms, args):
+    run_range = args.run_range.split(",")
+    assert(len(run_range) == 2)
+
+    if args.out:
+        if not os.path.exists(args.out):
+            os.makedirs(args.out)
+        output_file = ROOT.TFile(f"{args.out}/J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root", "RECREATE")
+    else:
+        output_file = ROOT.TFile(f"J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root", "RECREATE")
 
     for hist in histograms:
         histograms[hist].Write()
 
     output_file.Close()
 
-
-if __name__ == "__main__":
+def run(args):
+    """
     config = {
         'filelist': ['J4PSkim_runs379413to379415_20240924.root'],
         'is_local': True,
@@ -116,9 +134,20 @@ if __name__ == "__main__":
         'run_tag': '20240920',
         'nThreads': 8
     }
-
-    histograms = make_histograms(config)
-    save_histograms(histograms, config)
-
-
+    """
     
+    # If config file is set, override all arguments with ones set in there
+    if args.config:
+        config = read_config_file(args.config)
+        for arg, value in config["GENERAL"].items():
+            # Do a type conversion for the option
+            if arg == "is_local" or arg == "nThreads" or arg == "progress_bar":
+                if value == "":
+                    setattr(args, arg, 0)
+                else:
+                    setattr(args, arg, int(value))
+            else:
+                setattr(args, arg, value)
+
+    histograms = make_histograms(args)
+    save_histograms(histograms, args)    
