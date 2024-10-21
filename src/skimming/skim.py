@@ -3,6 +3,8 @@ import os
 import subprocess
 import argparse
 import pathlib
+import ctypes
+import numpy as np
 
 from RDFHelpers import file_read_lines
 from skimming.processing_utils import find_site
@@ -17,7 +19,7 @@ jet_columns = [
 def init_TnP(rdf, dataset):
     if dataset == "dijet":
         rdf = (rdf.Filter("nJet > 1", "nJet > 1")
-                .Filter("ROOT::VecOps::DeltaPhi(Jet_phi[0], Jet_phi[1]) > 2.7", "DeltaPhi(Jet1, Jet2) > 2.7")
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Jet_phi[1])) > 2.7", "abs(DeltaPhi(Jet1, Jet2)) > 2.7")
                 .Filter("nJet > 2 ? Jet_pt[2] / ((Jet_pt[0] + Jet_pt[1]) * 0.5) < 1.0 : true", "alpha < 1.0")
                 .Filter("(Jet_pt[0]/Jet_pt[1] < 1.3 && Jet_pt[0]/Jet_pt[1] > 0.7)", "1.3 > pT1/pT2 > 0.7")
                 .Define("firstTag", "int(abs(Jet_eta[0]) < 1.3)")
@@ -57,7 +59,7 @@ def init_TnP(rdf, dataset):
                 .Define("nTag", "Tag_pt.size()")
                 .Define("Probe_ids", "ROOT::VecOps::RVec<int>{0}")
                 .Define("JetActivity_ids", "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
-                .Filter("ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi) > 2.7", "DeltaPhi(Jet1, Z) > 2.7")
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7", "abs(DeltaPhi(Jet1, Z)) > 2.7")
                 .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt < 1.0 : true", "alpha < 1.0")
         )
 
@@ -77,7 +79,7 @@ def init_TnP(rdf, dataset):
                 .Define("Probe_ids", "ROOT::VecOps::RVec<int>{0}")
                 .Define("JetActivity_ids", "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
                 .Filter("nTag == 1", "Exactly 1 photon")
-                .Filter("ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi) > 2.7", "DeltaPhi(Jet1, Photon) > 2.7")
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7", "abs(DeltaPhi(Jet1, Photon)) > 2.7")
                 .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt < 1.0 : true", "alpha < 1.0")
         )
 
@@ -202,8 +204,23 @@ def run(args):
     run_range = args.run_range.split(",")
     assert(len(run_range) == 2)
 
+    # Determine most frequent era for output file naming.
+    # This is required in order for the analysis code to
+    # find appropriate fill ranges.
+    eras = {}
+    for file in files:
+        idx = file.find("Run")
+        if idx != -1:
+            era = file[idx:idx+8]
+            if era in eras:
+                eras[era] += 1
+            else:
+                eras[era] = 1
+    selected_era = max(eras, key=eras.get)
     # Load the files
     print("Loading files")
+
+    all_columns = []
     for file in files:
         if not args.is_local:
             # Find the available T1, T2 sites
@@ -216,8 +233,23 @@ def run(args):
                 try:
                     f = ROOT.TFile.Open(site_paths[site], "READ")
                     f.Close()
-                    events_chain.Add(site_paths[site])
-                    runs_chain.Add(site_paths[site])
+                    ret_events = events_chain.Add(site_paths[site])
+                    ret_runs = runs_chain.Add(site_paths[site])
+
+                    tmp_rdf = ROOT.RDataFrame(site_paths[site])
+
+                    if len(all_columns) > 0:
+                        all_columns = [col for col in all_columns if col in tmp_rdf.GetColumnNames()]
+                    else:
+                        all_columns = tmp_rdf.GetColumnNames()
+
+                    if ret_events != 1:
+                        print(f"Error performing events_chain.Add: {ret_events}")
+                        continue
+                    if ret_runs != 1:
+                        print(f"Error performing events_chain.Add: {ret_runs}")
+                        continue
+
                     break
                 except:
                     continue
@@ -262,20 +294,73 @@ def run(args):
 
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
-    all_columns = events_rdf.GetColumnNames()
+    #all_columns = events_rdf.GetColumnNames()
+    all_columns.extend(events_rdf.GetDefinedColumnNames())
     all_columns = [str(col) for col in all_columns if not str(col).startswith("Jet_") and not str(col).endswith("_temp")]
 
     # Write and hadd the output
+    if not os.path.exists(args.out):
+        os.makedirs(args.out)
+
     snapshot_opts = ROOT.RDF.RSnapshotOptions()
     snapshot_opts.fCompressionLevel = 9
     print(f"Run range: ({run_range[0]}, {run_range[1]})");
-    output_path = os.path.join(args.out, f"J4PSkim_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
+    output_path = os.path.join(args.out, f"J4PSkim_{selected_era}_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
 
     print("Writing output")
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
+
     subprocess.run(["hadd", "-f7", output_path+".root", output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
     os.remove(output_path+"_runs.root")
 
     print(output_path+".root")
+
+    # Get a report of the processing
+    report = events_rdf.Report()
+
+    begin = report.begin()
+    end = report.end()
+    allEntries = 0 if begin == end else begin.__deref__().GetAll()
+
+    # Collect the cuts
+    it = begin
+    cuts = []
+    while it != end:
+        ci = it.__deref__()
+        cuts.append({ci.GetName(): {"pass": ci.GetPass(), "all": ci.GetAll(), "eff": ci.GetEff(), "cumulativeEff": 100.0 * float(ci.GetPass()) / float(allEntries) if allEntries > 0 else 0.0}})
+
+        it.__preinc__()
+
+    # Create four histograms with alphanumeric bins
+    pass_hist = ROOT.TH1D("pass", "pass", len(cuts), 0, len(cuts))
+    pass_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+    all_hist = ROOT.TH1D("all", "all", len(cuts), 0, len(cuts))
+    all_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+    eff_hist = ROOT.TH1D("eff", "eff", len(cuts), 0, len(cuts))
+    eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+    cum_eff_hist = ROOT.TH1D("cum_eff", "cum_eff", len(cuts), 0, len(cuts))
+    cum_eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+
+    for i, cut in enumerate(cuts):
+        #print(i, cut)
+        for key, value in cut.items():
+            pass_hist.Fill(key, value["pass"])
+            all_hist.Fill(key, value["all"])
+            eff_hist.Fill(key, value["eff"])
+            cum_eff_hist.Fill(key, value["cumulativeEff"])
+
+    pass_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+    all_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+    eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+    cum_eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+
+    # Save the histograms to test.root
+    f = ROOT.TFile(output_path+".root", "UPDATE")
+    pass_hist.Write()
+    all_hist.Write()
+    eff_hist.Write()
+    cum_eff_hist.Write()
+    f.Close()
+
