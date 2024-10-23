@@ -22,7 +22,8 @@ def create_histogram(rdf, hist_config, bins):
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"],
                             bins[hist_config["y_bins"]]["n"], bins[hist_config["y_bins"]]["bins"],
                             bins[hist_config["z_bins"]]["n"], bins[hist_config["z_bins"]]["bins"]),
-                            hist_config["x_val"], hist_config["y_val"], hist_config["z_val"], "weight")
+                            hist_config["x_val"], hist_config["y_val"],
+                            hist_config["z_val"], "weight")
     elif hist_config["type"] == "Profile1D":
         return rdf.Profile1D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"]),
@@ -31,13 +32,15 @@ def create_histogram(rdf, hist_config, bins):
         return rdf.Profile2D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"],
                             bins[hist_config["y_bins"]]["n"], bins[hist_config["y_bins"]]["bins"]),
-                            hist_config["x_val"], hist_config["y_val"], hist_config["z_val"], "weight")
+                            hist_config["x_val"], hist_config["y_val"],
+                            hist_config["z_val"], "weight")
     elif hist_config["type"] == "Profile3D":
         return rdf.Profile3D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"],
                             bins[hist_config["y_bins"]]["n"], bins[hist_config["y_bins"]]["bins"],
                             bins[hist_config["z_bins"]]["n"], bins[hist_config["z_bins"]]["bins"]),
-                            hist_config["x_val"], hist_config["y_val"], hist_config["z_val"], "weight")
+                            hist_config["x_val"], hist_config["y_val"],
+                            hist_config["z_val"], "weight")
     else:
         raise ValueError(f"Unknown histogram type: {hist_config['type']}")
 
@@ -114,9 +117,13 @@ def save_histograms(histograms, args):
     if args.out:
         if not os.path.exists(args.out):
             os.makedirs(args.out)
-        output_file = ROOT.TFile(f"{args.out}/J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root", "RECREATE")
+        output_file = ROOT.TFile(
+                f"{args.out}/J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root", 
+                "RECREATE")
     else:
-        output_file = ROOT.TFile(f"J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root", "RECREATE")
+        output_file = ROOT.TFile(
+                f"J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root",
+                "RECREATE")
 
     for hist in histograms:
         histograms[hist].Write()

@@ -19,14 +19,17 @@ jet_columns = [
 def init_TnP(rdf, dataset):
     if dataset == "dijet":
         rdf = (rdf.Filter("nJet > 1", "nJet > 1")
-                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Jet_phi[1])) > 2.7", "abs(DeltaPhi(Jet1, Jet2)) > 2.7")
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Jet_phi[1])) > 2.7", \
+                        "abs(DeltaPhi(Jet1, Jet2)) > 2.7")
                 .Filter("nJet > 2 ? Jet_pt[2] / ((Jet_pt[0] + Jet_pt[1]) * 0.5) < 1.0 : true", "alpha < 1.0")
                 .Filter("(Jet_pt[0]/Jet_pt[1] < 1.3 && Jet_pt[0]/Jet_pt[1] > 0.7)", "1.3 > pT1/pT2 > 0.7")
                 .Define("firstTag", "int(abs(Jet_eta[0]) < 1.3)")
                 .Define("secondTag", "int(abs(Jet_eta[1]) < 1.3)")
                 .Define("nTag", "firstTag + secondTag")
                 .Filter("nTag > 0", "nTag > 0")
-                .Define("Tag_ids", "nTag == 2 ? ROOT::VecOps::RVec<int>{0, 1} : (firstTag == 1 ? ROOT::VecOps::RVec<int>{0} : ROOT::VecOps::RVec<int>{1})")
+                .Define("Tag_ids", "nTag == 2 ? ROOT::VecOps::RVec<int>{0, 1} : \
+                        (firstTag == 1 ? ROOT::VecOps::RVec<int>{0} : \
+                        ROOT::VecOps::RVec<int>{1})")
                 .Define("Probe_ids", "1 - Tag_ids")
                 .Define("Tag_pt", "ROOT::VecOps::Take(Jet_pt, Tag_ids)")
                 .Define("Tag_eta", "ROOT::VecOps::Take(Jet_eta, Tag_ids)")
@@ -50,7 +53,10 @@ def init_TnP(rdf, dataset):
                 .Define("ZMuons_phi", f"Muon_phi[{muon_filter}]")
                 .Define("ZMuons_mass", f"Muon_mass[{muon_filter}]")
                 .Filter("ZMuons_pt.size() == 2", "Exactly 2 muons")
-                .Define("Z_4vec", "ROOT::Math::PtEtaPhiMVector(ZMuons_pt[0], ZMuons_eta[0], ZMuons_phi[0], ZMuons_mass[0]) + ROOT::Math::PtEtaPhiMVector(ZMuons_pt[1], ZMuons_eta[1], ZMuons_phi[1], ZMuons_mass[1])")
+                .Define("Z_4vec",
+                    "ROOT::Math::PtEtaPhiMVector(ZMuons_pt[0], ZMuons_eta[0], ZMuons_phi[0], \
+                            ZMuons_mass[0]) + ROOT::Math::PtEtaPhiMVector(ZMuons_pt[1], \
+                            ZMuons_eta[1], ZMuons_phi[1], ZMuons_mass[1])")
                 .Define("Tag_pt", "ROOT::VecOps::RVec<float>{Z_4vec.Pt()}")
                 .Define("Tag_eta", "ROOT::VecOps::RVec<float>{Z_4vec.Eta()}")
                 .Define("Tag_phi", "ROOT::VecOps::RVec<float>{Z_4vec.Phi()}")
@@ -58,8 +64,10 @@ def init_TnP(rdf, dataset):
                 .Define("Tag_label", "ROOT::VecOps::RVec<int>{1}")
                 .Define("nTag", "Tag_pt.size()")
                 .Define("Probe_ids", "ROOT::VecOps::RVec<int>{0}")
-                .Define("JetActivity_ids", "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
-                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7", "abs(DeltaPhi(Jet1, Z)) > 2.7")
+                .Define("JetActivity_ids",
+                    "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7",
+                    "abs(DeltaPhi(Jet1, Z)) > 2.7")
                 .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt < 1.0 : true", "alpha < 1.0")
         )
 
@@ -79,7 +87,8 @@ def init_TnP(rdf, dataset):
                 .Define("Probe_ids", "ROOT::VecOps::RVec<int>{0}")
                 .Define("JetActivity_ids", "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
                 .Filter("nTag == 1", "Exactly 1 photon")
-                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7", "abs(DeltaPhi(Jet1, Photon)) > 2.7")
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7",
+                        "abs(DeltaPhi(Jet1, Photon)) > 2.7")
                 .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt < 1.0 : true", "alpha < 1.0")
         )
 
@@ -97,7 +106,9 @@ def init_TnP(rdf, dataset):
                 .Define("Tag_mass", "ROOT::VecOps::RVec<float>{Jet_mass[0]}")
                 .Define("Tag_label", "ROOT::VecOps::RVec<int>{3}")
                 .Define("nTag", "Tag_pt.size()")
-                .Define("RecoilJet_ids", "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), ROOT::VecOps::RVec<int>{0})")
+                .Define("RecoilJet_ids",
+                    "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), \
+                            ROOT::VecOps::RVec<int>{0})")
                 .Define("RecoilJet_pt", f"ROOT::VecOps::Take(Jet_pt, RecoilJet_ids)")
                 .Define("RecoilJet_eta", f"ROOT::VecOps::Take(Jet_eta, RecoilJet_ids)")
                 .Define("RecoilJet_phi", f"ROOT::VecOps::Take(Jet_phi, RecoilJet_ids)")
@@ -107,12 +118,19 @@ def init_TnP(rdf, dataset):
                 .Define("Probe_phi", f"RecoilJet_phi[{recoil_filter}]")
                 .Define("Probe_mass", f"RecoilJet_mass[{recoil_filter}]")
                 .Define("Probe_ids", f"RecoilJet_ids[{recoil_filter}]")
-                .Define("ProbeMJ_fourVec_temp", "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Probe_pt, Probe_eta, Probe_phi, Probe_mass)")
-                .Redefine("ProbeMJ_fourVec_temp", "ROOT::VecOps::Sum(ProbeMJ_fourVec_temp, ROOT::Math::PtEtaPhiMVector())")
-                .Redefine("Probe_pt", "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.Pt())}")
-                .Redefine("Probe_eta", "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.Eta())}")
-                .Redefine("Probe_phi", "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.Phi())}")
-                .Redefine("Probe_mass", "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.M())}")
+                .Define("ProbeMJ_fourVec_temp",
+                    "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Probe_pt, \
+                            Probe_eta, Probe_phi, Probe_mass)")
+                .Redefine("ProbeMJ_fourVec_temp",
+                    "ROOT::VecOps::Sum(ProbeMJ_fourVec_temp, ROOT::Math::PtEtaPhiMVector())")
+                .Redefine("Probe_pt",
+                    "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.Pt())}")
+                .Redefine("Probe_eta",
+                    "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.Eta())}")
+                .Redefine("Probe_phi",
+                    "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.Phi())}")
+                .Redefine("Probe_mass",
+                    "ROOT::VecOps::RVec<float>{float(ProbeMJ_fourVec_temp.M())}")
                 .Define("JetActivity_ids", "ROOT::VecOps::Drop(RecoilJet_ids, Probe_ids)")
         )
 
@@ -125,12 +143,22 @@ def init_TnP(rdf, dataset):
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("nProbe", "Probe_pt.size()")
             .Filter("nProbe > 0", "nProbe > 0")
-            .Define("Tag_fourVec_temp", "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
-            .Define("Probe_fourVec_temp", "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Probe_pt, Probe_eta, Probe_phi, Probe_mass)")
-            .Define("Tag_polarVec_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVector>(Tag_pt, Tag_phi)")
-            .Define("Probe_polarVec_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVector>(Probe_pt, Probe_phi)")
-            .Define("PuppiMET_polarVec_probe_temp", "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nProbe, ROOT::Math::Polar2DVector(PuppiMET_pt, PuppiMET_phi))")
-            .Define("PuppiMET_polarVec_tag_temp", "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nTag, ROOT::Math::Polar2DVector(PuppiMET_pt, PuppiMET_phi))")
+            .Define("Tag_fourVec_temp",
+                "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Tag_pt, Tag_eta, \
+                        Tag_phi, Tag_mass)")
+            .Define("Probe_fourVec_temp",
+                "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Probe_pt, Probe_eta, \
+                        Probe_phi, Probe_mass)")
+            .Define("Tag_polarVec_temp", 
+                "ROOT::VecOps::Construct<ROOT::Math::Polar2DVector>(Tag_pt, Tag_phi)")
+            .Define("Probe_polarVec_temp",
+                "ROOT::VecOps::Construct<ROOT::Math::Polar2DVector>(Probe_pt, Probe_phi)")
+            .Define("PuppiMET_polarVec_probe_temp",
+                "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nProbe, \
+                        ROOT::Math::Polar2DVector(PuppiMET_pt, PuppiMET_phi))")
+            .Define("PuppiMET_polarVec_tag_temp",
+                "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nTag, \
+                        ROOT::Math::Polar2DVector(PuppiMET_pt, PuppiMET_phi))")
     )
 
     # Activity vector for HDM
@@ -138,14 +166,21 @@ def init_TnP(rdf, dataset):
             .Define("JetActivity_eta", "ROOT::VecOps::Take(Jet_eta, JetActivity_ids)")
             .Define("JetActivity_phi", "ROOT::VecOps::Take(Jet_phi, JetActivity_ids)")
             .Define("JetActivity_mass", "ROOT::VecOps::Take(Jet_mass, JetActivity_ids)")
-            .Define("JetActivity_fourVec_temp", "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(JetActivity_pt, JetActivity_eta, JetActivity_phi, JetActivity_mass)")
-            .Redefine("JetActivity_fourVec_temp", "ROOT::VecOps::Sum(JetActivity_fourVec_temp, ROOT::Math::PtEtaPhiMVector())")
+            .Define("JetActivity_fourVec_temp", 
+                "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(JetActivity_pt, \
+                        JetActivity_eta, JetActivity_phi, JetActivity_mass)")
+            .Redefine("JetActivity_fourVec_temp", "ROOT::VecOps::Sum(JetActivity_fourVec_temp, \
+                    ROOT::Math::PtEtaPhiMVector())")
             .Redefine("JetActivity_pt", "float(JetActivity_fourVec_temp.Pt())")
             .Redefine("JetActivity_eta", "float(JetActivity_fourVec_temp.Eta())")
             .Redefine("JetActivity_phi", "float(JetActivity_fourVec_temp.Phi())")
             .Redefine("JetActivity_mass", "float(JetActivity_fourVec_temp.M())")
-            .Define("JetActivity_polarVec_tag_temp", "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nTag, ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi))")
-            .Define("JetActivity_polarVec_probe_temp", "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nProbe, ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi))")
+            .Define("JetActivity_polarVec_tag_temp",
+                "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nTag, \
+                        ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi))")
+            .Define("JetActivity_polarVec_probe_temp", 
+                "ROOT::VecOps::RVec<ROOT::Math::Polar2DVector>(nProbe, \
+                        ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi))")
     )
     
     return rdf
@@ -154,15 +189,21 @@ def do_JEC(rdf):
     ROOT.gInterpreter.Declare('''
 #ifndef __JECDOT__
 #define __JECDOT__
-auto vec2D_dot = [](ROOT::Math::Polar2DVector v1, ROOT::Math::Polar2DVector v2) { return v1.Dot(v2); };
+auto vec2D_dot = [](ROOT::Math::Polar2DVector v1, ROOT::Math::Polar2DVector v2) \
+        { return v1.Dot(v2); };
 #endif
 ''')
-    rdf = (rdf.Define("DB_direct", "-1.0 * ROOT::VecOps::Map(Tag_polarVec_temp, Probe_polarVec_temp, vec2D_dot) / (Tag_pt * Tag_pt)")
+    rdf = (rdf.Define("DB_direct", "-1.0 * ROOT::VecOps::Map(Tag_polarVec_temp, \
+            Probe_polarVec_temp, vec2D_dot) / (Tag_pt * Tag_pt)")
            .Define("DB_ratio", "Probe_pt / Tag_pt")
-           .Define("MPF_tag", "1.0 + ROOT::VecOps::Map(PuppiMET_polarVec_tag_temp, Tag_polarVec_temp, vec2D_dot) / (Tag_pt * Tag_pt)")
-           .Define("MPF_probe", "1.0 + ROOT::VecOps::Map(PuppiMET_polarVec_probe_temp, Probe_polarVec_temp, vec2D_dot) / (Probe_pt * Probe_pt)")
-           .Define("HDM_tag", "MPF_tag - ROOT::VecOps::Map(Tag_polarVec_temp, JetActivity_polarVec_tag_temp, vec2D_dot) / (Tag_pt * Tag_pt)")
-           .Define("HDM_probe", "MPF_probe - ROOT::VecOps::Map(Probe_polarVec_temp, JetActivity_polarVec_tag_temp, vec2D_dot) / (Probe_pt * Probe_pt)")
+           .Define("MPF_tag", "1.0 + ROOT::VecOps::Map(PuppiMET_polarVec_tag_temp, \
+                   Tag_polarVec_temp, vec2D_dot) / (Tag_pt * Tag_pt)")
+           .Define("MPF_probe", "1.0 + ROOT::VecOps::Map(PuppiMET_polarVec_probe_temp, \
+                   Probe_polarVec_temp, vec2D_dot) / (Probe_pt * Probe_pt)")
+           .Define("HDM_tag", "MPF_tag - ROOT::VecOps::Map(Tag_polarVec_temp, \
+                   JetActivity_polarVec_tag_temp, vec2D_dot) / (Tag_pt * Tag_pt)")
+           .Define("HDM_probe", "MPF_probe - ROOT::VecOps::Map(Probe_polarVec_temp, \
+                   JetActivity_polarVec_tag_temp, vec2D_dot) / (Probe_pt * Probe_pt)")
            )
 
     return rdf
@@ -226,7 +267,8 @@ def run(args):
                     tmp_rdf = ROOT.RDataFrame(site_paths[site])
 
                     if len(all_columns) > 0:
-                        all_columns = [col for col in all_columns if col in tmp_rdf.GetColumnNames()]
+                        all_columns = [col for col in all_columns \
+                                        if col in tmp_rdf.GetColumnNames()]
                     else:
                         all_columns = tmp_rdf.GetColumnNames()
 
@@ -283,7 +325,8 @@ def run(args):
     print("Removing unnecessary columns")
     #all_columns = events_rdf.GetColumnNames()
     all_columns.extend(events_rdf.GetDefinedColumnNames())
-    all_columns = [str(col) for col in all_columns if not str(col).startswith("Jet_") and not str(col).endswith("_temp")]
+    all_columns = [str(col) for col in all_columns \
+                    if not str(col).startswith("Jet_") and not str(col).endswith("_temp")]
 
     # Write and hadd the output
     if not os.path.exists(args.out):
@@ -292,13 +335,15 @@ def run(args):
     snapshot_opts = ROOT.RDF.RSnapshotOptions()
     snapshot_opts.fCompressionLevel = 9
     print(f"Run range: ({run_range[0]}, {run_range[1]})");
-    output_path = os.path.join(args.out, f"J4PSkim_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
+    output_path = os.path.join(args.out, \
+                                f"J4PSkim_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
 
     print("Writing output")
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
 
-    subprocess.run(["hadd", "-f7", output_path+".root", output_path+"_events.root", output_path+"_runs.root"])
+    subprocess.run(["hadd", "-f7", output_path+".root", \ 
+                        output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
     os.remove(output_path+"_runs.root")
 
@@ -316,7 +361,9 @@ def run(args):
     cuts = []
     while it != end:
         ci = it.__deref__()
-        cuts.append({ci.GetName(): {"pass": ci.GetPass(), "all": ci.GetAll(), "eff": ci.GetEff(), "cumulativeEff": 100.0 * float(ci.GetPass()) / float(allEntries) if allEntries > 0 else 0.0}})
+        cuts.append({ci.GetName(): {"pass": ci.GetPass(), "all": ci.GetAll(), "eff": ci.GetEff(), \
+                "cumulativeEff": 100.0 * float(ci.GetPass()) float(allEntries) \
+                if allEntries > 0 else 0.0}})
 
         it.__preinc__()
 
