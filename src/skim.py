@@ -335,15 +335,15 @@ def run(args):
     snapshot_opts = ROOT.RDF.RSnapshotOptions()
     snapshot_opts.fCompressionLevel = 9
     print(f"Run range: ({run_range[0]}, {run_range[1]})");
-    output_path = os.path.join(args.out, \
-                                f"J4PSkim_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
+    output_path = os.path.join(args.out,
+            f"J4PSkim_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
 
     print("Writing output")
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
 
-    subprocess.run(["hadd", "-f7", output_path+".root", \ 
-                        output_path+"_events.root", output_path+"_runs.root"])
+    subprocess.run(["hadd", "-f7", output_path+".root",
+        output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
     os.remove(output_path+"_runs.root")
 
@@ -361,9 +361,9 @@ def run(args):
     cuts = []
     while it != end:
         ci = it.__deref__()
-        cuts.append({ci.GetName(): {"pass": ci.GetPass(), "all": ci.GetAll(), "eff": ci.GetEff(), \
-                "cumulativeEff": 100.0 * float(ci.GetPass()) float(allEntries) \
-                if allEntries > 0 else 0.0}})
+        cuts.append({ci.GetName(): {"pass": ci.GetPass(), "all": ci.GetAll(), "eff": ci.GetEff(),
+                "cumulativeEff": 100.0 * float(ci.GetPass()) / float(allEntries) \
+                        if allEntries > 0 else 0.0}})
 
         it.__preinc__()
 
