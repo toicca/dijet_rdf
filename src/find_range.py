@@ -27,4 +27,4 @@ def run(args):
     if args.for_brilcalc:
         print(f"--begin {min_run} --end {max_run}");
     else:
-        print(min_run, max_run)
+        print(f"{min_run},{max_run}")
