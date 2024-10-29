@@ -78,9 +78,9 @@ def init_TnP(rdf, dataset):
         photon_filter = "abs(Photon_eta)<1.3 && Photon_pt>15"
         rdf = (rdf.Filter("nJet > 0", "nJet > 0")
                 .Filter("nPhoton > 0", "nPhoton > 0")
-                .Define("Tag_pt", f"ROOT::VecOps::Take(Photon_pt[{photon_filter}], 1)")
-                .Define("Tag_eta", f"ROOT::VecOps::Take(Photon_eta[{photon_filter}], 1)")
-                .Define("Tag_phi", f"ROOT::VecOps::Take(Photon_phi[{photon_filter}], 1)")
+                .Define("Tag_pt", f"ROOT::VecOps::Take(Photon_pt[{photon_filter}], 1, (float)0.0)")
+                .Define("Tag_eta", f"ROOT::VecOps::Take(Photon_eta[{photon_filter}], 1, (float)0.0)")
+                .Define("Tag_phi", f"ROOT::VecOps::Take(Photon_phi[{photon_filter}], 1, (float)0.0)")
                 .Define("Tag_mass", "ROOT::VecOps::RVec<float>(1, 0.0)")
                 .Define("Tag_label", "ROOT::VecOps::RVec<int>{2}")
                 .Define("nTag", "Tag_pt.size()")
