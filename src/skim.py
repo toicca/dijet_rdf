@@ -57,18 +57,18 @@ def init_TnP(rdf, dataset):
                     "ROOT::Math::PtEtaPhiMVector(ZMuons_pt[0], ZMuons_eta[0], ZMuons_phi[0], \
                             ZMuons_mass[0]) + ROOT::Math::PtEtaPhiMVector(ZMuons_pt[1], \
                             ZMuons_eta[1], ZMuons_phi[1], ZMuons_mass[1])")
-                .Define("Tag_pt", "ROOT::VecOps::RVec<float>{Z_4vec.Pt()}")
-                .Define("Tag_eta", "ROOT::VecOps::RVec<float>{Z_4vec.Eta()}")
-                .Define("Tag_phi", "ROOT::VecOps::RVec<float>{Z_4vec.Phi()}")
-                .Define("Tag_mass", "ROOT::VecOps::RVec<float>{Z_4vec.M()}")
+                .Define("Tag_pt", "ROOT::VecOps::RVec<float>{static_cast<float>(Z_4vec.Pt())}")
+                .Define("Tag_eta", "ROOT::VecOps::RVec<float>{static_cast<float>(Z_4vec.Eta())}")
+                .Define("Tag_phi", "ROOT::VecOps::RVec<float>{static_cast<float>(Z_4vec.Phi())}")
+                .Define("Tag_mass", "ROOT::VecOps::RVec<float>{static_cast<float>(Z_4vec.M())}")
                 .Define("Tag_label", "ROOT::VecOps::RVec<int>{1}")
                 .Define("nTag", "Tag_pt.size()")
                 .Define("Probe_ids", "ROOT::VecOps::RVec<int>{0}")
                 .Define("JetActivity_ids",
                     "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
-                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7",
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi[0])) > 2.7",
                     "abs(DeltaPhi(Jet1, Z)) > 2.7")
-                .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt < 1.0 : true", "alpha < 1.0")
+                .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt[0] < 1.0 : true", "alpha < 1.0")
         )
 
         for column in jet_columns:
@@ -81,15 +81,15 @@ def init_TnP(rdf, dataset):
                 .Define("Tag_pt", f"ROOT::VecOps::Take(Photon_pt[{photon_filter}], 1)")
                 .Define("Tag_eta", f"ROOT::VecOps::Take(Photon_eta[{photon_filter}], 1)")
                 .Define("Tag_phi", f"ROOT::VecOps::Take(Photon_phi[{photon_filter}], 1)")
-                .Define("Tag_mass", f"ROOT::VecOps::Take(Photon_mass[{photon_filter}], 1)")
+                .Define("Tag_mass", "ROOT::VecOps::RVec<float>(1, 0.0)")
                 .Define("Tag_label", "ROOT::VecOps::RVec<int>{2}")
                 .Define("nTag", "Tag_pt.size()")
                 .Define("Probe_ids", "ROOT::VecOps::RVec<int>{0}")
                 .Define("JetActivity_ids", "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
                 .Filter("nTag == 1", "Exactly 1 photon")
-                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi)) > 2.7",
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Tag_phi[0])) > 2.7",
                         "abs(DeltaPhi(Jet1, Photon)) > 2.7")
-                .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt < 1.0 : true", "alpha < 1.0")
+                .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt[0] < 1.0 : true", "alpha < 1.0")
         )
 
         for column in jet_columns:
@@ -270,7 +270,7 @@ def run(args):
                         all_columns = [col for col in all_columns \
                                         if col in tmp_rdf.GetColumnNames()]
                     else:
-                        all_columns = tmp_rdf.GetColumnNames()
+                        all_columns = list(tmp_rdf.GetColumnNames())
 
                     if ret_events != 1:
                         print(f"Error performing events_chain.Add: {ret_events}")
@@ -323,8 +323,8 @@ def run(args):
 
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
-    #all_columns = events_rdf.GetColumnNames()
-    all_columns.extend(events_rdf.GetDefinedColumnNames())
+    all_columns = events_rdf.GetColumnNames()
+    #all_columns.extend(events_rdf.GetDefinedColumnNames())
     all_columns = [str(col) for col in all_columns \
                     if not str(col).startswith("Jet_") and not str(col).endswith("_temp")]
 
