@@ -224,6 +224,9 @@ def get_Flags(campaign=None):
     return flags
 
 def run(args):
+    # shut up ROOT
+    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
     if args.nThreads:
         ROOT.EnableImplicitMT(args.nThreads)
 
@@ -251,37 +254,8 @@ def run(args):
     all_columns = []
     for file in files:
         if not args.is_local:
-            # Find the available T1, T2 sites
-            site_paths = find_site(file)
-            if not site_paths:
-                print(f"Failed to find site for file '{file}'")
-                continue
-            for site in site_paths:
-                # Test if the file is accessible
-                try:
-                    f = ROOT.TFile.Open(site_paths[site], "READ")
-                    f.Close()
-                    ret_events = events_chain.Add(site_paths[site])
-                    ret_runs = runs_chain.Add(site_paths[site])
-
-                    tmp_rdf = ROOT.RDataFrame(site_paths[site])
-
-                    if len(all_columns) > 0:
-                        all_columns = [col for col in all_columns \
-                                        if col in tmp_rdf.GetColumnNames()]
-                    else:
-                        all_columns = list(tmp_rdf.GetColumnNames())
-
-                    if ret_events != 1:
-                        print(f"Error performing events_chain.Add: {ret_events}")
-                        continue
-                    if ret_runs != 1:
-                        print(f"Error performing events_chain.Add: {ret_runs}")
-                        continue
-
-                    break
-                except:
-                    continue
+            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
         else:
             events_chain.Add(file)
             runs_chain.Add(file)
@@ -301,7 +275,6 @@ def run(args):
                 )
 
     # Keep tight jetId jets
-
     for col in jet_columns:
         if not str(col).startswith("Jet_"):
             continue
