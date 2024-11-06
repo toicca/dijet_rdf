@@ -94,18 +94,21 @@ def get_values(histograms):
     return values
 
 def save_histograms(histograms, args):
-    run_range = args.run_range.split(",")
-    assert(len(run_range) == 2)
+    range_str = ""
+    if args.run_range:
+        run_range = args.run_range.split(",")
+        assert(len(run_range) == 2)
+        range_str = f"runs{run_range[0]}to{run_range[1]}_"
 
     if args.out:
         if not os.path.exists(args.out):
             os.makedirs(args.out)
         output_file = ROOT.TFile(
-                f"{args.out}/J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root", 
+                f"{args.out}/J4PHists_{range_str}{args.run_tag}.root",
                 "RECREATE")
     else:
         output_file = ROOT.TFile(
-                f"J4PHists_runs{run_range[0]}to{run_range[1]}_{args.run_tag}.root",
+                f"J4PHists_{range_str}{args.run_tag}.root",
                 "RECREATE")
 
     for hist in histograms:
