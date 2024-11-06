@@ -7,6 +7,9 @@ def find_run_range(rdf):
     return int(rdf.Min("run").GetValue()), int(rdf.Max("run").GetValue())
 
 def run(args):
+    # Shut up ROOT
+    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
     # Split the file list and trigger list if they are given as a string
     if args.filelist:
         files= args.filelist.split(",")

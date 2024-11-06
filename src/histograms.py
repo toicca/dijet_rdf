@@ -22,8 +22,7 @@ def create_histogram(rdf, hist_config, bins):
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"],
                             bins[hist_config["y_bins"]]["n"], bins[hist_config["y_bins"]]["bins"],
                             bins[hist_config["z_bins"]]["n"], bins[hist_config["z_bins"]]["bins"]),
-                            hist_config["x_val"], hist_config["y_val"],
-                            hist_config["z_val"], "weight")
+                            hist_config["x_val"], hist_config["y_val"], hist_config["z_val"], "weight")
     elif hist_config["type"] == "Profile1D":
         return rdf.Profile1D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"]),
@@ -32,15 +31,13 @@ def create_histogram(rdf, hist_config, bins):
         return rdf.Profile2D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"],
                             bins[hist_config["y_bins"]]["n"], bins[hist_config["y_bins"]]["bins"]),
-                            hist_config["x_val"], hist_config["y_val"],
-                            hist_config["z_val"], "weight")
+                            hist_config["x_val"], hist_config["y_val"], hist_config["z_val"], "weight")
     elif hist_config["type"] == "Profile3D":
         return rdf.Profile3D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"],
                             bins[hist_config["y_bins"]]["n"], bins[hist_config["y_bins"]]["bins"],
                             bins[hist_config["z_bins"]]["n"], bins[hist_config["z_bins"]]["bins"]),
-                            hist_config["x_val"], hist_config["y_val"],
-                            hist_config["z_val"], "weight")
+                            hist_config["x_val"], hist_config["y_val"], hist_config["z_val"], "weight")
     else:
         raise ValueError(f"Unknown histogram type: {hist_config['type']}")
 
@@ -62,21 +59,8 @@ def make_histograms(args):
     # Load the files
     for file in filelist:
         if not args.is_local:
-            # Find the available T1, T2 sites
-            site_paths = find_site(file)
-            if not site_paths:
-                print(f"Failed to find site for file '{file}'")
-                continue
-            for site in site_paths:
-                # Test if the file is accessible
-                try:
-                    f = ROOT.TFile.Open(site_paths[site], "READ")
-                    f.Close()
-                    events_chain.Add(site_paths[site])
-                    runs_chain.Add(site_paths[site])
-                    break
-                except:
-                    continue
+            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
         else:
             events_chain.Add(file)
             runs_chain.Add(file)
@@ -92,7 +76,6 @@ def make_histograms(args):
     hist_config = configparser.ConfigParser()
     hist_config.read(args.hist_config)
     hist_config = dict(hist_config)
-    
     bins = get_bins()
 
     histograms = {}
@@ -142,6 +125,9 @@ def run(args):
         'nThreads': 8
     }
     """
+
+    # shut up ROOT
+    ROOT.gErrorIgnoreLevel = ROOT.kWarning
     
     # If config file is set, override all arguments with ones set in there
     if args.config:
