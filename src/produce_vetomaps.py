@@ -11,26 +11,6 @@ hist_info = (("standard", "PFComposition", "PFComposition_EtaVsPhiVsProfileNEF_s
             ("dijet", "DB", "DB_dijet_EtaprobeVsPhiprobeVsAsymmetry"),
             )
 
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="VetoMap for dijet_rdf: https://github.com/toicca/dijet_rdf")
-
-    files = parser.add_mutually_exclusive_group(required=True)
-    files.add_argument("--filelist", type=str, help="Comma separated list of root files produced by dijet_rdf")
-    files.add_argument("--filepath", type=str, help="Path to a root file containing a list of output files produced by dijet_rdf")
-
-    triggers = parser.add_mutually_exclusive_group()
-    triggers.add_argument("--triggerlist", type=str, help="Comma separated list of triggers for which plots will be produced (default value 'all')")
-    triggers.add_argument("--triggerpath", type=str, help="Path to a file containing a list of triggers for which plots will be produced")
-
-    parser.add_argument("--out", type=str, default="", help="Output path")
-
-    parser.add_argument("--config", type=str, default="", help="Path to config file")
-
-    args = parser.parse_args()
-    
-    return args
-
 def produce_vetomap_old(input_file: str, trigger_list: List[str], output_path: str):
     """
     VetoMap producer for dijet_rdf.
@@ -338,22 +318,22 @@ def produce_vetomap(input_file: str, trigger_list: List[str], output_path: str):
         
 
 
-if __name__ == '__main__':
-    
-    args = parse_arguments()
-    
+def run(args):
     trigger_list: List[str] = []
     files: List[str] = []
     
-    if args.triggerpath:
+    if args.triggerlist:
+        trigger_list = args.triggerlist.split(",")
+    elif args.triggerpath:
         trigger_list = file_read_lines(args.triggerpath)
-    elif args.triggerlist:
-        trigger_list = [s.strip() for s in args.triggerlist.split(',')]
 
-    if args.filepath:
-        files = file_read_lines(args.filepath)
+    # Split the file list and trigger list if they are given as a string
+    if args.filelist:
+        files= args.filelist.split(",")
+    elif args.filepath:
+        files = file_read_lines(args.filepath, find_ROOT=True)
     else:
-        files = [s.strip() for s in args.filelist.split(',')]
+        raise ValueError("No file list provided")
 
     output_path = args.out
 
@@ -363,8 +343,3 @@ if __name__ == '__main__':
 
     for file in files:
         produce_vetomap(file, trigger_list, output_path)
-    
-        
-        
-
-    

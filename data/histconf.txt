@@ -1,0 +1,9 @@
+[GENERAL]
+filelist=out_skim/J4PSkim_runs379413to379415_20240920.root
+is_local=1
+progress_bar=1
+hist_config=data/histograms.ini
+run_range=379413,379415
+run_tag=20240920
+nThreads=8
+out=out_hist

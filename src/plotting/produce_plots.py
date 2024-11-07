@@ -13,23 +13,6 @@ def file_read_lines(file: str) -> List[str]:
     with open(file) as f:
         return [line.strip() for line in f.readlines()]
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="Plot producer for dijet_rdf: https://github.com/toicca/dijet_rdf")
-
-    files = parser.add_mutually_exclusive_group(required=True)
-    files.add_argument("--filelist", type=str, help="Comma separated list of root files produced by dijet_rdf")
-    files.add_argument("--filepath", type=str, help="Path to a text file containing a list of output files produced by dijet_rdf")
-
-    parser.add_argument("--out", required=True, type=str, help="Output path")
-
-    parser.add_argument("--config", type=str, default="", help="Path to config file")
-
-    parser.add_argument("--all", action="store_true", help="Produce all plots in given .root files")
-
-    args = parser.parse_args()
-    
-    return args
-
 def read_config_file(file: str) -> configparser.ConfigParser:
     config = configparser.ConfigParser()
     config.read(file)
@@ -255,15 +238,16 @@ def produce_plots_from_config(file, output_path, config, plots):
 
             CMS.SaveCanvas(canv, "{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger, plot_name))
 
-if __name__ == "__main__":
-    args = parse_arguments()
-    
+def run(args):
     files: List[str] = []
 
-    if args.filepath:
-        files = file_read_lines(args.filepath)
+    # Split the file list and trigger list if they are given as a string
+    if args.filelist:
+        files= args.filelist.split(",")
+    elif args.filepath:
+        files = file_read_lines(args.filepath, find_ROOT=True)
     else:
-        files = [s.strip() for s in args.filelist.split(',')]
+        raise ValueError("No file list provided")
 
     output_path = args.out
 
