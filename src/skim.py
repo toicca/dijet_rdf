@@ -305,14 +305,6 @@ def run(args):
     if args.golden_json:
         events_rdf = do_cut_golden_json(events_rdf, args.golden_json)
 
-    # Filter based on triggers and one jet
-    trg_filter = " || ".join(triggers)
-    flag_filter = " && ".join(get_Flags())
-    events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
-                .Filter(flag_filter, flag_filter)
-                .Filter("nJet > 0", "nJet > 0")
-                )
-
     # Keep tight jetId jets
     for col in jet_columns:
         if not str(col).startswith("Jet_"):
@@ -329,6 +321,15 @@ def run(args):
     events_rdf = init_TnP(events_rdf, args.dataset)
     print("Initializing JEC variables")
     events_rdf = do_JEC(events_rdf)
+
+    
+    # Filter based on triggers and one jet
+    trg_filter = " || ".join(triggers)
+    flag_filter = " && ".join(get_Flags())
+    events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
+                .Filter(flag_filter, flag_filter)
+                .Filter("nJet > 0", "nJet > 0")
+                )
 
     # Define a weight column
     events_rdf = events_rdf.Define("weight", "1.0")
