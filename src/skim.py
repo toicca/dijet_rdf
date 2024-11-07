@@ -16,6 +16,42 @@ jet_columns = [
     "Jet_rawFactor"
 ]
 
+def do_cut_golden_json(rdf, golden_json):
+    ROOT.gInterpreter.Declare(
+"""
+#include <iostream>
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <string>
+
+using json = nlohmann::json;
+
+json golden_json;
+
+void init_json(std::string jsonFile) {
+    std::cout << "Initializing JSON file" << std::endl;
+    std::ifstream f(jsonFile);
+    golden_json = json::parse(f);
+}
+
+bool isGoodLumi(int run, int lumi) {
+   for (auto& lumiRange : golden_json[std::to_string(run)]) {
+       if (lumi >= lumiRange[0] && lumi <= lumiRange[1]) {
+           return true;
+       }
+   }
+
+    return false;
+}
+"""
+    )
+    ROOT.init_json(golden_json)
+    print("Applying golden JSON cut")
+    print(f"JSON file: {golden_json}")
+    rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "Golden JSON"))
+    rdf.Report().Print()
+    return rdf
+
 def init_TnP(rdf, dataset):
     if dataset == "dijet":
         rdf = (rdf.Filter("nJet > 1", "nJet > 1")
@@ -265,6 +301,9 @@ def run(args):
 
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
+
+    if args.golden_json:
+        events_rdf = do_cut_golden_json(events_rdf, args.golden_json)
 
     # Filter based on triggers and one jet
     trg_filter = " || ".join(triggers)
