@@ -281,9 +281,6 @@ def run(args):
     elif args.triggerpath:
         triggers = file_read_lines(args.triggerpath)
 
-    run_range = args.run_range.split(",")
-    assert(len(run_range) == 2)
-
     # Load the files
     print("Loading files")
 
@@ -347,9 +344,17 @@ def run(args):
 
     snapshot_opts = ROOT.RDF.RSnapshotOptions()
     snapshot_opts.fCompressionLevel = 9
-    print(f"Run range: ({run_range[0]}, {run_range[1]})");
+
+    run_range_str = ""
+    if args.run_range:
+        run_range = args.run_range.split(",")
+        assert(len(run_range) == 2)
+
+        print(f"Run range: ({run_range[0]}, {run_range[1]})");
+        run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
+
     output_path = os.path.join(args.out,
-            f"J4PSkim_runs{run_range[0]}to{run_range[1]}_{args.run_tag}")
+            f"J4PSkim_runs{run_range_str}{args.run_tag}")
 
     print("Writing output")
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)

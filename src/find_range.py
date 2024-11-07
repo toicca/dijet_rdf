@@ -10,6 +10,9 @@ def run(args):
     # Shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
+    if args.nThreads:
+        ROOT.EnableImplicitMT(args.nThreads)
+
     # Split the file list and trigger list if they are given as a string
     if args.filelist:
         files= args.filelist.split(",")
@@ -26,6 +29,9 @@ def run(args):
             chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
 
     rdf = ROOT.RDataFrame(chain)
+    if args.progress_bar:
+        ROOT.RDF.Experimental.AddProgressBar(rdf)
+
     min_run, max_run = find_run_range(rdf)
     if args.for_brilcalc:
         print(f"--begin {min_run} --end {max_run}");
