@@ -74,6 +74,9 @@ def parse_arguments():
             to the start of file names')
     find_range_parser.add_argument("--for_brilcalc", action="store_true", help='Prints the range \
             in a form compatible with the brilcalc command line tool')
+    find_range_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    find_range_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
 
     # Produce ratio config
     ratio_parser = subparsers.add_parser("produce_ratio", help="Produce ratio comparisons \
