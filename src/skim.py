@@ -53,11 +53,15 @@ bool isGoodLumi(int run, int lumi) {
     return rdf
 
 def init_TnP(rdf, dataset):
+    # TODO:
+    # - Implement an index finding function for probe jets, to increase clarity
+    #   and to avoid cutting on the jet collection
     if dataset == "dijet":
-        b2b_filter = "abs(ROOT::VecOps::DeltaPhi(Jet_phi[Tag_id], Jet_phi)) > 2.7 && \
-                Jet_pt[Tag_id] / Jet_pt < 1.3 && Jet_pt[Tag_id] / Jet_pt > 0.7"
+        b2b_filter = "abs(ROOT::VecOps::DeltaPhi(Jet_phi[Tag_id], Jet_phi[1-Tag_id])) > 2.7 && \
+                Jet_pt[Tag_id] / Jet_pt[1-Tag_id] < 1.3 && Jet_pt[Tag_id] / Jet_pt[1-Tag_id] > 0.7"
         rdf = (rdf.Filter("abs(Jet_eta[0]) < 1.3 || abs(Jet_eta[1]) < 1.3", "One jet in barrel")
-                .Define("Tag_id", "abs(Jet_eta[0]) < 1.3 ? 0 : 1") # If leading in barrel use it as tag. Slight bias towards higher pT jets
+                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Jet_phi[1])) > 2.7", "Back-to-back jets")
+                .Define("Tag_id", "abs(Jet_eta[1]) < 1.3 ? 1 : 0") # If leading in barrel use it as tag. Bias towards higher pT jets
                 .Define("Tag_pt", "Jet_pt[Tag_id]")
                 .Define("Tag_eta", "Jet_eta[Tag_id]")
                 .Define("Tag_phi", "Jet_phi[Tag_id]")
@@ -103,11 +107,13 @@ def init_TnP(rdf, dataset):
             rdf = rdf.Define("Probe_"+column[4:], f"{column}[{jet_filter}][0]")
 
     elif dataset == "egamma":
-        photon_filter = "abs(Photon_eta)<1.3 && Photon_pt>15"
-        jet_filter = "abs(ROOT::VecOps::DeltaPhi(Jet_phi, Tag_phi)) > 2.7"
+        photon_filter = "abs(Photon_eta)<1.3 && Photon_pt>15 && Photon_cutBased==3 && Photon_hoe<0.02148 && Photon_r9>0.94 && Photon_r9<1.00"
+        jet_filter = "abs(ROOT::VecOps::DeltaPhi(Jet_phi, Tag_phi)) > 2.7 && Jet_pt > 15"
+        # Not correct currently
+        # Doesn't take into account changes in the jet collection
         rdf = (rdf.Filter("nJet > 0", "nJet > 0")
-                .Filter("nPhoton == 1", "nPhoton == 1")
                 .Filter(f"Photon_pt[{photon_filter}].size() > 0", "At least one photon")
+                .Filter(f"Photon_jetIdx[{photon_filter}][0] != 0", "Photon not matched to leading jet")
                 .Define("Tag_pt", f"Photon_pt[{photon_filter}][0]")
                 .Define("Tag_eta", f"Photon_eta[{photon_filter}][0]")
                 .Define("Tag_phi", f"Photon_phi[{photon_filter}][0]")
@@ -266,17 +272,7 @@ def run(args):
     if args.golden_json:
         events_rdf = do_cut_golden_json(events_rdf, args.golden_json)
 
-    # Keep tight jetId jets
-    for col in jet_columns:
-        if not str(col).startswith("Jet_"):
-            continue
-        if "Jet_jetId" in str(col):
-            continue
-        events_rdf = events_rdf.Redefine(f"{col}", f"{col}[Jet_jetId == 6]")
-
-    events_rdf = (events_rdf.Redefine("Jet_jetId", "Jet_jetId[Jet_jetId == 6]")
-                            .Redefine("nJet", "Jet_pt.size()")
-                            .Filter("nJet > 0", "nJet > 0"))
+    events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
     # Initialize the JEC variables
     print("Initializing TnP variables")
