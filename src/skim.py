@@ -311,7 +311,8 @@ def run(args):
         events_rdf = events_rdf.Redefine(f"{col}", f"{col}[Jet_jetId == 6]")
 
     events_rdf = (events_rdf.Redefine("Jet_jetId", "Jet_jetId[Jet_jetId == 6]")
-                            .Redefine("nJet", "Jet_pt.size()"))
+                            .Redefine("nJet", "Jet_pt.size()")
+                            .Filter("nJet > 0", "nJet > 0"))
 
     # Initialize the JEC variables
     print("Initializing TnP variables")
@@ -321,11 +322,13 @@ def run(args):
 
     
     # Filter based on triggers and one jet
-    trg_filter = " || ".join(triggers)
+    if len(triggers) == 0:
+        trg_filter = "1"
+    else:
+        trg_filter = " || ".join(triggers)
     flag_filter = " && ".join(get_Flags())
     events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
                 .Filter(flag_filter, flag_filter)
-                .Filter("nJet > 0", "nJet > 0")
                 )
 
     # Define a weight column
