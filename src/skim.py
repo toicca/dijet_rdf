@@ -208,8 +208,8 @@ def do_JEC(rdf):
             .Define("R_un_gen_tag_temp", "1.0")
             .Define("R_un_reco_probe_temp", "JetActivity_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
             .Define("R_un_gen_probe_temp", "1.0")
-            .Define("HDM_tag", "(-DB_direct - MPF_tag - 1.0 - R_un_reco_tag_temp - R_un_gen_tag_temp) / (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
-            .Define("HDM_probe", "(-DB_direct - MPF_probe - 1.0 - R_un_reco_probe_temp - R_un_gen_probe_temp) / (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
+            .Define("HDM_tag", "(DB_direct + MPF_tag - 1.0 + R_un_reco_tag_temp - R_un_gen_tag_temp) / (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
+            .Define("HDM_probe", "(DB_direct + MPF_probe - 1.0 + R_un_reco_probe_temp - R_un_gen_probe_temp) / (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
            )
 
     return rdf
@@ -315,9 +315,6 @@ def run(args):
     if not os.path.exists(args.out):
         os.makedirs(args.out)
 
-    snapshot_opts = ROOT.RDF.RSnapshotOptions()
-    snapshot_opts.fCompressionLevel = 9
-
     run_range_str = ""
     if args.run_range:
         run_range = args.run_range.split(",")
@@ -333,7 +330,7 @@ def run(args):
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
 
-    subprocess.run(["hadd", "-f7", output_path+".root",
+    subprocess.run(["hadd", "-f", output_path+".root",
         output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
     os.remove(output_path+"_runs.root")
