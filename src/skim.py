@@ -96,9 +96,6 @@ def init_TnP(rdf, dataset):
                 .Define("Tag_phi", "static_cast<float>(Z_4vec.Phi())")
                 .Define("Tag_mass", "static_cast<float>(Z_4vec.M())")
                 .Define("Tag_label", "1")
-                # .Define("JetActivity_ids",
-                    # "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
-                # .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt[0] < 1.0 : true", "alpha < 1.0")
         )
 
         rdf = rdf.Filter(f"Jet_pt[{jet_filter}].size() > 0", "At least one probe jet")
@@ -115,14 +112,12 @@ def init_TnP(rdf, dataset):
                 .Define("Tag_eta", f"Photon_eta[{photon_filter}][0]")
                 .Define("Tag_phi", f"Photon_phi[{photon_filter}][0]")
                 .Define("Tag_mass", "0.0")
-                .Define("Tag_label", "ROOT::VecOps::RVec<int>{2}")
-                # .Define("JetActivity_ids", "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), Probe_ids)")
-                # .Filter("nJet > 1 ? Jet_pt[1] / Tag_pt[0] < 1.0 : true", "alpha < 1.0")
+                .Define("Tag_label", "2")
         )
 
         rdf = rdf.Filter(f"Jet_pt[{jet_filter}].size() > 0", "At least one probe jet")
         for column in jet_columns:
-            rdf = rdf.Define("Probe_"+column[4:], f"ROOT::VecOps::Take({column}, 1)")
+            rdf = rdf.Define("Probe_"+column[4:], f"{column}[{jet_filter}][0]")
 
     elif dataset == "multijet":
         # Change Tag <-> Probe for multijet, since low pt jets better calibrated?
@@ -159,14 +154,13 @@ def init_TnP(rdf, dataset):
                     "float(ProbeMJ_fourVec_temp.Phi())")
                 .Redefine("Probe_mass",
                     "float(ProbeMJ_fourVec_temp.M())")
-                # .Define("JetActivity_ids", "ROOT::VecOps::Drop(RecoilJet_ids, Probe_ids)")
         )
 
         for column in jet_columns:
             if column in ["Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"]:
                 continue
             # For multijet change Probe columns to be zero, as probe is not a jet
-            rdf = rdf.Define("Probe_"+column[4:], f"ROOT::VecOps::RVec<float>(1, 0.0)")
+            rdf = rdf.Define("Probe_"+column[4:], f"0.0")
 
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
@@ -324,7 +318,7 @@ def run(args):
         run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
 
     output_path = os.path.join(args.out,
-            f"J4PSkim_runs{run_range_str}{args.run_tag}")
+            f"J4PSkim_{run_range_str}{args.run_tag}")
 
     print("Writing output")
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
