@@ -81,49 +81,116 @@ def init_TnP(rdf, dataset):
         )
 
     elif dataset == "zjet":
-        muon_filter = "abs(Muon_eta)<2.4 && Muon_pt>20 && Muon_pfRelIso04_all<0.15 && Muon_tightId"
-        jet_filter = "abs(ROOT::VecOps::DeltaPhi(Jet_phi, Tag_phi)) > 2.7"
-        rdf = (rdf.Filter("nJet > 0", "nJet > 0")
-                .Filter("nMuon > 1", "nMuon > 1")
-                .Filter("Muon_charge[0] + Muon_charge[1] == 0", "Opposite charge muons")
-                .Define("ZMuons_pt", f"Muon_pt[{muon_filter}]")
-                .Define("ZMuons_eta", f"Muon_eta[{muon_filter}]")
-                .Define("ZMuons_phi", f"Muon_phi[{muon_filter}]")
-                .Define("ZMuons_mass", f"Muon_mass[{muon_filter}]")
-                .Filter("ZMuons_pt.size() == 2", "Exactly 2 muons")
-                .Define("Z_4vec",
-                    "ROOT::Math::PtEtaPhiMVector(ZMuons_pt[0], ZMuons_eta[0], ZMuons_phi[0], \
-                            ZMuons_mass[0]) + ROOT::Math::PtEtaPhiMVector(ZMuons_pt[1], \
-                            ZMuons_eta[1], ZMuons_phi[1], ZMuons_mass[1])")
-                .Define("Tag_pt", "static_cast<float>(Z_4vec.Pt())")
-                .Define("Tag_eta", "static_cast<float>(Z_4vec.Eta())")
-                .Define("Tag_phi", "static_cast<float>(Z_4vec.Phi())")
-                .Define("Tag_mass", "static_cast<float>(Z_4vec.M())")
+        ROOT.gInterpreter.Declare("""
+        #ifndef ZJET_IDXS
+        #define ZJET_IDXS
+                                  
+        std::pair<int, int> findMuonIdxs(ROOT::RVec<float> Muon_eta, ROOT::RVec<float> Muon_pt,
+                            ROOT::RVec<float> Muon_pfRelIso03_all, ROOT::RVec<int> Muon_tightId,
+                            ROOT::RVec<float> Muon_charge) {
+            int idx1 = -1;
+            int idx2 = -1;
+            for (int i = 0; i < Muon_pt.size(); i++) {
+                if (abs(Muon_eta[i]) < 2.3 && Muon_pfRelIso03_all[i] < 0.15 &&
+                    Muon_tightId[i]) {
+                    // Leading muon pt>20, subleading pt>10
+                    if (idx1 == -1 && Muon_pt[i] > 20) {
+                        idx1 = i;
+                    } else if (idx2 == -1 && Muon_charge[i] != Muon_charge[idx1] &&
+                            Muon_pt[i] > 10) {
+                        idx2 = i;
+                        break;
+                    }
+                }
+            }
+                                  
+            return std::make_pair(idx1, idx2);
+        }
+
+        int findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
+                            ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
+                            float Z_eta, float Z_phi) {
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (abs(Jet_eta[i]) < 2.5 && Jet_pt[i] > 12 &&
+                    Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Z_phi)) > 2.7) {
+                    return i;
+                }
+            }
+                                  
+            return -1;
+        }
+                                  
+        #endif
+        """)
+        rdf = (rdf.Filter("nMuon > 1", "nMuon > 1")
+                .Define("Muon_idx_temp", "findMuonIdxs(Muon_eta, Muon_pt, Muon_pfRelIso03_all, Muon_tightId, Muon_charge)")
+                .Filter("Muon_idx_temp.first >= 0 && Muon_idx_temp.second >= 0", "Two muons found")
+                .Define("Z_4vec_temp",
+                    "ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.first], Muon_eta[Muon_idx_temp.first], \
+                            Muon_phi[Muon_idx_temp.first], Muon_mass[Muon_idx_temp.first]) + \
+                    ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.second], Muon_eta[Muon_idx_temp.second], \
+                            Muon_phi[Muon_idx_temp.second], Muon_mass[Muon_idx_temp.second])")
+                .Define("Tag_pt", "static_cast<float>(Z_4vec_temp.Pt())")
+                .Define("Tag_eta", "static_cast<float>(Z_4vec_temp.Eta())")
+                .Define("Tag_phi", "static_cast<float>(Z_4vec_temp.Phi())")
+                .Define("Tag_mass", "static_cast<float>(Z_4vec_temp.M())")
                 .Define("Tag_label", "1")
+                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, Tag_eta, Tag_phi)")
+                .Filter("Probe_idx_temp >= 0", "Jet found")
+                .Filter("Tag_pt > 12", "Z pT > 12")
+                .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
         )
 
-        rdf = rdf.Filter(f"Jet_pt[{jet_filter}].size() > 0", "At least one probe jet")
         for column in jet_columns:
-            rdf = rdf.Define("Probe_"+column[4:], f"{column}[{jet_filter}][0]")
+            rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
 
     elif dataset == "egamma":
-        photon_filter = "abs(Photon_eta)<1.3 && Photon_pt>15 && Photon_cutBased==3 && Photon_hoe<0.02148 && Photon_r9>0.94 && Photon_r9<1.00"
-        jet_filter = "abs(ROOT::VecOps::DeltaPhi(Jet_phi, Tag_phi)) > 2.7 && Jet_pt > 15"
-        # Not correct currently
-        # Doesn't take into account changes in the jet collection
-        rdf = (rdf.Filter("nJet > 0", "nJet > 0")
-                .Filter(f"Photon_pt[{photon_filter}].size() > 0", "At least one photon")
-                .Filter(f"Photon_jetIdx[{photon_filter}][0] != 0", "Photon not matched to leading jet")
-                .Define("Tag_pt", f"Photon_pt[{photon_filter}][0]")
-                .Define("Tag_eta", f"Photon_eta[{photon_filter}][0]")
-                .Define("Tag_phi", f"Photon_phi[{photon_filter}][0]")
+        ROOT.gInterpreter.Declare("""
+        #ifndef EGAMMA_IDXS
+        #define EGAMMA_IDXS
+        
+        int findPhotonIdx(ROOT::RVec<float> Photon_eta, ROOT::RVec<float> Photon_pt,
+                            ROOT::RVec<int> Photon_cutBased, ROOT::RVec<float> Photon_hoe,
+                            ROOT::RVec<float> Photon_r9) {
+            for (int i = 0; i < Photon_pt.size(); i++) {
+                if (abs(Photon_eta[i]) < 1.3 && Photon_pt[i] > 15 && Photon_cutBased[i] == 3 &&
+                    Photon_hoe[i] < 0.02148 && Photon_r9[i] > 0.94 && Photon_r9[i] < 1.00) {
+                    return i;
+                }
+            }
+                                  
+            return -1;
+        }
+                                  
+        int findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
+                            ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
+                            int Photon_jetIdx, float Photon_phi) {
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (abs(Jet_eta[i]) < 1.3 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4
+                    && i != Photon_jetIdx && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
+                    return i;
+                }
+            }
+                                  
+            return -1;
+        }
+                                  
+        #endif
+        """)
+
+        rdf = (rdf.Define("Tag_idx_temp", "findPhotonIdx(Photon_eta, Photon_pt, Photon_cutBased, Photon_hoe, Photon_r9)")
+                .Filter("Tag_idx_temp >= 0", "Photon found")
+                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, Photon_jetIdx[Tag_idx_temp], Photon_phi[Tag_idx_temp])")
+                .Filter("Probe_idx_temp >= 0", "Jet found")
+                .Define("Tag_pt", f"Photon_pt[Tag_idx_temp]")
+                .Define("Tag_eta", f"Photon_eta[Tag_idx_temp]")
+                .Define("Tag_phi", f"Photon_phi[Tag_idx_temp]")
                 .Define("Tag_mass", "0.0")
                 .Define("Tag_label", "2")
         )
 
-        rdf = rdf.Filter(f"Jet_pt[{jet_filter}].size() > 0", "At least one probe jet")
         for column in jet_columns:
-            rdf = rdf.Define("Probe_"+column[4:], f"{column}[{jet_filter}][0]")
+            rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
 
     elif dataset == "multijet":
         # Change Tag <-> Probe for multijet, since low pt jets better calibrated?
