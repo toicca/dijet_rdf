@@ -57,28 +57,66 @@ def init_TnP(rdf, dataset):
     # - Implement an index finding function for probe jets, to increase clarity
     #   and to avoid cutting on the jet collection
     if dataset == "dijet":
-        b2b_filter = "abs(ROOT::VecOps::DeltaPhi(Jet_phi[Tag_id], Jet_phi[1-Tag_id])) > 2.7 && \
-                Jet_pt[Tag_id] / Jet_pt[1-Tag_id] < 1.3 && Jet_pt[Tag_id] / Jet_pt[1-Tag_id] > 0.7"
-        rdf = (rdf.Filter("abs(Jet_eta[0]) < 1.3 || abs(Jet_eta[1]) < 1.3", "One jet in barrel")
-                .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[0], Jet_phi[1])) > 2.7", "Back-to-back jets")
-                .Define("Tag_id", "abs(Jet_eta[1]) < 1.3 ? 1 : 0") # If leading in barrel use it as tag. Bias towards higher pT jets
-                .Define("Tag_pt", "Jet_pt[Tag_id]")
-                .Define("Tag_eta", "Jet_eta[Tag_id]")
-                .Define("Tag_phi", "Jet_phi[Tag_id]")
-                .Define("Tag_mass", "Jet_mass[Tag_id]")
+        ROOT.gInterpreter.Declare("""
+        #ifndef DIJET_IDXS
+        #define DIJET_IDXS
+                                  
+        std::pair<int, int> findTagProbeIdxs(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
+                            ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId) {
+            int idx1 = -1;
+            int idx2 = -1;
+                                  
+            // Find the tag jet as the leading barrel jet
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (abs(Jet_eta[i]) < 1.3 && Jet_pt[i] > 15 && Jet_jetId[i] >= 4) {
+                    idx1 = i;
+                    break;
+                }
+            }
+
+            // Find the probe jet as:
+            // leading jet back-to-back with the tag jet
+            // and with pT ratio between 0.7 and 1.3
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (i == idx1 || Jet_pt[i] < 15) {
+                    continue;
+                }
+                if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[idx1])) > 2.7 &&
+                    Jet_pt[i] / Jet_pt[idx1] < 1.1 && Jet_pt[i] / Jet_pt[idx1] > 0.9) {
+                    idx2 = i;
+                    break;
+                }
+            }
+
+            // If probe also in barrel, randomize the indices
+            if (idx2 != -1 && abs(Jet_eta[idx2]) < 1.3 && idx1 != -1) {
+                bool swap = (int(Jet_phi[idx1] * 100) % 2) == 0; // Jets are ~uniform in phi, use this to generate a random number
+                if (swap) {
+                    std::swap(idx1, idx2);
+                }
+            }
+
+            return std::make_pair(idx1, idx2);
+        }
+                                  
+        #endif
+        """)
+
+        rdf = (rdf.Define("TnP_idx_temp", "findTagProbeIdxs(Jet_eta, Jet_pt, Jet_phi, Jet_jetId)")
+                .Filter("TnP_idx_temp.first >= 0 && TnP_idx_temp.second >= 0", "Tag and probe found")
+                .Define("Tag_idx_temp", "TnP_idx_temp.first")
+                .Define("Probe_idx_temp", "TnP_idx_temp.second")
+                .Define("Tag_pt", "Jet_pt[Tag_idx_temp]")
+                .Define("Tag_eta", "Jet_eta[Tag_idx_temp]")
+                .Define("Tag_phi", "Jet_phi[Tag_idx_temp]")
+                .Define("Tag_mass", "Jet_mass[Tag_idx_temp]")
                 .Define("Tag_label", "0")
-                .Define("JetT_ids_temp", "ROOT::VecOps::Enumerate(Jet_pt)")
-                .Define("TnP_ids_temp", "ROOT::VecOps::RVec<int>{0,1}")
-                .Define("JetActivity_ids", "ROOT::VecOps::Drop(JetT_ids_temp, TnP_ids_temp)")
         )
 
         # Create a probe jet collection
         for column in jet_columns:
-            rdf = rdf.Define("Probe_"+column[4:], f"{column}[1-Tag_id]")
+            rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
 
-        rdf = (rdf.Filter("nJet > 2 ? Jet_pt[2] / ((Jet_pt[0] + Jet_pt[1]) * 0.5) < 1.0 : true", "alpha < 1.0")
-                .Filter("(Jet_pt[0]/Jet_pt[1] < 1.3 && Jet_pt[0]/Jet_pt[1] > 0.7)", "1.3 > pT1/pT2 > 0.7")
-        )
 
     elif dataset == "zjet":
         ROOT.gInterpreter.Declare("""
