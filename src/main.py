@@ -23,7 +23,8 @@ def parse_arguments():
     hist_files = hist_parser.add_mutually_exclusive_group(required=True)
     hist_files.add_argument('-c', '--config', type=str, help='Path to the config file. If set, \
             overrides all other options.')
-    hist_files.add_argument('-fp', '--filepath', type=str, help='Path to the file list.')
+    hist_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
     hist_files.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas.')
     hist_parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not \
             set will append root://cms-xrd-global.cern.ch/ \
@@ -67,8 +68,8 @@ def parse_arguments():
     find_range_files = find_range_parser.add_mutually_exclusive_group(required=True)
     find_range_files.add_argument("--filelist", type=str, help="Comma separated list of \
             input files")
-    find_range_files.add_argument("--filepath", type=str, help="Path to a root file containing \
-            a list of input files")
+    find_range_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
     find_range_parser.add_argument("-loc", "--is_local", action="store_true", help='Run locally. \
             If not set will append root://cms-xrd-global.cern.ch/ \
             to the start of file names')
@@ -100,8 +101,8 @@ def parse_arguments():
     responses_files = responses_parser.add_mutually_exclusive_group(required=True)
     responses_files.add_argument("--filelist", type=str, help="Comma separated list of root files \
             produced by dijet_rdf")
-    responses_files.add_argument("--filepath", type=str, help="Path to a root file containing \
-            a list of output files produced by dijet_rdf")
+    responses_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
     responses_triggers = responses_parser.add_mutually_exclusive_group()
     responses_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
             triggers for which plots will be produced \
@@ -117,8 +118,8 @@ def parse_arguments():
     time_evolution_files = time_evolution_parser.add_mutually_exclusive_group(required=True)
     time_evolution_files.add_argument("--filelist", type=str, help="Comma separated list of \
             root files produced by dijet_rdf")
-    time_evolution_files.add_argument("--filepath", type=str, help="Path to a root file \
-            containing a list of output files produced by dijet_rdf")
+    time_evolution_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
     time_evolution_triggers = time_evolution_parser.add_mutually_exclusive_group()
     time_evolution_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
             triggers for which plots will be produced \
@@ -136,8 +137,8 @@ def parse_arguments():
     vetomaps_files = vetomaps_parser.add_mutually_exclusive_group(required=True)
     vetomaps_files.add_argument("--filelist", type=str, help="Comma separated list of root files \
             produced by dijet_rdf")
-    vetomaps_files.add_argument("--filepath", type=str, help="Path to a root file containing \
-            a list of output files produced by dijet_rdf")
+    vetomaps_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
     vetomaps_triggers = vetomaps_parser.add_mutually_exclusive_group()
     vetomaps_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
             triggers for which plots will be produced \
@@ -153,8 +154,8 @@ def parse_arguments():
     plots_files = plots_parser.add_mutually_exclusive_group(required=True)
     plots_files.add_argument("--filelist", type=str, help="Comma separated list of root files \
             produced by dijet_rdf")
-    plots_files.add_argument("--filepath", type=str, help="Path to a text file containing a list \
-            of output files produced by dijet_rdf")
+    plots_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
     plots_parser.add_argument("--out", required=True, type=str, help="Output path")
     plots_parser.add_argument("--config", type=str, default="", help="Path to config file")
     plots_parser.add_argument("--all", action="store_true",
@@ -165,8 +166,8 @@ def parse_arguments():
             given list of input files")
     skim_files = skim_parser.add_mutually_exclusive_group(required=True)
     skim_files.add_argument("--filelist", type=str, help="Comma separated list of root files")
-    skim_files.add_argument("--filepath", type=str, help="Path to a text file containing \
-            a list of input files")
+    skim_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
     skim_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
     skim_parser.add_argument("--is_local", action="store_true", help='Run locally. If not set will \
             append root://cms-xrd-global.cern.ch/ to the start of file names')

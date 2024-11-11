@@ -1,7 +1,7 @@
 import ROOT
 import argparse
 
-from RDFHelpers import file_read_lines
+from processing_utils import file_read_lines
 
 def find_run_range(rdf):
     return int(rdf.Min("run").GetValue()), int(rdf.Max("run").GetValue())
@@ -16,8 +16,10 @@ def run(args):
     # Split the file list and trigger list if they are given as a string
     if args.filelist:
         files= args.filelist.split(",")
-    elif args.filepath:
-        files = file_read_lines(args.filepath, find_ROOT=True)
+    elif args.filepaths:
+        paths = args.filepaths.split(",")
+        for path in paths:
+            files.extend(file_read_lines(path, find_ROOT=True))
     else:
         raise ValueError("No file list provided")
 

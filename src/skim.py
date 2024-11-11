@@ -6,8 +6,7 @@ import pathlib
 import ctypes
 import numpy as np
 
-from RDFHelpers import file_read_lines
-from processing_utils import find_site
+from processing_utils import file_read_lines, find_site
 
 jet_columns = [
     "Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass", "Jet_jetId",
@@ -345,8 +344,10 @@ def run(args):
     runs_chain = ROOT.TChain("Runs")
 
     files: List[str] = []
-    if args.filepath:
-        files = file_read_lines(args.filepath)
+    if args.filepaths:
+        paths = args.filepaths.split(",")
+        for path in paths:
+            files.extend(file_read_lines(path))
     else:
         files = [s.strip() for s in args.filelist.split(',')]
     
