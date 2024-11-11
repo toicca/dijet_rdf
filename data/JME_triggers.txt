@@ -1,36 +1,10 @@
-HLT_ZeroBias
-HLT_PFJet40
-HLT_PFJet60
-HLT_PFJet80
-HLT_PFJet140
-HLT_PFJet200
-HLT_PFJet260
-HLT_PFJet320
-HLT_PFJet400
-HLT_PFJet450
-HLT_PFJet500
-HLT_PFJetFwd40
-HLT_PFJetFwd60
-HLT_PFJetFwd80
-HLT_PFJetFwd140
-HLT_PFJetFwd200
-HLT_PFJetFwd260
-HLT_PFJetFwd320
-HLT_PFJetFwd400
-HLT_PFJetFwd450
-HLT_PFJetFwd500
-HLT_DiPFJetAve40
-HLT_DiPFJetAve60
-HLT_DiPFJetAve80
-HLT_DiPFJetAve140
-HLT_DiPFJetAve200
-HLT_DiPFJetAve260
-HLT_DiPFJetAve320
-HLT_DiPFJetAve400
-HLT_DiPFJetAve500
-HLT_DiPFJetAve60_HFJEC
-HLT_DiPFJetAve80_HFJEC
-HLT_DiPFJetAve100_HFJEC
-HLT_DiPFJetAve160_HFJEC
-HLT_DiPFJetAve220_HFJEC
-HLT_DiPFJetAve300_HFJEC
+HLT_ZeroBias && (Tag_pt < 50) || (Probe_pt < 50)
+HLT_PFJet40 && (Tag_pt >= 50 && Tag_pt < 70) || (Probe_pt >= 50 && Probe_pt < 70)
+HLT_PFJet60 && (Tag_pt >= 70 && Tag_pt < 90) || (Probe_pt >= 70 && Probe_pt < 90)
+HLT_PFJet80 && (Tag_pt >= 90 && Tag_pt < 150) || (Probe_pt >= 90 && Probe_pt < 150)
+HLT_PFJet140 && (Tag_pt >= 150 && Tag_pt < 280) || (Probe_pt >= 150 && Probe_pt < 280)
+HLT_PFJet260 && (Tag_pt >= 280 && Tag_pt < 340) || (Probe_pt >= 280 && Probe_pt < 340)
+HLT_PFJet320 && (Tag_pt >= 340 && Tag_pt < 420) || (Probe_pt >= 340 && Probe_pt < 420)
+HLT_PFJet400 && (Tag_pt >= 420 && Tag_pt < 470) || (Probe_pt >= 420 && Probe_pt < 470)
+HLT_PFJet450 && (Tag_pt >= 470 && Tag_pt < 550) || (Probe_pt >= 470 && Probe_pt < 550)
+HLT_PFJet500 && (Tag_pt >= 550) || (Probe_pt >= 550)

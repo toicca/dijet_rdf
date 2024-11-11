@@ -178,7 +178,8 @@ def parse_arguments():
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
     skim_parser.add_argument("--run_tag", type=str, help="Run tag")
-    skim_parser.add_argument("--dataset", type=str, help="Dataset type: dijet, zjet, egamma or multijet")
+    skim_parser.add_argument("--dataset", type=str, required=True, choices=["dijet", "zjet", "egamma", "multijet"],
+            help="Dataset type: dijet, zjet, egamma or multijet")
     skim_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     skim_parser.add_argument("--golden_json", type=str, help="Golden JSON for filtering")
