@@ -199,7 +199,7 @@ def run(args):
     if args.filelist:
         files= args.filelist.split(",")
     elif args.filepaths:
-        paths = args.filepaths.split(",")
+        paths = [p.strip() for p in args.filepaths.split(",")]
         for path in paths:
             files.extend(file_read_lines(path, find_ROOT=True))
     else:
