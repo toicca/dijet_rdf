@@ -76,7 +76,7 @@ def init_TnP(rdf, dataset):
 
             // Find the probe jet as:
             // leading jet back-to-back with the tag jet
-            // and with pT ratio between 0.7 and 1.3
+            // and with pT ratio between 0.9 and 1.1 <- bias in DB measurement
             for (int i = 0; i < Jet_pt.size(); i++) {
                 if (i == idx1 || Jet_pt[i] < 15) {
                     continue;
@@ -235,10 +235,10 @@ def init_TnP(rdf, dataset):
         recoil_filter = "abs(RecoilJet_eta)<2.5 && RecoilJet_pt>30"
         rdf = (rdf.Filter("nJet > 2", "nJet > 2")
                 .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5", "Leading jet pT > 30 and |eta| < 2.5")
-                .Define("Tag_pt", "Jet_pt[0]")
-                .Define("Tag_eta", "Jet_eta[0]")
-                .Define("Tag_phi", "Jet_phi[0]")
-                .Define("Tag_mass", "Jet_mass[0]")
+                .Define("Probe_pt", "Jet_pt[0]")
+                .Define("Probe_eta", "Jet_eta[0]")
+                .Define("Probe_phi", "Jet_phi[0]")
+                .Define("Probe_mass", "Jet_mass[0]")
                 .Define("Tag_label", "3")
                 .Define("RecoilJet_ids",
                     "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), \
@@ -247,24 +247,24 @@ def init_TnP(rdf, dataset):
                 .Define("RecoilJet_eta", f"ROOT::VecOps::Take(Jet_eta, RecoilJet_ids)")
                 .Define("RecoilJet_phi", f"ROOT::VecOps::Take(Jet_phi, RecoilJet_ids)")
                 .Define("RecoilJet_mass", f"ROOT::VecOps::Take(Jet_mass, RecoilJet_ids)")
-                .Define("Probe_pt", f"RecoilJet_pt[{recoil_filter}]")
-                .Define("Probe_eta", f"RecoilJet_eta[{recoil_filter}]")
-                .Define("Probe_phi", f"RecoilJet_phi[{recoil_filter}]")
-                .Define("Probe_mass", f"RecoilJet_mass[{recoil_filter}]")
-                .Define("Probe_ids", f"RecoilJet_ids[{recoil_filter}]")
-                .Define("ProbeMJ_fourVec_temp",
-                    "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Probe_pt, \
-                            Probe_eta, Probe_phi, Probe_mass)")
-                .Redefine("ProbeMJ_fourVec_temp",
-                    "ROOT::VecOps::Sum(ProbeMJ_fourVec_temp, ROOT::Math::PtEtaPhiMVector())")
-                .Redefine("Probe_pt",
-                    "float(ProbeMJ_fourVec_temp.Pt())")
-                .Redefine("Probe_eta",
-                    "float(ProbeMJ_fourVec_temp.Eta())")
-                .Redefine("Probe_phi",
-                    "float(ProbeMJ_fourVec_temp.Phi())")
-                .Redefine("Probe_mass",
-                    "float(ProbeMJ_fourVec_temp.M())")
+                .Define("Tag_pt", f"RecoilJet_pt[{recoil_filter}]")
+                .Define("Tag_eta", f"RecoilJet_eta[{recoil_filter}]")
+                .Define("Tag_phi", f"RecoilJet_phi[{recoil_filter}]")
+                .Define("Tag_mass", f"RecoilJet_mass[{recoil_filter}]")
+                .Define("Tag_ids", f"RecoilJet_ids[{recoil_filter}]")
+                .Define("TagMJ_fourVec_temp",
+                    "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Tag_pt, \
+                            Tag_eta, Tag_phi, Tag_mass)")
+                .Redefine("TagMJ_fourVec_temp",
+                    "ROOT::VecOps::Sum(TagMJ_fourVec_temp, ROOT::Math::PtEtaPhiMVector())")
+                .Redefine("Tag_pt",
+                    "float(TagMJ_fourVec_temp.Pt())")
+                .Redefine("Tag_eta",
+                    "float(TagMJ_fourVec_temp.Eta())")
+                .Redefine("Tag_phi",
+                    "float(TagMJ_fourVec_temp.Phi())")
+                .Redefine("Tag_mass",
+                    "float(TagMJ_fourVec_temp.M())")
         )
 
         for column in jet_columns:
