@@ -1,6 +1,8 @@
+import configparser
+import json
 import numpy as np
 import subprocess
-import json
+from typing import Dict, List
 
 def find_site(file):
     try:
@@ -105,3 +107,31 @@ def get_bins(fill_range : tuple = (376370, 380100), isMC : bool = False) -> dict
     bins["lumi"]["n"] = len(bins["lumi"]["bins"]) - 1
     
     return bins
+
+def file_read_lines(file: str, find_ROOT: bool = False) -> List[str]:
+    if find_ROOT:
+        with open(file) as f:
+            return [line.strip() for line in f.readlines() if line.strip().endswith(".root")]
+    else:
+        with open(file) as f:
+            return [line.strip() for line in f.readlines()]
+
+def read_config_file(config_file: str) -> configparser.ConfigParser:
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(config_file)
+    return config
+
+def read_trigger_config(config_file: str) -> Dict:
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(config_file)
+
+    triggers = {}
+    for section in config.sections():
+        if "filter" not in config[section]:
+            triggers[section] = section
+        else:
+            triggers[section] = "(" + config[section]["filter"] + " && " + section + ")"
+
+    return triggers

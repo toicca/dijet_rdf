@@ -1,5 +1,5 @@
 import ROOT
-from RDFHelpers import file_read_lines, read_config_file, get_bins
+from processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
@@ -96,8 +96,10 @@ def run(args):
     # Split the file list and trigger list if they are given as a string
     if args.filelist:
         files= args.filelist.split(",")
-    elif args.filepath:
-        files = file_read_lines(args.filepath, find_ROOT=True)
+    elif args.filepaths:
+        paths = args.filepaths.split(",")
+        for path in paths:
+            files.extend(file_read_lines(path, find_ROOT=True))
     else:
         raise ValueError("No file list provided")
 

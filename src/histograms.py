@@ -4,8 +4,7 @@ import os
 import subprocess
 import json
 # import tomllib
-from processing_utils import find_site, get_bins
-from RDFHelpers import read_config_file
+from processing_utils import find_site, get_bins, read_config_file
 
 def create_histogram(rdf, hist_config, bins):
     if hist_config["type"] == "Histo1D":
@@ -51,8 +50,10 @@ def make_histograms(args):
     # Split the file list and trigger list if they are given as a string
     if args.filelist:
         filelist = args.filelist.split(",")
-    elif args.filepath:
-        filelist = file_read_lines(args.filepath, find_ROOT=True)
+    elif args.filepaths:
+        paths = args.filepaths.split(",")
+        for path in paths:
+            files.extend(file_read_lines(path, find_ROOT=True))
     else:
         raise ValueError("No file list provided")
 
