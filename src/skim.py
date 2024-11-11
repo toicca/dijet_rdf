@@ -345,7 +345,7 @@ def run(args):
 
     files: List[str] = []
     if args.filepaths:
-        paths = args.filepaths.split(",")
+        paths = [p.strip() for p in args.filepaths.split(",")]
         for path in paths:
             files.extend(file_read_lines(path))
     else:
