@@ -360,7 +360,6 @@ def run(args):
     # Load the files
     print("Loading files")
 
-    all_columns = []
     for file in files:
         if not args.is_local:
             events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
@@ -405,7 +404,8 @@ def run(args):
     all_columns = events_rdf.GetColumnNames()
     #all_columns.extend(events_rdf.GetDefinedColumnNames())
     all_columns = [str(col) for col in all_columns \
-                    if not str(col).startswith("Jet_") and not str(col).endswith("_temp")]
+                    if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
+                    and not str(col).startswith("L1_")]
 
     # Write and hadd the output
     if not os.path.exists(args.out):
@@ -426,7 +426,7 @@ def run(args):
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
 
-    subprocess.run(["hadd", "-f", output_path+".root",
+    subprocess.run(["hadd", "-f", "-k", output_path+".root",
         output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
     os.remove(output_path+"_runs.root")
