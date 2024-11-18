@@ -406,7 +406,8 @@ def run(args):
     #all_columns.extend(events_rdf.GetDefinedColumnNames())
     all_columns = [str(col) for col in all_columns \
                     if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
-                    and not str(col).startswith("L1_") and not "test" in str(col).lower()]
+                    and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
+                    and not "test" in str(col).lower()]
 
     # Write and hadd the output
     if not os.path.exists(args.out):
