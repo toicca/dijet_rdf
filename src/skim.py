@@ -5,6 +5,7 @@ import argparse
 import pathlib
 import ctypes
 import numpy as np
+import time
 
 from processing_utils import file_read_lines, find_site
 
@@ -426,10 +427,12 @@ def run(args):
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
 
+    start = time.time()
     subprocess.run(["hadd", "-f", "-k", output_path+".root",
         output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
     os.remove(output_path+"_runs.root")
+    print(f"hadd finished in {time.time()-start} s")
 
     print(output_path+".root")
 
@@ -482,3 +485,4 @@ def run(args):
     cum_eff_hist.Write()
     f.Close()
 
+    print(f"Output writing finished in {time.time()-start} s")
