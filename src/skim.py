@@ -363,8 +363,8 @@ def run(args):
 
     for file in files:
         if not args.is_local:
-            events_chain.Add(f"root://xrootd-cms.infn.it/{file}")
-            runs_chain.Add(f"root://xrootd-cms.infn.it/{file}")
+            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
         else:
             events_chain.Add(file)
             runs_chain.Add(file)
