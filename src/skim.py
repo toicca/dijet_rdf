@@ -404,10 +404,14 @@ def run(args):
     print("Removing unnecessary columns")
     all_columns = events_rdf.GetColumnNames()
     #all_columns.extend(events_rdf.GetDefinedColumnNames())
+
+    # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
+    # obtained from failed HTCondor jobs operating on EGamma(0|1) datasets. Some of the files
+    # in these datasets seem to be missing said branches.
     all_columns = [str(col) for col in all_columns \
                     if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
                     and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
-                    and not "test" in str(col).lower()]
+                    and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
 
     # Write and hadd the output
     if not os.path.exists(args.out):
