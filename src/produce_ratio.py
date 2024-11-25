@@ -4,76 +4,112 @@ from typing import List
 import argparse, configparser
 import numpy as np
 
+from find_range import find_run_range
+
 hist_info = [
-        "multijet/MPF/MPF_multijet_PtRecoilVsResponse",
-        "multijet/DB/DB_multijet_PtRecoilVsResponse"
+        ("DB_direct_ratio", "Tag_pt", "DB_direct"),
+        ("DB_ratio_ratio", "Tag_pt", "DB_ratio"),
+        ("MPF_tag_ratio", "Tag_pt", "MPF_tag"),
+        ("MPF_probe_ratio", "Probe_pt", "MPF_probe"),
+        ("HDM_tag_ratio", "Tag_pt", "HDM_tag"),
+        ("HDM_probe_ratio", "Probe_pt", "HDM_probe")
         ]
 
-def produce_ratio(input_file_numerator: str, input_file_denominator: str, trigger_list: List[str], output_path: str):
-    file_numerator = ROOT.TFile(input_file_numerator)
-    file_denominator = ROOT.TFile(input_file_denominator)
-    
-    if len(trigger_list) == 0:
-        print("No triggers provided. Using all triggers shared by the numerator and denominator files.")
-        trigger_keys_numerator = {tkey.GetName() for tkey in file_numerator.GetListOfKeys()}
-        trigger_keys_denominator = {tkey.GetName() for tkey in file_denominator.GetListOfKeys()}
-        trigger_list = trigger_keys_numerator.intersection(trigger_keys_denominator)
+weight_info = {
+    "xsec" : {
+        # dijet and multijet
+        "QCD-4Jets_HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 892.4,
+        "QCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 25240000.0,
+        "QCD-4Jets_HT-1200to1500_TuneCP5_13p6TeV_madgraphMLM-pythia8": 385.4,
+        "QCD-4Jets_HT-1500to2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 126.5,
+        "QCD-4Jets_HT-2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 26.53,
+        "QCD-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1958000.0,
+        "QCD-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 96730.0,
+        "QCD-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 312200000.0,
+        "QCD-4Jets_HT-600to800_TuneCP5_13p6TeV_madgraphMLM-pythia8": 13590.0,
+        "QCD-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 58840000.0,
+        "QCD-4Jets_HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 3046.0,
+        # zjet
+        "DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8": 6695.0,
+        # egamma
+        "GJ-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 15240.0,
+        "GJ-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 8111.0,
+        "GJ-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 7327.0,
+        "GJ-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1541.0,
+        "GJ-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 167.6,
+        "GJ-4Jets_HT-600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 54.39
 
+    },
+# TODO
+#    "nGenEvents" : {
+#        # dijet and multijet
+#        "QCD-4Jets_HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 2895970,
+#        "QCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 5629540,
+#        "QCD-4Jets_HT-1200to1500_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19537600,
+#        "QCD-4Jets_HT-1500to2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 17527100,
+#        "QCD-4Jets_HT-2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 9212540,
+#        "QCD-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": 18647200,
+#        "QCD-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19101200,
+#        "QCD-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19282700,
+#        "QCD-4Jets_HT-600to800_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19122400,
+#        "QCD-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1054540,
+#        "QCD-4Jets_HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 18625600,
+#        # zjet
+#        "DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8": 74301700
+#        # egamma
+#        "GJ-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-600_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???
+#    }
+}
+def produce_ratio(rdf_numerator, rdf_denominator, output_path, bins):
     file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
+    for name, x, y in hist_info:
+        hn = rdf_numerator.Profile1D(("", "", bins["pt"]["n"], 
+            bins["pt"]["bins"]), x, y, "weight")
+        hd = rdf_denominator.Profile1D(("", "", bins["pt"]["n"],
+            bins["pt"]["bins"]), x, y, "weight")
+        h_ratio = hn.ProjectionX().Clone(name)
+        h_ratio.Divide(hd.ProjectionX())
 
-    for trigger_name in trigger_list:
-        for namecycle in hist_info:
-            hn = file_numerator.Get(f"{trigger_name}/{namecycle}")
-            hd = file_denominator.Get(f"{trigger_name}/{namecycle}")
-            dir_ratio = trigger_name + "/RatioResponses/" + namecycle.split("/")[0]
-            if not file_ratio.GetDirectory(dir_ratio):
-                file_ratio.mkdir(dir_ratio)
-
-            if (hn.InheritsFrom("TProfile1D") and hd.InheritsFrom("TProfile1D")) \
-                    or (hn.InheritsFrom("TH1D") and hd.InheritsFrom("TH1D")):
-                h_name = namecycle.split("/")[-1]+"_Ratio"
-                h_ratio = hn.ProjectionX().Clone(h_name)
-                h_ratio.Divide(hd.ProjectionX())
-
-                file_ratio.cd(dir_ratio)
-                h_ratio.Write()
-                file_ratio.cd()
-            
-            if hn.InheritsFrom("TH2D") and hd.InheritsFrom("TH2D"):
-                h_name = namecycle.split("/")[-1]+"_Ratio"
-                h_ratio = hn.Clone(h_name)
-                h_ratio.Divide(hd)
-
-                file_ratio.cd(dir_ratio)
-                h_ratio.Write()
-                file_ratio.cd()
-
-            if (hn.InheritsFrom("TProfile2D") and hd.InheritsFrom("TProfile2D")) \
-                    or (hn.InheritsFrom("TH3D") and hd.InheritsFrom("TH3D")):
-                h_name = namecycle.split("/")[-1]+"_Ratio"
-                h_ratio = hn.Clone(h_name)
-                h_ratio.Divide(hd)
-
-                file_ratio.cd(dir_ratio)
-                h_ratio.Write()
-                file_ratio.cd()
+        h_ratio.Write()
 
 def run(args):
-    trigger_list: List[str] = []
-    files: List[str] = []
+    # Shut up ROOT
+    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
+    if args.nThreads:
+        ROOT.EnableImplicitMT(args.nThreads)
+
+    rdf_runs = ROOT.RDataFrame("Runs", args.data_file)
+    rdf_data = ROOT.RDataFrame("Events", args.data_file)
+    rdf_mc = ROOT.RDataFrame("Events", args.mc_file)
+    if args.progress_bar:
+        ROOT.RDF.Experimental.AddProgressBar(rdf_runs)
+        ROOT.RDF.Experimental.AddProgressBar(rdf_data)
+        ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
+
     
-    if args.triggerlist:
-        trigger_list = args.triggerlist.split(",")
-    elif args.triggerpath:
-        trigger_list = file_read_lines(args.triggerpath)
 
-    file_numerator = args.numerator
-    file_denominator = args.denominator
+    min_run, max_run = find_run_range(rdf_data)
 
-    output_path = args.out
+    if args.data_tag:
+        output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_{args.data_tag}_vs_{args.mc_tag}.root"
+    else:
+        output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_vs_{args.mc_tag}.root"
+
+    xsec = weight_info["xsec"].get(args.mc_tag)
+    if xsec:
+        print(f"Reweight with xsec={xsec}")
+        rdf_mc = (rdf_mc.Redefine("weight", f"{xsec}*genWeight"))
 
     if args.config:
         config_file = args.config
         config = read_config_file(config_file)
 
-    produce_ratio(file_numerator, file_denominator, trigger_list, output_path)
+    bins = get_bins()
+
+    produce_ratio(rdf_data, rdf_mc, output_path, bins)

@@ -80,20 +80,19 @@ def parse_arguments():
     find_range_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
 
     # Produce ratio config
-    ratio_parser = subparsers.add_parser("produce_ratio", help="Produce ratio comparisons \
-            for given numerator and denominator files")
-    ratio_parser.add_argument("--numerator", type=str, required=True, help="A root file produced \
-            by dijet_rdf separated by comma")
-    ratio_parser.add_argument("--denominator", type=str, required=True, help="A root file \
-            produced by dijet_rdf separated by comma")
-    ratio_triggers = ratio_parser.add_mutually_exclusive_group()
-    ratio_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of triggers \
-            for which plots will be produced (default value 'all')")
-    ratio_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing a list \
-            of triggers for which plots will be produced")
+    ratio_parser = subparsers.add_parser("produce_ratio", help="Produce Data vs. MC comparisons")
+    ratio_parser.add_argument("--data_file", type=str, required=True, help="A root file \
+            containing skimmed run data")
+    ratio_parser.add_argument("--mc_file", type=str, required=True, help="A root file \
+            containing skimmed MC data")
     ratio_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
     ratio_parser.add_argument("--config", type=str, default="", help="Path to config file")
+    ratio_parser.add_argument("--data_tag", type=str, help="data tag")
+    ratio_parser.add_argument("--mc_tag", type=str, required=True, help="MC tag")
+    ratio_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    ratio_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
 
     # Produce responses config
     responses_parser = subparsers.add_parser("produce_responses", help="Produce responses \
