@@ -429,10 +429,11 @@ def run(args):
             f"J4PSkim_{run_range_str}{args.run_tag}")
 
     print("Writing output")
+    start = time.time()
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
+    print(f"snapshot finished in {time.time()-start} s")
 
-    start = time.time()
     subprocess.run(["hadd", "-f", "-k", output_path+".root",
         output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")

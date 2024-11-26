@@ -93,6 +93,8 @@ def parse_arguments():
     ratio_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     ratio_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
+    ratio_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to the histogram \
+            config file.')
 
     # Produce responses config
     responses_parser = subparsers.add_parser("produce_responses", help="Produce responses \
