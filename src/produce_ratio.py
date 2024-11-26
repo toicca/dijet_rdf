@@ -7,12 +7,12 @@ import numpy as np
 from find_range import find_run_range
 
 hist_info = [
-        ("DB_direct_ratio", "Tag_pt", "DB_direct"),
-        ("DB_ratio_ratio", "Tag_pt", "DB_ratio"),
-        ("MPF_tag_ratio", "Tag_pt", "MPF_tag"),
-        ("MPF_probe_ratio", "Probe_pt", "MPF_probe"),
-        ("HDM_tag_ratio", "Tag_pt", "HDM_tag"),
-        ("HDM_probe_ratio", "Probe_pt", "HDM_probe")
+        ("DB_direct_DataVsMC", "Tag_pt", "DB_direct"),
+        ("DB_ratio_DataVsMC", "Tag_pt", "DB_ratio"),
+        ("MPF_tag_DataVSMC", "Tag_pt", "MPF_tag"),
+        ("MPF_probe_DataVsMC", "Probe_pt", "MPF_probe"),
+        ("HDM_tag_DataVsMC", "Tag_pt", "HDM_tag"),
+        ("HDM_probe_DataVsMC", "Probe_pt", "HDM_probe")
         ]
 
 weight_info = {
@@ -65,17 +65,34 @@ weight_info = {
 #        "GJ-4Jets_HT-600_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???
 #    }
 }
-def produce_ratio(rdf_numerator, rdf_denominator, output_path, bins):
-    file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
-    for name, x, y in hist_info:
-        hn = rdf_numerator.Profile1D(("", "", bins["pt"]["n"], 
-            bins["pt"]["bins"]), x, y, "weight")
-        hd = rdf_denominator.Profile1D(("", "", bins["pt"]["n"],
-            bins["pt"]["bins"]), x, y, "weight")
+
+def produce_ratio(rdf_numerator, rdf_denominator, hist_config, bins):
+    name = hist_config["name"]
+    title = hist_config["title"]
+    if hist_config["type"] == "Histo1D":
+        x_bins = hist_config["x_bins"]
+        x_val = hist_config["x_val"]
+        hn = rdf_numerator.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                x_val, "weight")
+        hd = rdf_numerator.Histo1D((f"{name}_denom", f"{title}_denom", bins[x_bins]["n"],
+            bins[x_bins]["bins"]), x_val, "weight")
         h_ratio = hn.ProjectionX().Clone(name)
         h_ratio.Divide(hd.ProjectionX())
-
-        h_ratio.Write()
+        return h_ratio
+    elif hist_config["type"] == "Profile1D":
+        x_bins = hist_config["x_bins"]
+        x_val = hist_config["x_val"]
+        y_val = hist_config["y_val"]
+        hn = rdf_numerator.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                x_val, y_val, "weight")
+        hd = rdf_denominator.Profile1D((f"{name}_denom", f"{title}_denom", bins[x_bins]["n"], bins[x_bins]["bins"]),
+                x_val, y_val, "weight")
+        h_ratio = hn.ProjectionX().Clone(name)
+        h_ratio.Divide(hd.ProjectionX())
+        return h_ratio
+    else:
+        raise ValueError(f"Histogram type {hist_config['type']} not supported by produce_ratio. \
+                Supported types: Histo1D, Profile1D")
 
 def run(args):
     # Shut up ROOT
@@ -110,6 +127,14 @@ def run(args):
         config_file = args.config
         config = read_config_file(config_file)
 
+    
+    hist_config = read_config_file(args.hist_config)
     bins = get_bins()
-
-    produce_ratio(rdf_data, rdf_mc, output_path, bins)
+   
+    file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
+    for hist in hist_config:
+        if hist.lower() == "default":
+            continue
+        hist = produce_ratio(rdf_data, rdf_mc, hist_config[hist], bins)
+        hist.Write()
+    file_ratio.Close()
