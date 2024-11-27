@@ -341,9 +341,6 @@ def run(args):
     if args.nThreads:
         ROOT.EnableImplicitMT(args.nThreads)
 
-    events_chain = ROOT.TChain("Events")
-    runs_chain = ROOT.TChain("Runs")
-
     files: List[str] = []
     if args.filepaths:
         paths = [p.strip() for p in args.filepaths.split(",")]
@@ -358,137 +355,147 @@ def run(args):
     elif args.triggerpath:
         triggers = file_read_lines(args.triggerpath)
 
-    # Load the files
-    print("Loading files")
+    if args.groups_of:
+        n_files = min(args.groups_of, len(files))
+    else:
+        n_files = len(files)
 
-    for file in files:
-        if not args.is_local:
-            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-        else:
-            events_chain.Add(file)
-            runs_chain.Add(file)
+    file_groups = [files[i*n_files : (i+1)*n_files] for i in range((len(files) + n_files - 1) // n_files)]
 
-    events_rdf = ROOT.RDataFrame(events_chain)
-    runs_rdf = ROOT.RDataFrame(runs_chain)
+    for (i, file_group) in enumerate(file_groups):
+        events_chain = ROOT.TChain("Events")
+        runs_chain = ROOT.TChain("Runs")
 
-    if args.progress_bar:
-        ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
-    if args.golden_json:
-        events_rdf = do_cut_golden_json(events_rdf, args.golden_json)
+        # Load the files
+        print(f"Loading files for group number {i + 1}")
+        for file in file_group:
+            if not args.is_local:
+                events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+                runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            else:
+                events_chain.Add(file)
+                runs_chain.Add(file)
+        events_rdf = ROOT.RDataFrame(events_chain)
+        runs_rdf = ROOT.RDataFrame(runs_chain)
 
-    events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
+        if args.progress_bar:
+            ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
-    # Initialize the JEC variables
-    print("Initializing TnP variables")
-    events_rdf = init_TnP(events_rdf, args.dataset)
-    print("Initializing JEC variables")
-    events_rdf = do_JEC(events_rdf)
+        if args.golden_json:
+            event_rdf = do_cut_golden_json(events_rdf, args.golden_json)
+
+        events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
+
+        # Initialize the JEC variables
+        print("Initializing TnP variables")
+        events_rdf = init_TnP(events_rdf, args.dataset)
+        print("Initializing JEC variables")
+        events_rdf = do_JEC(events_rdf)
 
     
-    # Filter based on triggers and one jet
-    if len(triggers) == 0:
-        trg_filter = "1"
-    else:
-        trg_filter = " || ".join(triggers)
-    flag_filter = " && ".join(get_Flags())
-    events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
+        # Filter based on triggers and one jet
+        if len(triggers) == 0:
+            trg_filter = "1"
+        else:
+            trg_filter = " || ".join(triggers)
+        flag_filter = " && ".join(get_Flags())
+        events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
                 .Filter(flag_filter, flag_filter)
                 )
 
-    # Define a weight column
-    events_rdf = events_rdf.Define("weight", "1.0")
+        # Define a weight column
+        events_rdf = events_rdf.Define("weight", "1.0")
 
-    # Remove the Jet_ and _temp columns
-    print("Removing unnecessary columns")
-    all_columns = events_rdf.GetColumnNames()
-    #all_columns.extend(events_rdf.GetDefinedColumnNames())
+        # Remove the Jet_ and _temp columns
+        print("Removing unnecessary columns")
+        all_columns = events_rdf.GetColumnNames()
+        #all_columns.extend(events_rdf.GetDefinedColumnNames())
 
-    # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
-    # obtained from failed HTCondor jobs operating on EGamma(0|1) datasets. Some of the files
-    # in these datasets seem to be missing said branches.
-    all_columns = [str(col) for col in all_columns \
-                    if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
-                    and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
-                    and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
+        # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
+        # obtained from failed HTCondor jobs operating on EGamma(0|1) datasets. Some of the files
+        # in these datasets seem to be missing said branches.
+        all_columns = [str(col) for col in all_columns \
+                        if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
+                        and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
+                        and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
 
-    # Write and hadd the output
-    if not os.path.exists(args.out):
-        os.makedirs(args.out)
+        # Write and hadd the output
+        if not os.path.exists(args.out):
+            os.makedirs(args.out)
 
-    run_range_str = ""
-    if args.run_range:
-        run_range = args.run_range.split(",")
-        assert(len(run_range) == 2)
+        run_range_str = ""
+        if args.run_range:
+            run_range = args.run_range.split(",")
+            assert(len(run_range) == 2)
 
-        print(f"Run range: ({run_range[0]}, {run_range[1]})");
-        run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
+            print(f"Run range: ({run_range[0]}, {run_range[1]})");
+            run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
 
-    output_path = os.path.join(args.out,
-            f"J4PSkim_{run_range_str}{args.run_tag}")
+        output_path = os.path.join(args.out,
+                f"J4PSkim_{run_range_str}{args.run_tag}_{i}")
 
-    print("Writing output")
-    start = time.time()
-    events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
-    runs_rdf.Snapshot("Runs", output_path+"_runs.root")
-    print(f"snapshot finished in {time.time()-start} s")
+        print(f"Writing output for group number {i+1}")
+        start = time.time()
+        events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
+        runs_rdf.Snapshot("Runs", output_path+"_runs.root")
+        print(f"snapshot finished in {time.time()-start} s for group number {i + 1}")
 
-    subprocess.run(["hadd", "-f", "-k", output_path+".root",
+        subprocess.run(["hadd", "-f", "-k", output_path+".root",
         output_path+"_events.root", output_path+"_runs.root"])
-    os.remove(output_path+"_events.root")
-    os.remove(output_path+"_runs.root")
-    print(f"hadd finished in {time.time()-start} s")
+        os.remove(output_path+"_events.root")
+        os.remove(output_path+"_runs.root")
+        print(f"hadd finished in {time.time()-start} s for group number {i + 1}")
 
-    print(output_path+".root")
+        print(output_path+".root")
 
-    # Get a report of the processing
-    report = events_rdf.Report()
+        # Get a report of the processing
+        report = events_rdf.Report()
 
-    begin = report.begin()
-    end = report.end()
-    allEntries = 0 if begin == end else begin.__deref__().GetAll()
+        begin = report.begin()
+        end = report.end()
+        allEntries = 0 if begin == end else begin.__deref__().GetAll()
 
-    # Collect the cuts
-    it = begin
-    cuts = []
-    while it != end:
-        ci = it.__deref__()
-        cuts.append({ci.GetName(): {"pass": ci.GetPass(), "all": ci.GetAll(), "eff": ci.GetEff(),
-                "cumulativeEff": 100.0 * float(ci.GetPass()) / float(allEntries) \
+        # Collect the cuts
+        it = begin
+        cuts = []
+        while it != end:
+            ci = it.__deref__()
+            cuts.append({ci.GetName(): {"pass": ci.GetPass(), "all": ci.GetAll(), "eff": ci.GetEff(),
+                    "cumulativeEff": 100.0 * float(ci.GetPass()) / float(allEntries) \
                         if allEntries > 0 else 0.0}})
 
-        it.__preinc__()
+            it.__preinc__()
 
-    # Create four histograms with alphanumeric bins
-    pass_hist = ROOT.TH1D("pass", "pass", len(cuts), 0, len(cuts))
-    pass_hist.SetCanExtend(ROOT.TH1.kAllAxes)
-    all_hist = ROOT.TH1D("all", "all", len(cuts), 0, len(cuts))
-    all_hist.SetCanExtend(ROOT.TH1.kAllAxes)
-    eff_hist = ROOT.TH1D("eff", "eff", len(cuts), 0, len(cuts))
-    eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
-    cum_eff_hist = ROOT.TH1D("cum_eff", "cum_eff", len(cuts), 0, len(cuts))
-    cum_eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+        # Create four histograms with alphanumeric bins
+        pass_hist = ROOT.TH1D("pass", "pass", len(cuts), 0, len(cuts))
+        pass_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+        all_hist = ROOT.TH1D("all", "all", len(cuts), 0, len(cuts))
+        all_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+        eff_hist = ROOT.TH1D("eff", "eff", len(cuts), 0, len(cuts))
+        eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+        cum_eff_hist = ROOT.TH1D("cum_eff", "cum_eff", len(cuts), 0, len(cuts))
+        cum_eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
 
-    for i, cut in enumerate(cuts):
-        #print(i, cut)
-        for key, value in cut.items():
-            pass_hist.Fill(key, value["pass"])
-            all_hist.Fill(key, value["all"])
-            eff_hist.Fill(key, value["eff"])
-            cum_eff_hist.Fill(key, value["cumulativeEff"])
+        for i, cut in enumerate(cuts):
+            #print(i, cut)
+            for key, value in cut.items():
+                pass_hist.Fill(key, value["pass"])
+                all_hist.Fill(key, value["all"])
+                eff_hist.Fill(key, value["eff"])
+                cum_eff_hist.Fill(key, value["cumulativeEff"])
 
-    pass_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
-    all_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
-    eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
-    cum_eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+        pass_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+        all_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+        eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+        cum_eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
 
-    # Save the histograms to test.root
-    f = ROOT.TFile(output_path+".root", "UPDATE")
-    pass_hist.Write()
-    all_hist.Write()
-    eff_hist.Write()
-    cum_eff_hist.Write()
-    f.Close()
+        # Save the histograms to test.root
+        f = ROOT.TFile(output_path+".root", "UPDATE")
+        pass_hist.Write()
+        all_hist.Write()
+        eff_hist.Write()
+        cum_eff_hist.Write()
+        f.Close()
 
-    print(f"Output writing finished in {time.time()-start} s")
+        print(f"Output writing finished in {time.time()-start} s for group number {i + 1}")
