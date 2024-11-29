@@ -186,8 +186,8 @@ def parse_arguments():
     skim_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     skim_parser.add_argument("--golden_json", type=str, help="Golden JSON for filtering")
-    skim_parser.add_argument("--groups_of", type=int, help="Process input files in groups \
-            of the given number")
+    skim_parser.add_argument("--large_files", action="store_true", help="Process input files file \
+            by file to reduce memory usage")
 
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()
