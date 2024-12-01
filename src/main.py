@@ -188,6 +188,8 @@ def parse_arguments():
     skim_parser.add_argument("--golden_json", type=str, help="Golden JSON for filtering")
     skim_parser.add_argument("--large_files", action="store_true", help="Process input files file \
             by file to reduce memory usage")
+    skim_parser.add_argument("--defined_columns", action="store_true", help="Save only defined \
+            columns to the output file.")
 
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()

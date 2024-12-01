@@ -365,7 +365,10 @@ def process(args, triggers, events_rdf, runs_rdf, output_path):
 
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
-    all_columns = events_rdf.GetColumnNames()
+    if args.defined_columns:
+        all_columns = events_rdf.GetDefinedColumnNames()
+    else:
+        all_columns = events_rdf.GetColumnNames()
     #all_columns.extend(events_rdf.GetDefinedColumnNames())
 
     # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
@@ -382,6 +385,7 @@ def process(args, triggers, events_rdf, runs_rdf, output_path):
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
     print(f"snapshot finished in {time.time()-start} s for {output_path}.root")
 
+    start = time.time()
     subprocess.run(["hadd", "-f", "-k", output_path+".root",
     output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
@@ -438,8 +442,6 @@ def process(args, triggers, events_rdf, runs_rdf, output_path):
     eff_hist.Write()
     cum_eff_hist.Write()
     f.Close()
-
-    print(f"Output writing finished in {time.time()-start} s for {output_path}.root")
 
 
 def run(args):
