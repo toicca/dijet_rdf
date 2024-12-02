@@ -5,6 +5,7 @@ import argparse
 import pathlib
 import ctypes
 import numpy as np
+import pandas as pd
 import time
 
 from processing_utils import file_read_lines, find_site
@@ -334,7 +335,55 @@ def get_Flags(campaign=None):
 
     return flags
 
-def process(args, triggers, events_rdf, runs_rdf, output_path):
+def run(args):
+    # shut up ROOT
+    ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
+    if args.nThreads:
+        ROOT.EnableImplicitMT(args.nThreads)
+
+    files: List[str] = []
+    if args.filepaths:
+        paths = [p.strip() for p in args.filepaths.split(",")]
+        for path in paths:
+            files.extend(file_read_lines(path))
+    else:
+        files = [s.strip() for s in args.filelist.split(',')]
+
+    triggers: List[str] = []
+    if args.triggerlist:
+        triggers = args.triggerlist.split(",")
+    elif args.triggerpath:
+        triggers = file_read_lines(args.triggerpath)
+
+    # Write and hadd the output
+    if not os.path.exists(args.out):
+        os.makedirs(args.out)
+
+    run_range_str = ""
+    if args.run_range:
+        run_range = args.run_range.split(",")
+        assert(len(run_range) == 2)
+
+        print(f"Run range: ({run_range[0]}, {run_range[1]})");
+        run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
+
+    # Load the files
+    print(f"Processing files")
+    events_chain = ROOT.TChain("Events")
+    runs_chain = ROOT.TChain("Runs")
+
+    for file in files:
+        if not args.is_local:
+            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+        else:
+            events_chain.Add(file)
+            runs_chain.Add(file)
+
+    events_rdf = ROOT.RDataFrame(events_chain)
+    runs_rdf = ROOT.RDataFrame(runs_chain)
+
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
@@ -366,7 +415,8 @@ def process(args, triggers, events_rdf, runs_rdf, output_path):
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
     if args.defined_columns:
-        all_columns = events_rdf.GetDefinedColumnNames()
+        all_columns = list(events_rdf.GetDefinedColumnNames())
+        all_columns.extend(["luminosityBlock"])
     else:
         all_columns = events_rdf.GetColumnNames()
     #all_columns.extend(events_rdf.GetDefinedColumnNames())
@@ -379,6 +429,7 @@ def process(args, triggers, events_rdf, runs_rdf, output_path):
                     and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
                     and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
 
+    output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}{args.run_tag}")
     print(f"Writing output for {output_path}.root")
     start = time.time()
     events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
@@ -443,68 +494,3 @@ def process(args, triggers, events_rdf, runs_rdf, output_path):
     cum_eff_hist.Write()
     f.Close()
 
-
-def run(args):
-    # shut up ROOT
-    ROOT.gErrorIgnoreLevel = ROOT.kWarning
-
-    if args.nThreads:
-        ROOT.EnableImplicitMT(args.nThreads)
-
-    files: List[str] = []
-    if args.filepaths:
-        paths = [p.strip() for p in args.filepaths.split(",")]
-        for path in paths:
-            files.extend(file_read_lines(path))
-    else:
-        files = [s.strip() for s in args.filelist.split(',')]
-    
-    triggers: List[str] = []
-    if args.triggerlist:
-        triggers = args.triggerlist.split(",")
-    elif args.triggerpath:
-        triggers = file_read_lines(args.triggerpath)
-
-    # Write and hadd the output
-    if not os.path.exists(args.out):
-        os.makedirs(args.out)
-
-    run_range_str = ""
-    if args.run_range:
-        run_range = args.run_range.split(",")
-        assert(len(run_range) == 2)
-
-        print(f"Run range: ({run_range[0]}, {run_range[1]})");
-        run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
-
-    # Load the files
-    print(f"Processing files")
-
-    if args.large_files:
-        for (i, file) in enumerate(files):
-            if not args.is_local:
-                events_rdf = ROOT.RDataFrame("Events", f"root://cms-xrd-global.cern.ch/{file}")
-                runs_rdf = ROOT.RDataFrame("Runs", f"root://cms-xrd-global.cern.ch/{file}")
-            else:
-                events_rdf = ROOT.RDataFrame("Events", file)
-                runs_rdf = ROOT.RDataFrame("Runs", file)
-
-            output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}{args.run_tag}_{i}")
-
-            process(args, triggers, events_rdf, runs_rdf, output_path)
-    else:
-        events_chain = ROOT.TChain("Events")
-        runs_chain = ROOT.TChain("Runs")
-
-        for file in files:
-            if not args.is_local:
-                events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-                runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-            else:
-                events_chain.Add(file)
-                runs_chain.Add(file)
-
-        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}{args.run_tag}")
-        events_rdf = ROOT.RDataFrame(events_chain)
-        runs_rdf = ROOT.RDataFrame(runs_chain)
-        process(args, triggers, events_rdf, runs_rdf, output_path)
