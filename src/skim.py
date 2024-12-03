@@ -360,14 +360,6 @@ def run(args):
     if not os.path.exists(args.out):
         os.makedirs(args.out)
 
-    run_range_str = ""
-    if args.run_range:
-        run_range = args.run_range.split(",")
-        assert(len(run_range) == 2)
-
-        print(f"Run range: ({run_range[0]}, {run_range[1]})");
-        run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
-
     # Load the files
     print(f"Processing files")
     events_chain = ROOT.TChain("Events")
@@ -412,14 +404,32 @@ def run(args):
     # Define a weight column
     events_rdf = events_rdf.Define("weight", "1.0")
 
+    run_range_str = ""
+    if args.run_range:
+        run_range = args.run_range.split(",")
+        assert(len(run_range) == 2)
+
+        print(f"Run range: ({run_range[0]}, {run_range[1]})");
+        run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
+
+        subprocess.run(["brilcalc", "lumi", "--normtag",
+            "/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json",
+            "-u", "/fb", "--begin", f"{run_range[0]}", "--end", f"{run_range[1]}",
+            "-i", args.golden_json, "-o", "lumi.csv"])
+
+        df = pd.read_csv("lumi.csv", comment='#', names=["run:fill", "time", "nls",
+            "ncms", "delivered(/fb)", "recorded(/fb)"])
+        int_lumi = np.sum(df["recorded(/fb)"].to_numpy())
+        print(f"Running on {int_lumi} 1/fb integrated luminosity")
+        events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}");
+
+
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
     if args.defined_columns:
-        all_columns = list(events_rdf.GetDefinedColumnNames())
-        all_columns.extend(["luminosityBlock"])
+        all_columns = events_rdf.GetDefinedColumnNames()
     else:
         all_columns = events_rdf.GetColumnNames()
-    #all_columns.extend(events_rdf.GetDefinedColumnNames())
 
     # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
     # obtained from failed HTCondor jobs operating on EGamma(0|1) datasets. Some of the files
