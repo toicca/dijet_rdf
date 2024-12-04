@@ -423,18 +423,19 @@ def run(args):
         print(f"Running on {int_lumi} 1/fb integrated luminosity")
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}");
 
-
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
     if args.defined_columns:
-        all_columns = events_rdf.GetDefinedColumnNames()
+        columns = list(events_rdf.GetDefinedColumnNames())
+        if args.is_mc:
+            columns.extend(["genWeight"])
     else:
-        all_columns = events_rdf.GetColumnNames()
+        columns = events_rdf.GetColumnNames()
 
     # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
     # obtained from failed HTCondor jobs operating on EGamma(0|1) datasets. Some of the files
     # in these datasets seem to be missing said branches.
-    all_columns = [str(col) for col in all_columns \
+    columns = [str(col) for col in columns \
                     if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
                     and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
                     and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
@@ -442,7 +443,7 @@ def run(args):
     output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}{args.run_tag}")
     print(f"Writing output for {output_path}.root")
     start = time.time()
-    events_rdf.Snapshot("Events", output_path+"_events.root", all_columns)
+    events_rdf.Snapshot("Events", output_path+"_events.root", columns)
     runs_rdf.Snapshot("Runs", output_path+"_runs.root")
     print(f"snapshot finished in {time.time()-start} s for {output_path}.root")
 
