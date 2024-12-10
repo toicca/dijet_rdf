@@ -87,7 +87,6 @@ def parse_arguments():
             containing skimmed MC data")
     ratio_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
-    ratio_parser.add_argument("--config", type=str, default="", help="Path to config file")
     ratio_parser.add_argument("--data_tag", type=str, help="data tag")
     ratio_parser.add_argument("--mc_tag", type=str, required=True, help="MC tag")
     ratio_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \

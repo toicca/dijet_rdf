@@ -403,9 +403,9 @@ def run(args):
 
     # Define a weight column
     if args.is_mc:
-        events_rdf = (events_rdf.Define("weight", "1.0"))
-    else:
         events_rdf = (events_rdf.Define("weight", "genWeight"))
+    else:
+        events_rdf = (events_rdf.Define("weight", "1.0"))
 
     run_range_str = ""
     if args.run_range:
