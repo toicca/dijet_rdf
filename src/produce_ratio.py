@@ -121,7 +121,7 @@ def run(args):
     xsec = weight_info["xsec"].get(args.mc_tag)
     if xsec:
         print(f"Reweight with xsec={xsec}")
-        rdf_mc = (rdf_mc.Redefine("weight", f"{xsec}*genWeight"))
+        rdf_mc = (rdf_mc.Redefine("weight", f"{xsec}*weight"))
 
     if args.config:
         config_file = args.config
