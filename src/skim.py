@@ -402,7 +402,10 @@ def run(args):
             )
 
     # Define a weight column
-    events_rdf = events_rdf.Define("weight", "1.0")
+    if args.is_mc:
+        events_rdf = (events_rdf.Define("weight", "1.0"))
+    else:
+        events_rdf = (events_rdf.Define("weight", "genWeight"))
 
     run_range_str = ""
     if args.run_range:
@@ -426,9 +429,7 @@ def run(args):
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
     if args.defined_columns:
-        columns = list(events_rdf.GetDefinedColumnNames())
-        if args.is_mc:
-            columns.extend(["genWeight"])
+        columns = events_rdf.GetDefinedColumnNames()
     else:
         columns = events_rdf.GetColumnNames()
 
