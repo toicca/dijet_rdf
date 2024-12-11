@@ -176,9 +176,6 @@ def parse_arguments():
     skim_triggers.add_argument('-tl','--triggerlist', type=str,
             help='Input files separated by commas')
     skim_parser.add_argument("--out", type=str, required=True, default="", help="Output path")
-    skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
-            (run_min and run_max separated by a comma)")
-    skim_parser.add_argument("--run_tag", type=str, help="Run tag")
     skim_parser.add_argument("--dataset", type=str, required=True,
             choices=["dijet", "zjet", "egamma", "multijet"],
             help="Dataset type: dijet, zjet, egamma or multijet")
@@ -188,9 +185,17 @@ def parse_arguments():
     skim_parser.add_argument("--defined_columns", action="store_true", help="Save only defined \
             columns to the output file.")
     skim_parser.add_argument("--is_mc", action="store_true", help="Set if input files are MC data.")
+    skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
+            (run_min and run_max separated by a comma)")
+    skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
 
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()
+
+    if not args.is_mc and args.mc_tag:
+        raise ValueError("is_mc not set but mc_tag given")
+    if args.is_mc and args.run_range:
+        raise ValueError("run_range and is_mc both set")
 
     return args
 
