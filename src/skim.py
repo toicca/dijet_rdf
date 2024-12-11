@@ -10,6 +10,57 @@ import time
 
 from processing_utils import file_read_lines, find_site
 
+weight_info = {
+    "xsec" : {
+        # dijet and multijet
+        "QCD-4Jets_HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 892.4,
+        "QCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 25240000.0,
+        "QCD-4Jets_HT-1200to1500_TuneCP5_13p6TeV_madgraphMLM-pythia8": 385.4,
+        "QCD-4Jets_HT-1500to2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 126.5,
+        "QCD-4Jets_HT-2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 26.53,
+        "QCD-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1958000.0,
+        "QCD-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 96730.0,
+        "QCD-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 312200000.0,
+        "QCD-4Jets_HT-600to800_TuneCP5_13p6TeV_madgraphMLM-pythia8": 13590.0,
+        "QCD-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 58840000.0,
+        "QCD-4Jets_HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 3046.0,
+        # zjet
+        "DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8": 6695.0,
+        # egamma
+        "GJ-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 15240.0,
+        "GJ-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 8111.0,
+        "GJ-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 7327.0,
+        "GJ-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1541.0,
+        "GJ-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 167.6,
+        "GJ-4Jets_HT-600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 54.39
+
+    },
+# TODO
+#    "nGenEvents" : {
+#        # dijet and multijet
+#        "QCD-4Jets_HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 2895970,
+#        "QCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": 5629540,
+#        "QCD-4Jets_HT-1200to1500_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19537600,
+#        "QCD-4Jets_HT-1500to2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 17527100,
+#        "QCD-4Jets_HT-2000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 9212540,
+#        "QCD-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": 18647200,
+#        "QCD-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19101200,
+#        "QCD-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19282700,
+#        "QCD-4Jets_HT-600to800_TuneCP5_13p6TeV_madgraphMLM-pythia8": 19122400,
+#        "QCD-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1054540,
+#        "QCD-4Jets_HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 18625600,
+#        # zjet
+#        "DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8": 74301700
+#        # egamma
+#        "GJ-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-400to600_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???,
+#        "GJ-4Jets_HT-600_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???
+#    }
+}
+
 jet_columns = [
     "Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass", "Jet_jetId",
     "Jet_area", "Jet_nConstituents", "Jet_nElectrons", "Jet_nMuons",
@@ -91,7 +142,8 @@ def init_TnP(rdf, dataset):
 
             // If probe also in barrel, randomize the indices
             if (idx2 != -1 && abs(Jet_eta[idx2]) < 1.3 && idx1 != -1) {
-                bool swap = (int(Jet_phi[idx1] * 100) % 2) == 0; // Jets are ~uniform in phi, use this to generate a random number
+                bool swap = (int(Jet_phi[idx1] * 100) % 2) == 0; // Jets are ~uniform in phi, \
+                        use this to generate a random number
                 if (swap) {
                     std::swap(idx1, idx2);
                 }
@@ -104,7 +156,8 @@ def init_TnP(rdf, dataset):
         """)
 
         rdf = (rdf.Define("TnP_idx_temp", "findTagProbeIdxs(Jet_eta, Jet_pt, Jet_phi, Jet_jetId)")
-                .Filter("TnP_idx_temp.first >= 0 && TnP_idx_temp.second >= 0", "Tag and probe found")
+                .Filter("TnP_idx_temp.first >= 0 && TnP_idx_temp.second >= 0",
+                    "Tag and probe found")
                 .Define("Tag_idx_temp", "TnP_idx_temp.first")
                 .Define("Probe_idx_temp", "TnP_idx_temp.second")
                 .Define("Tag_pt", "Jet_pt[Tag_idx_temp]")
@@ -162,19 +215,23 @@ def init_TnP(rdf, dataset):
         #endif
         """)
         rdf = (rdf.Filter("nMuon > 1", "nMuon > 1")
-                .Define("Muon_idx_temp", "findMuonIdxs(Muon_eta, Muon_pt, Muon_pfRelIso03_all, Muon_tightId, Muon_charge)")
+                .Define("Muon_idx_temp", "findMuonIdxs(Muon_eta, Muon_pt, Muon_pfRelIso03_all, \
+                        Muon_tightId, Muon_charge)")
                 .Filter("Muon_idx_temp.first >= 0 && Muon_idx_temp.second >= 0", "Two muons found")
                 .Define("Z_4vec_temp",
-                    "ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.first], Muon_eta[Muon_idx_temp.first], \
-                            Muon_phi[Muon_idx_temp.first], Muon_mass[Muon_idx_temp.first]) + \
-                    ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.second], Muon_eta[Muon_idx_temp.second], \
-                            Muon_phi[Muon_idx_temp.second], Muon_mass[Muon_idx_temp.second])")
+                    "ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.first], \
+                            Muon_eta[Muon_idx_temp.first], Muon_phi[Muon_idx_temp.first], \
+                            Muon_mass[Muon_idx_temp.first]) + \
+                            ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.second], \
+                            Muon_eta[Muon_idx_temp.second], Muon_phi[Muon_idx_temp.second], \
+                            Muon_mass[Muon_idx_temp.second])")
                 .Define("Tag_pt", "static_cast<float>(Z_4vec_temp.Pt())")
                 .Define("Tag_eta", "static_cast<float>(Z_4vec_temp.Eta())")
                 .Define("Tag_phi", "static_cast<float>(Z_4vec_temp.Phi())")
                 .Define("Tag_mass", "static_cast<float>(Z_4vec_temp.M())")
                 .Define("Tag_label", "1")
-                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, Tag_eta, Tag_phi)")
+                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
+                        Tag_eta, Tag_phi)")
                 .Filter("Probe_idx_temp >= 0", "Jet found")
                 .Filter("Tag_pt > 12", "Z pT > 12")
                 .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
@@ -206,7 +263,8 @@ def init_TnP(rdf, dataset):
                             int Photon_jetIdx, float Photon_phi) {
             for (int i = 0; i < Jet_pt.size(); i++) {
                 if (abs(Jet_eta[i]) < 1.3 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4
-                    && i != Photon_jetIdx && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
+                    && i != Photon_jetIdx &&
+                    abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
                     return i;
                 }
             }
@@ -217,9 +275,11 @@ def init_TnP(rdf, dataset):
         #endif
         """)
 
-        rdf = (rdf.Define("Tag_idx_temp", "findPhotonIdx(Photon_eta, Photon_pt, Photon_cutBased, Photon_hoe, Photon_r9)")
+        rdf = (rdf.Define("Tag_idx_temp", "findPhotonIdx(Photon_eta, Photon_pt, Photon_cutBased, \
+                Photon_hoe, Photon_r9)")
                 .Filter("Tag_idx_temp >= 0", "Photon found")
-                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, Photon_jetIdx[Tag_idx_temp], Photon_phi[Tag_idx_temp])")
+                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
+                        Photon_jetIdx[Tag_idx_temp], Photon_phi[Tag_idx_temp])")
                 .Filter("Probe_idx_temp >= 0", "Jet found")
                 .Define("Tag_pt", f"Photon_pt[Tag_idx_temp]")
                 .Define("Tag_eta", f"Photon_eta[Tag_idx_temp]")
@@ -235,7 +295,8 @@ def init_TnP(rdf, dataset):
         # Change Tag <-> Probe for multijet, since low pt jets better calibrated?
         recoil_filter = "abs(RecoilJet_eta)<2.5 && RecoilJet_pt>30"
         rdf = (rdf.Filter("nJet > 2", "nJet > 2")
-                .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5", "Leading jet pT > 30 and |eta| < 2.5")
+                .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5",
+                    "Leading jet pT > 30 and |eta| < 2.5")
                 .Define("Probe_pt", "Jet_pt[0]")
                 .Define("Probe_eta", "Jet_eta[0]")
                 .Define("Probe_phi", "Jet_phi[0]")
@@ -276,17 +337,20 @@ def init_TnP(rdf, dataset):
 
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
-            .Define("Probe_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Probe_pt, Probe_eta, Probe_phi, Probe_mass)")
+            .Define("Probe_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Probe_pt, Probe_eta, \
+                    Probe_phi, Probe_mass)")
             .Define("Tag_polarVec_temp", "ROOT::Math::Polar2DVector(Tag_pt, Tag_phi)")
             .Define("Probe_polarVec_temp", "ROOT::Math::Polar2DVector(Probe_pt, Probe_phi)")
-            .Define("PuppiMET_polarVec_temp", "ROOT::Math::Polar2DVector(PuppiMET_pt, PuppiMET_phi)")
+            .Define("PuppiMET_polarVec_temp", "ROOT::Math::Polar2DVector(PuppiMET_pt, \
+                    PuppiMET_phi)")
     )
 
     # Activity vector for HDM
     # For dijet and multijet this is the sum of all the jets minus the tag and probe
     # For zjet and egamma this is the sum of all the jets minus the probe
     rdf = (rdf.Define("JetActivity_fourVec_temp", 
-                    "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Jet_pt, Jet_eta, Jet_phi, Jet_mass)")
+                    "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Jet_pt, Jet_eta, \
+                            Jet_phi, Jet_mass)")
             .Redefine("JetActivity_fourVec_temp", "ROOT::VecOps::Sum(JetActivity_fourVec_temp, \
                     ROOT::Math::PtEtaPhiMVector())")
     )
@@ -300,22 +364,32 @@ def init_TnP(rdf, dataset):
             .Define("JetActivity_eta", "float(JetActivity_fourVec_temp.Eta())")
             .Define("JetActivity_phi", "float(JetActivity_fourVec_temp.Phi())")
             .Define("JetActivity_mass", "float(JetActivity_fourVec_temp.M())")
-            .Define("JetActivity_polarVec_temp", "ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi)")
+            .Define("JetActivity_polarVec_temp",
+                "ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi)")
     )
     
     return rdf
 
 def do_JEC(rdf):
-    rdf = (rdf.Define("DB_direct", "-1.0 * Tag_polarVec_temp.Dot(Probe_polarVec_temp) / (Tag_pt * Tag_pt)")
+    rdf = (rdf.Define("DB_direct",
+        "-1.0 * Tag_polarVec_temp.Dot(Probe_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("DB_ratio", "Probe_pt / Tag_pt")
-            .Define("MPF_tag", "1.0 + PuppiMET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
-            .Define("MPF_probe", "1.0 + PuppiMET_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
-            .Define("R_un_reco_tag_temp", "JetActivity_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
+            .Define("MPF_tag",
+                "1.0 + PuppiMET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
+            .Define("MPF_probe",
+                "1.0 + PuppiMET_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
+            .Define("R_un_reco_tag_temp",
+                "JetActivity_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("R_un_gen_tag_temp", "1.0")
-            .Define("R_un_reco_probe_temp", "JetActivity_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
+            .Define("R_un_reco_probe_temp",
+                "JetActivity_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
             .Define("R_un_gen_probe_temp", "1.0")
-            .Define("HDM_tag", "(DB_direct + MPF_tag - 1.0 + R_un_reco_tag_temp - R_un_gen_tag_temp) / (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
-            .Define("HDM_probe", "(DB_direct + MPF_probe - 1.0 + R_un_reco_probe_temp - R_un_gen_probe_temp) / (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
+            .Define("HDM_tag",
+                "(DB_direct + MPF_tag - 1.0 + R_un_reco_tag_temp - R_un_gen_tag_temp) / \
+                        (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
+            .Define("HDM_probe",
+                "(DB_direct + MPF_probe - 1.0 + R_un_reco_probe_temp - R_un_gen_probe_temp) / \
+                        (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
            )
 
     return rdf
@@ -403,17 +477,22 @@ def run(args):
 
     # Define a weight column
     if args.is_mc:
-        events_rdf = (events_rdf.Define("weight", "genWeight"))
+        xsec = weight_info["xsec"].get(args.mc_tag)
+        if xsec:
+            print(f"Reweight with xsec={xsec}")
+            events_rdf = (events_rdf.Define("weight", f"{xsec}*genWeight"))
+        else:
+            events_rdf = (events_rdf.Define("weight", "genWeight"))
     else:
         events_rdf = (events_rdf.Define("weight", "1.0"))
 
-    run_range_str = ""
+    # Set name of the output file
     if args.run_range:
         run_range = args.run_range.split(",")
         assert(len(run_range) == 2)
 
         print(f"Run range: ({run_range[0]}, {run_range[1]})");
-        run_range_str = f"runs{run_range[0]}to{run_range[1]}_"
+        run_range_str = f"runs{run_range[0]}to{run_range[1]}"
 
         subprocess.run(["brilcalc", "lumi", "--normtag",
             "/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json",
@@ -424,7 +503,13 @@ def run(args):
             "ncms", "delivered(/fb)", "recorded(/fb)"])
         int_lumi = np.sum(df["recorded(/fb)"].to_numpy())
         print(f"Running on {int_lumi} 1/fb integrated luminosity")
-        events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}");
+        events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
+        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}")
+    elif args.mc_tag:
+        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}")
+    else:
+        output_path = os.path.join(args.out, f"J4PSkim_{args.dataset}")
+
 
     # Remove the Jet_ and _temp columns
     print("Removing unnecessary columns")
@@ -441,7 +526,6 @@ def run(args):
                     and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
                     and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
 
-    output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}{args.run_tag}")
     print(f"Writing output for {output_path}.root")
     start = time.time()
     events_rdf.Snapshot("Events", output_path+"_events.root", columns)
