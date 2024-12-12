@@ -192,10 +192,11 @@ def parse_arguments():
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()
 
-    if not args.is_mc and args.mc_tag:
-        raise ValueError("is_mc not set but mc_tag given")
-    if args.is_mc and args.run_range:
-        raise ValueError("run_range and is_mc both set")
+    if args.subparser_name == "skim":
+        if not args.is_mc and args.mc_tag:
+            raise ValueError("is_mc not set but mc_tag given")
+        if args.is_mc and args.run_range:
+            raise ValueError("run_range and is_mc both set")
 
     return args
 
