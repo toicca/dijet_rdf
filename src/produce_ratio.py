@@ -66,12 +66,7 @@ def run(args):
         output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_{args.data_tag}_vs_{args.mc_tag}.root"
     else:
         output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_vs_{args.mc_tag}.root"
-
-    if args.config:
-        config_file = args.config
-        config = read_config_file(config_file)
-
-    
+   
     hist_config = read_config_file(args.hist_config)
     bins = get_bins()
    
