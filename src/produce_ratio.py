@@ -74,6 +74,6 @@ def run(args):
     for hist in hist_config:
         if hist.lower() == "default":
             continue
-        hist = produce_ratio(rdf_data, rdf_mc, hist_config[hist], bins)
-        hist.Write()
+        h = produce_ratio(rdf_data, rdf_mc, hist_config[hist], bins)
+        h.Write()
     file_ratio.Close()
