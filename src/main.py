@@ -1,7 +1,6 @@
 import argparse
 import ROOT
 
-import cumulative
 import find_json
 import find_newest
 import find_range
@@ -82,9 +81,9 @@ def parse_arguments():
 
     # Produce ratio config
     ratio_parser = subparsers.add_parser("produce_ratio", help="Produce Data vs. MC comparisons")
-    ratio_parser.add_argument("--data_file", type=str, required=True, help="A root file \
+    ratio_parser.add_argument("--data_files", type=str, required=True, help="A lsit of root files \
             containing skimmed run data")
-    ratio_parser.add_argument("--mc_file", type=str, required=True, help="A root file \
+    ratio_parser.add_argument("--mc_files", type=str, required=True, help="A list of root files \
             containing skimmed MC data")
     ratio_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
@@ -95,6 +94,10 @@ def parse_arguments():
     ratio_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
     ratio_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to the histogram \
             config file.')
+    ratio_parser.add_argument("--groups_of", type=int, help="Produce ratios for \
+            groups containing given number of runs")
+    ratio_parser.add_argument("--cumulative_lumi", action="store_true", help="Produce cumulative \
+            luminosity results")
 
     # Produce responses config
     responses_parser = subparsers.add_parser("produce_responses", help="Produce responses \
@@ -162,27 +165,6 @@ def parse_arguments():
     plots_parser.add_argument("--all", action="store_true",
                                 help="Produce all plots in given .root files")
 
-    # Cumulative results config
-    cum_parser = subparsers.add_parser("cumulative", help="Produce cumulative results for \
-            skimmed data")
-    cum_parser.add_argument("--filelist", type=str, help="Comma separated list of \
-            files produces by the skim script")
-    cum_parser.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
-            text files containing input files (one input file per line).')
-    cum_parser.add_argument("--mc_file", type=str, required=True, help="A root file \
-            containing skimmed MC data")
-    cum_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
-            (output file name included)")
-    cum_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
-            for multithreading")
-    cum_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
-    cum_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help="Path to the histogram \
-            config file.")
-    cum_parser.add_argument("--groups_of", type=int, help="Produce cumulative results for \
-            groups containing given number of runs")
-    cum_parser.add_argument("--data_tag", type=str, help="data tag")
-    cum_parser.add_argument("--mc_tag", type=str, required=True, help="MC tag")
-
     # Skimming config
     skim_parser = subparsers.add_parser("skim", help="Perform skimming for\
             given list of input files")
@@ -230,9 +212,7 @@ if __name__ == "__main__":
     
     # One day when Python version >= 3.10.0
     # is used implement match here instead.
-    if command == "cumulative":
-        cumulative.run(args)
-    elif command == "find_json":
+    if command == "find_json":
         find_json.run(args)
     elif command == "find_newest":
         find_newest.run(args)
