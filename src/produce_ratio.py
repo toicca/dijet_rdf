@@ -3,6 +3,7 @@ from processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
+import time
 
 from find_range import find_run_range
 
@@ -15,7 +16,80 @@ hist_info = [
         ("HDM_probe_DataVsMC", "Probe_pt", "HDM_probe")
         ]
 
-def produce_ratio(rdf_numerator, rdf_denominator, hist_config, bins):
+def data_hists(rdf, hist_config, bins):
+    hd = {}
+    hd["int_lumi"] = rdf.Mean("int_lumi").GetValue()
+    min_run, max_run = find_run_range(rdf)
+    hd["min_run"] = min_run
+    hd["max_run"] = max_run
+    for hist in hist_config:
+        if hist.lower() == "default":
+            continue
+        name = hist_config[hist]["name"]
+        title = hist_config[hist]["title"]
+        if hist_config[hist]["type"] == "Histo1D":
+            x_bins = hist_config[hist]["x_bins"]
+            x_val = hist_config[hist]["x_val"]
+            hd[hist] = rdf.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                    x_val, "weight")
+        elif hist_config[hist]["type"] == "Profile1D":
+            x_bins = hist_config[hist]["x_bins"]
+            x_val = hist_config[hist]["x_val"]
+            y_val = hist_config[hist]["y_val"]
+            hd[hist] = rdf.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                    x_val, y_val, "weight")
+    return hd
+
+
+def produce_cumulative(hds, hm, hist_config, bins):
+    clumi = 0.0
+    lumi = 0.0
+    lumi_bins = []
+    for hd in hds:
+        lumi = hd["int_lumi"]
+        clumi += lumi
+        lumi_bins.append(clumi - 0.5*lumi)
+    lumi_bins.append(clumi + 0.5*lumi);
+
+    hs = {}
+    for hist in hist_config:
+        if hist.lower() == "default":
+            continue
+        name = hist_config[hist]["name"]
+        title = "MPF_tag;Cumulative luminosity (fb^{-1});<Data/MC>"
+
+        hs[hist] = ROOT.TProfile(f"{name}_cumulative", title, len(lumi_bins)-1, np.array(lumi_bins), 0, 2.0)
+
+    print("Filling cumulative histograms")
+    clumi = 0.0
+    start_cumulative = time.time()
+    for hd in hds:
+        int_lumi = hd["int_lumi"]
+        clumi += int_lumi
+        for hist in hist_config:
+            if hist.lower() == "default":
+                continue
+            print(f"Producing ratio for {hist}")
+            start_ratio = time.time()
+            hd[hist].Divide(hm[hist])
+            print(f"Finished producing ratio for {hist} in {time.time() - start_ratio} s")
+
+            x_bins = hist_config[hist]["x_bins"]
+            vals = []
+            for b in range(bins[x_bins]["n"]):
+                val = hd[hist].GetBinContent(b)
+                if val > 0.0:
+                    hs[hist].Fill(clumi, val)
+    print(f"Done filling cumulative histograms (took {time.time() - start_cumulative} s)")
+    hists = []
+    for hist in hist_config:
+        if hist.lower() == "default":
+            continue
+        hists.append(hs[hist])
+
+    return hists
+
+def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
     name = hist_config["name"]
     title = hist_config["title"]
     if hist_config["type"] == "Histo1D":
@@ -23,10 +97,8 @@ def produce_ratio(rdf_numerator, rdf_denominator, hist_config, bins):
         x_val = hist_config["x_val"]
         hn = rdf_numerator.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
                 x_val, "weight")
-        hd = rdf_denominator.Histo1D((f"{name}_denom", f"{title}_denom", bins[x_bins]["n"],
-            bins[x_bins]["bins"]), x_val, "weight")
         h_ratio = hn.ProjectionX().Clone(name)
-        h_ratio.Divide(hd.ProjectionX())
+        h_ratio.Divide(h_denominator)
         return h_ratio
     elif hist_config["type"] == "Profile1D":
         x_bins = hist_config["x_bins"]
@@ -34,11 +106,8 @@ def produce_ratio(rdf_numerator, rdf_denominator, hist_config, bins):
         y_val = hist_config["y_val"]
         hn = rdf_numerator.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
                 x_val, y_val, "weight")
-        hd = rdf_denominator.Profile1D((f"{name}_denom", f"{title}_denom", bins[x_bins]["n"], bins[x_bins]["bins"]),
-                x_val, y_val, "weight")
-        h_ratio = hn.ProjectionX().Clone(name)
-        h_ratio.Divide(hd.ProjectionX())
-        return h_ratio
+        hn.Divide(h_denominator)
+        return hn
     else:
         raise ValueError(f"Histogram type {hist_config['type']} not supported by produce_ratio. \
                 Supported types: Histo1D, Profile1D")
@@ -50,30 +119,82 @@ def run(args):
     if args.nThreads:
         ROOT.EnableImplicitMT(args.nThreads)
 
-    rdf_runs = ROOT.RDataFrame("Runs", args.data_file)
-    rdf_data = ROOT.RDataFrame("Events", args.data_file)
-    rdf_mc = ROOT.RDataFrame("Events", args.mc_file)
+    mc_files = [s.strip() for s in args.mc_files.split(",")]
+    chain_mc = ROOT.TChain("Events")
+    for file in mc_files:
+        chain_mc.Add(file)
+    rdf_mc = ROOT.RDataFrame(chain_mc)
+
     if args.progress_bar:
-        ROOT.RDF.Experimental.AddProgressBar(rdf_runs)
-        ROOT.RDF.Experimental.AddProgressBar(rdf_data)
         ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
 
-    
-
-    min_run, max_run = find_run_range(rdf_data)
-
-    if args.data_tag:
-        output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_{args.data_tag}_vs_{args.mc_tag}.root"
+    data_files = [s.strip() for s in args.data_files.split(",")]
+    if args.groups_of:
+        if args.groups_of > len(data_files):
+            groups = [data_files]
+        else:
+            n = args.groups_of
+            groups = [data_files[n*i:n*i+n] for i in range(int((len(data_files)+n-1)/n))]
     else:
-        output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_vs_{args.mc_tag}.root"
-   
-    hist_config = read_config_file(args.hist_config)
+        groups = [data_files]
+
     bins = get_bins()
-   
-    file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
+    hist_config = read_config_file(args.hist_config)
+
+    hm = {}
     for hist in hist_config:
         if hist.lower() == "default":
             continue
-        h = produce_ratio(rdf_data, rdf_mc, hist_config[hist], bins)
-        h.Write()
-    file_ratio.Close()
+        name = hist_config[hist]["name"]
+        title = hist_config[hist]["title"]
+        x_bins = hist_config[hist]["x_bins"]
+        x_val = hist_config[hist]["x_val"]
+        y_val = hist_config[hist]["y_val"]
+        h = rdf_mc.Profile1D((f"{name}_denom", f"{title}_denom", bins[x_bins]["n"], bins[x_bins]["bins"]),
+            x_val, y_val, "weight")
+        hm[hist] = h.ProjectionX()
+
+    for i, group in enumerate(groups):
+        chain_data = ROOT.TChain("Events")
+        chain_runs = ROOT.TChain("Runs")
+
+        hds = []
+        for j, file in enumerate(group):
+            chain_data.Add(file)
+            chain_runs.Add(file)
+            rdf = ROOT.RDataFrame("Events", file)
+            if args.cumulative_lumi:
+                hd = data_hists(rdf, hist_config, bins)
+                hds.append(hd)
+                print(f"{j+1}/{len(group)} data histograms created")
+
+        rdf_data = ROOT.RDataFrame(chain_data)
+        rdf_runs = ROOT.RDataFrame(chain_runs)
+
+        if args.progress_bar:
+            ROOT.RDF.Experimental.AddProgressBar(rdf_runs)
+            ROOT.RDF.Experimental.AddProgressBar(rdf_data)
+            ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
+
+        min_run, max_run = find_run_range(rdf_data)
+        print(f"Group run range: [{min_run}, {max_run}]")
+        if args.data_tag:
+            output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_{args.data_tag}_vs_{args.mc_tag}.root"
+        else:
+            output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_vs_{args.mc_tag}.root"
+
+        file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
+        if args.cumulative_lumi:
+            hs = produce_cumulative(hds, hm, hist_config, bins)
+            for h in hs:
+                h.Write()
+        else:
+            for hist in hist_config:
+                if hist.lower() == "default":
+                    continue
+                h = produce_ratio(rdf_data, hm[hist], hist_config[hist], bins)
+                h.Write()
+        file_ratio.Close()
+
+        if len(groups) > 1:
+            print(f"{i+1}/{len(groups)} groups processed")
