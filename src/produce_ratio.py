@@ -23,21 +23,31 @@ def data_hists(rdf, hist_config, bins):
     hd["min_run"] = min_run
     hd["max_run"] = max_run
     for hist in hist_config:
-        if hist.lower() == "default":
-            continue
         name = hist_config[hist]["name"]
         title = hist_config[hist]["title"]
         if hist_config[hist]["type"] == "Histo1D":
             x_bins = hist_config[hist]["x_bins"]
             x_val = hist_config[hist]["x_val"]
-            hd[hist] = rdf.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+            x_cut = hist_config[hist]["x_cut"]
+            if x_cut:
+                rdf_cut = rdf.Filter(f"{x_val} > {x_cut}")
+                hd[hist] = rdf_cut.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                        x_val, "weight")
+            else:
+                hd[hist] = rdf.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
                     x_val, "weight")
         elif hist_config[hist]["type"] == "Profile1D":
             x_bins = hist_config[hist]["x_bins"]
             x_val = hist_config[hist]["x_val"]
             y_val = hist_config[hist]["y_val"]
-            hd[hist] = rdf.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
-                    x_val, y_val, "weight")
+            x_cut = hist_config[hist].get("x_cut")
+            if x_cut:
+                rdf_cut = rdf.Filter(f"{x_val} > {x_cut}")
+                hd[hist] = rdf_cut.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                        x_val, y_val, "weight")
+            else:
+                hd[hist] = rdf.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                        x_val, y_val, "weight")
     return hd
 
 
@@ -53,12 +63,11 @@ def produce_cumulative(hds, hm, hist_config, bins):
 
     hs = {}
     for hist in hist_config:
-        if hist.lower() == "default":
-            continue
         name = hist_config[hist]["name"]
         title = "MPF_tag;Cumulative luminosity (fb^{-1});<Data/MC>"
 
-        hs[hist] = ROOT.TProfile(f"{name}_cumulative", title, len(lumi_bins)-1, np.array(lumi_bins), 0, 2.0)
+        hs[hist] = ROOT.TProfile(f"{name}_cumulative", title, len(lumi_bins)-1,
+                np.array(lumi_bins), 0, 2.0)
 
     print("Filling cumulative histograms")
     clumi = 0.0
@@ -67,8 +76,6 @@ def produce_cumulative(hds, hm, hist_config, bins):
         int_lumi = hd["int_lumi"]
         clumi += int_lumi
         for hist in hist_config:
-            if hist.lower() == "default":
-                continue
             print(f"Producing ratio for {hist}")
             start_ratio = time.time()
             hd[hist].Divide(hm[hist])
@@ -83,8 +90,6 @@ def produce_cumulative(hds, hm, hist_config, bins):
     print(f"Done filling cumulative histograms (took {time.time() - start_cumulative} s)")
     hists = []
     for hist in hist_config:
-        if hist.lower() == "default":
-            continue
         hists.append(hs[hist])
 
     return hists
@@ -139,12 +144,13 @@ def run(args):
         groups = [data_files]
 
     bins = get_bins()
-    hist_config = read_config_file(args.hist_config)
+    hist_config = dict(read_config_file(args.hist_config))
+    del hist_config["DEFAULT"]
 
     hm = {}
     for hist in hist_config:
-        if hist.lower() == "default":
-            continue
+        # Create MC histogram here early so it does not need to be
+        # generated multiple times in produce_cumulative
         name = hist_config[hist]["name"]
         title = hist_config[hist]["title"]
         x_bins = hist_config[hist]["x_bins"]
@@ -164,6 +170,8 @@ def run(args):
             chain_runs.Add(file)
             rdf = ROOT.RDataFrame("Events", file)
             if args.cumulative_lumi:
+                # Create data histograms here early so they do not need to be
+                # generated multiple times in produce_cumulative
                 hd = data_hists(rdf, hist_config, bins)
                 hds.append(hd)
                 print(f"{j+1}/{len(group)} data histograms created")
@@ -190,8 +198,6 @@ def run(args):
                 h.Write()
         else:
             for hist in hist_config:
-                if hist.lower() == "default":
-                    continue
                 h = produce_ratio(rdf_data, hm[hist], hist_config[hist], bins)
                 h.Write()
         file_ratio.Close()
