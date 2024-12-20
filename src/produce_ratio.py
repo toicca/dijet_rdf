@@ -28,7 +28,7 @@ def data_hists(rdf, hist_config, bins):
         if hist_config[hist]["type"] == "Histo1D":
             x_bins = hist_config[hist]["x_bins"]
             x_val = hist_config[hist]["x_val"]
-            x_cut = hist_config[hist]["x_cut"]
+            x_cut = hist_config[hist].get("x_cut")
             if x_cut:
                 rdf_cut = rdf.Filter(f"{x_val} > {x_cut}")
                 hd[hist] = rdf_cut.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
@@ -50,13 +50,35 @@ def data_hists(rdf, hist_config, bins):
                         x_val, y_val, "weight")
     return hd
 
+def lumi_data(rdf, hist_config):
+    ld = {}
+    ld["int_lumi"] = rdf.Mean("int_lumi")
+    min_run, max_run = find_run_range(rdf)
+    ld["min_run"] = min_run
+    ld["max_run"] = max_run
+    for hist in hist_config:
+        x_val = hist_config[hist]["x_val"]
+        y_val = hist_config[hist]["y_val"]
+        x_cut = hist_config[hist].get("x_cut")
+        if x_cut:
+            ld[hist] = rdf.Filter(f"{x_val} > {x_cut}").Stats(y_val, "weight")
+        else:
+            ld[hist] = rdf.Stats(y_val, "weight")
+    return ld
 
-def produce_cumulative(hds, hm, hist_config, bins):
+
+def produce_cumulative(lds, lm, hist_config, bins):
+    handles = [lm[hist] for hist in hist_config]
+    for ld in lds:
+        for hist in hist_config:
+            handles.append(ld[hist])
+    ROOT.RDF.RunGraphs(handles)
+
     clumi = 0.0
     lumi = 0.0
     lumi_bins = []
-    for hd in hds:
-        lumi = hd["int_lumi"]
+    for ld in lds:
+        lumi = ld["int_lumi"].GetValue()
         clumi += lumi
         lumi_bins.append(clumi - 0.5*lumi)
     lumi_bins.append(clumi + 0.5*lumi);
@@ -64,29 +86,28 @@ def produce_cumulative(hds, hm, hist_config, bins):
     hs = {}
     for hist in hist_config:
         name = hist_config[hist]["name"]
-        title = "MPF_tag;Cumulative luminosity (fb^{-1});<Data/MC>"
+        title = f"{hist};Cumulative luminosity (fb^{{-1}});<Data/MC>"
 
-        hs[hist] = ROOT.TProfile(f"{name}_cumulative", title, len(lumi_bins)-1,
-                np.array(lumi_bins), 0, 2.0)
+        hs[hist] = ROOT.TH1D(f"{name}_cumulative", title, len(lumi_bins)-1,
+                np.array(lumi_bins))
 
     print("Filling cumulative histograms")
     clumi = 0.0
     start_cumulative = time.time()
-    for hd in hds:
-        int_lumi = hd["int_lumi"]
+    for i, ld in enumerate(lds):
+        int_lumi = ld["int_lumi"].GetValue()
         clumi += int_lumi
         for hist in hist_config:
-            print(f"Producing ratio for {hist}")
             start_ratio = time.time()
-            hd[hist].Divide(hm[hist])
-            print(f"Finished producing ratio for {hist} in {time.time() - start_ratio} s")
+            md = ld[hist].GetValue().GetMean()
+            ed = ld[hist].GetValue().GetMeanErr()
+            mm = lm[hist].GetValue().GetMean()
+            em = lm[hist].GetValue().GetMeanErr()
 
-            x_bins = hist_config[hist]["x_bins"]
-            vals = []
-            for b in range(bins[x_bins]["n"]):
-                val = hd[hist].GetBinContent(b)
-                if val > 0.0:
-                    hs[hist].Fill(clumi, val)
+            ratio = md / mm
+            ratio_err = np.abs(ratio)*np.sqrt((ed/md)**2+(em/mm)**2)
+            hs[hist].SetBinContent(i+1, ratio)
+            hs[hist].SetBinError(i+1, ratio_err)
     print(f"Done filling cumulative histograms (took {time.time() - start_cumulative} s)")
     hists = []
     for hist in hist_config:
@@ -100,8 +121,13 @@ def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
     if hist_config["type"] == "Histo1D":
         x_bins = hist_config["x_bins"]
         x_val = hist_config["x_val"]
-        hn = rdf_numerator.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
-                x_val, "weight")
+        x_cut = hist_config.get("x_cut")
+        if x_cut:
+            hn = rdf_numerator.Filter(f"{x_val} > {x_cut}").Histo1D((name, title,
+                bins[x_bins]["n"], bins[x_bins]["bins"]), x_val, "weight")
+        else:
+            hn = rdf_numerator.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                    x_val, "weight")
         h_ratio = hn.ProjectionX().Clone(name)
         h_ratio.Divide(h_denominator)
         return h_ratio
@@ -109,8 +135,13 @@ def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
         x_bins = hist_config["x_bins"]
         x_val = hist_config["x_val"]
         y_val = hist_config["y_val"]
-        hn = rdf_numerator.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
-                x_val, y_val, "weight")
+        x_cut = hist_config.get("x_cut")
+        if x_cut:
+            hn = rdf_numerator.Filter(f"{x_val} > {x_cut}").Profile1D((name, title,
+                bins[x_bins]["n"], bins[x_bins]["bins"]), x_val, y_val, "weight")
+        else:
+            hn = rdf_numerator.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                    x_val, y_val, "weight")
         hn.Divide(h_denominator)
         return hn
     else:
@@ -160,11 +191,21 @@ def run(args):
             x_val, y_val, "weight")
         hm[hist] = h.ProjectionX()
 
+    lm = {}
+    for hist in hist_config:
+        x_val = hist_config[hist]["x_val"]
+        y_val = hist_config[hist]["y_val"]
+        x_cut = hist_config[hist].get("x_cut")
+        if x_cut:
+            lm[hist] = rdf_mc.Filter(f"{x_val} > {x_cut}").Stats(y_val, "weight")
+        else:
+            lm[hist] = rdf_mc.Stats(y_val, "weight")
+
     for i, group in enumerate(groups):
         chain_data = ROOT.TChain("Events")
         chain_runs = ROOT.TChain("Runs")
 
-        hds = []
+        lds = []
         for j, file in enumerate(group):
             chain_data.Add(file)
             chain_runs.Add(file)
@@ -172,9 +213,9 @@ def run(args):
             if args.cumulative_lumi:
                 # Create data histograms here early so they do not need to be
                 # generated multiple times in produce_cumulative
-                hd = data_hists(rdf, hist_config, bins)
-                hds.append(hd)
-                print(f"{j+1}/{len(group)} data histograms created")
+                ld = lumi_data(rdf, hist_config)
+                lds.append(ld)
+                print(f"{j+1}/{len(group)} lumi chunks recorded")
 
         rdf_data = ROOT.RDataFrame(chain_data)
         rdf_runs = ROOT.RDataFrame(chain_runs)
@@ -193,7 +234,7 @@ def run(args):
 
         file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
         if args.cumulative_lumi:
-            hs = produce_cumulative(hds, hm, hist_config, bins)
+            hs = produce_cumulative(lds, lm, hist_config, bins)
             for h in hs:
                 h.Write()
         else:
