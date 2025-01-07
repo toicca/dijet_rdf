@@ -19,9 +19,8 @@ hist_info = [
 def data_hists(rdf, hist_config, bins):
     hd = {}
     hd["int_lumi"] = rdf.Mean("int_lumi").GetValue()
-    min_run, max_run = find_run_range(rdf)
-    hd["min_run"] = min_run
-    hd["max_run"] = max_run
+    hd["min_run"] = rdf.Mean("min_run").GetValue()
+    hd["max_run"] = rdf.Mean("max_run").GetValue()
     for hist in hist_config:
         name = hist_config[hist]["name"]
         title = hist_config[hist]["title"]
@@ -53,9 +52,8 @@ def data_hists(rdf, hist_config, bins):
 def lumi_data(rdf, hist_config):
     ld = {}
     ld["int_lumi"] = rdf.Mean("int_lumi")
-    min_run, max_run = find_run_range(rdf)
-    ld["min_run"] = min_run
-    ld["max_run"] = max_run
+    ld["min_run"] = rdf.Mean("min_run")
+    ld["max_run"] = rdf.Mean("max_run")
     for hist in hist_config:
         x_val = hist_config[hist]["x_val"]
         y_val = hist_config[hist]["y_val"]
@@ -225,7 +223,8 @@ def run(args):
             ROOT.RDF.Experimental.AddProgressBar(rdf_data)
             ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
 
-        min_run, max_run = find_run_range(rdf_data)
+        min_run = int(rdf_data.Mean("min_run").GetValue())
+        max_run = int(rdf_data.Mean("max_run").GetValue())
         print(f"Group run range: [{min_run}, {max_run}]")
         if args.data_tag:
             output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_{args.data_tag}_vs_{args.mc_tag}.root"
