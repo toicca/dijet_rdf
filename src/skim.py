@@ -503,6 +503,9 @@ def run(args):
             "ncms", "delivered(/fb)", "recorded(/fb)"])
         int_lumi = np.sum(df["recorded(/fb)"].to_numpy())
         print(f"Running on {int_lumi} 1/fb integrated luminosity")
+
+        events_rdf = events_rdf.Define("min_run"m f"{run_range[0]}")
+        events_rdf = events_rdf.Define("max_run"m f"{run_range[1]}")
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
         output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}")
     elif args.mc_tag:
