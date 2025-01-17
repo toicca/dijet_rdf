@@ -459,7 +459,7 @@ def run(args):
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
     if args.golden_json:
-        event_rdf = do_cut_golden_json(events_rdf, args.golden_json)
+        events_rdf = do_cut_golden_json(events_rdf, args.golden_json)
 
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
