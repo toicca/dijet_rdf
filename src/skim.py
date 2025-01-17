@@ -188,7 +188,7 @@ def init_TnP(rdf, dataset):
             int idx1 = -1;
             int idx2 = -1;
             for (int i = 0; i < Muon_pt.size(); i++) {
-                if (abs(Muon_eta[i]) < 2.3 && Muon_pfRelIso03_all[i] < 0.15 &&
+                if (abs(Muon_eta[i]) < 2.4 && Muon_pfRelIso03_all[i] < 0.15 &&
                     Muon_tightId[i]) {
                     // Leading muon pt>20, subleading pt>10
                     if (idx1 == -1 && Muon_pt[i] > 20) {
