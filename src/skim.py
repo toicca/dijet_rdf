@@ -139,7 +139,7 @@ def init_TnP(rdf, dataset):
                     continue;
                 }
                 if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[idx1])) > 2.7 &&
-                    Jet_pt[i] / Jet_pt[idx1] < 1.1 && Jet_pt[i] / Jet_pt[idx1] > 0.9) {
+                    Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
                     idx2 = i;
                     break;
                 }
@@ -208,8 +208,7 @@ def init_TnP(rdf, dataset):
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             float Z_eta, float Z_phi) {
             for (int i = 0; i < Jet_pt.size(); i++) {
-                if (abs(Jet_eta[i]) < 2.5 && Jet_pt[i] > 12 &&
-                    Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Z_phi)) > 2.7) {
+                if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Z_phi)) > 2.7) {
                     return i;
                 }
             }
@@ -267,7 +266,7 @@ def init_TnP(rdf, dataset):
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             int Photon_jetIdx, float Photon_phi) {
             for (int i = 0; i < Jet_pt.size(); i++) {
-                if (abs(Jet_eta[i]) < 1.3 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4
+                if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4
                     && i != Photon_jetIdx &&
                     abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
                     return i;
@@ -300,8 +299,8 @@ def init_TnP(rdf, dataset):
         # Change Tag <-> Probe for multijet, since low pt jets better calibrated?
         recoil_filter = "abs(RecoilJet_eta)<2.5 && RecoilJet_pt>30"
         rdf = (rdf.Filter("nJet > 2", "nJet > 2")
-                .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5",
-                    "Leading jet pT > 30 and |eta| < 2.5")
+                .Filter("Jet_pt[0] > 30",
+                    "Leading jet pT > 30")
                 .Define("Probe_pt", "Jet_pt[0]")
                 .Define("Probe_eta", "Jet_eta[0]")
                 .Define("Probe_phi", "Jet_phi[0]")
