@@ -220,8 +220,8 @@ def init_TnP(rdf, dataset):
         std::pair<int, int> findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             float Z_eta, float Z_phi) {
-            idx1 = -1;
-            idx2 = -1;
+            int idx1 = -1;
+            int idx2 = -1;
             
             // Find the probe jet
             for (int i = 0; i < Jet_pt.size(); i++) {
