@@ -122,7 +122,7 @@ def init_TnP(rdf, dataset):
         #ifndef DIJET_IDXS
         #define DIJET_IDXS
                                   
-        std::pair<int, int> findTagProbeIdxs(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
+        std::pair<std::pair<int, int>, int> findTagProbeIdxs(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId) {
             int idx1 = -1;
             int idx2 = -1;
@@ -148,6 +148,15 @@ def init_TnP(rdf, dataset):
                 }
             }
 
+            // Find the activity jet
+            int idx3 = -1;
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (i != idx1 && i != idx2 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
+                    idx3 = i;
+                    break;
+                }
+            }
+
             // If probe also in barrel, randomize the indices
             if (idx2 != -1 && abs(Jet_eta[idx2]) < 1.3 && idx1 != -1) {
                 bool swap = (int(Jet_phi[idx1] * 100) % 2) == 0; // Jets are ~uniform in phi, \
@@ -157,22 +166,23 @@ def init_TnP(rdf, dataset):
                 }
             }
 
-            return std::make_pair(idx1, idx2);
+            return std::make_pair(std::make_pair(idx1, idx2), idx3);
         }
                                   
         #endif
         """)
 
         rdf = (rdf.Define("TnP_idx_temp", "findTagProbeIdxs(Jet_eta, Jet_pt, Jet_phi, Jet_jetId)")
-                .Filter("TnP_idx_temp.first >= 0 && TnP_idx_temp.second >= 0",
+                .Filter("TnP_idx_temp.first.first >= 0 && TnP_idx_temp.first.second >= 0",
                     "Tag and probe found")
-                .Define("Tag_idx_temp", "TnP_idx_temp.first")
-                .Define("Probe_idx_temp", "TnP_idx_temp.second")
+                .Define("Tag_idx_temp", "TnP_idx_temp.first.first")
+                .Define("Probe_idx_temp", "TnP_idx_temp.first.second")
                 .Define("Tag_pt", "Jet_pt[Tag_idx_temp]")
                 .Define("Tag_eta", "Jet_eta[Tag_idx_temp]")
                 .Define("Tag_phi", "Jet_phi[Tag_idx_temp]")
                 .Define("Tag_mass", "Jet_mass[Tag_idx_temp]")
                 .Define("Tag_label", "0")
+                .Define("Activity_idx_temp", "TnP_idx_temp.second")
         )
 
         # Create a probe jet collection
@@ -207,16 +217,31 @@ def init_TnP(rdf, dataset):
             return std::make_pair(idx1, idx2);
         }
 
-        int findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
+        std::pair<int, int> findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             float Z_eta, float Z_phi) {
+            int idx1 = -1;
+            int idx2 = -1;
+            
+            // Find the probe jet
             for (int i = 0; i < Jet_pt.size(); i++) {
                 if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Z_phi)) > 2.7) {
-                    return i;
+                    if (idx1 == -1) {
+                        idx1 = i;
+                        break;
+                    }
+                }
+            }
+
+            // Find the activity jet
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (i != idx1 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
+                    idx2 = i;
+                    break;
                 }
             }
                                   
-            return -1;
+            return std::make_pair(idx1, idx2);
         }
                                   
         #endif
@@ -237,8 +262,10 @@ def init_TnP(rdf, dataset):
                 .Define("Tag_phi", "static_cast<float>(Z_4vec_temp.Phi())")
                 .Define("Tag_mass", "static_cast<float>(Z_4vec_temp.M())")
                 .Define("Tag_label", "1")
-                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
+                .Define("Jet_indices_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
                         Tag_eta, Tag_phi)")
+                .Define("Probe_idx_temp", "Jet_indices_temp.first")
+                .Define("Activity_idx_temp", "Jet_indices_temp.second")
                 .Filter("Probe_idx_temp >= 0", "Jet found")
                 .Filter("Tag_pt > 12", "Z pT > 12")
                 .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
@@ -265,18 +292,31 @@ def init_TnP(rdf, dataset):
             return -1;
         }
                                   
-        int findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
+        std::pair<int, int> findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             int Photon_jetIdx, float Photon_phi) {
+            int idx1 = -1;
+            int idx2 = -1;
+                                  
+            // Find the probe jet
             for (int i = 0; i < Jet_pt.size(); i++) {
                 if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4
                     && i != Photon_jetIdx &&
                     abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
-                    return i;
+                    idx1 = i;
+                    break;
+                }
+            }
+
+            // Find the activity jet
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (i != idx1 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
+                    idx2 = i;
+                    break;
                 }
             }
                                   
-            return -1;
+            return std::make_pair(idx1, idx2);
         }
                                   
         #endif
@@ -285,8 +325,10 @@ def init_TnP(rdf, dataset):
         rdf = (rdf.Define("Tag_idx_temp", "findPhotonIdx(Photon_eta, Photon_pt, Photon_cutBased, \
                 Photon_hoe, Photon_r9)")
                 .Filter("Tag_idx_temp >= 0", "Photon found")
-                .Define("Probe_idx_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
+                .Define("Jet_indices_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
                         Photon_jetIdx[Tag_idx_temp], Photon_phi[Tag_idx_temp])")
+                .Define("Probe_idx_temp", "Jet_indices_temp.first")
+                .Define("Activity_idx_temp", "Jet_indices_temp.second")
                 .Filter("Probe_idx_temp >= 0", "Jet found")
                 .Define("Tag_pt", f"Photon_pt[Tag_idx_temp]")
                 .Define("Tag_eta", f"Photon_eta[Tag_idx_temp]")
@@ -334,6 +376,7 @@ def init_TnP(rdf, dataset):
                     "float(TagMJ_fourVec_temp.Phi())")
                 .Redefine("Tag_mass",
                     "float(TagMJ_fourVec_temp.M())")
+                .Define("Activity_idx_temp", "-1") # No activity jet for multijet
         )
 
         for column in jet_columns:
@@ -343,6 +386,7 @@ def init_TnP(rdf, dataset):
             rdf = rdf.Define("Probe_"+column[4:], f"0.0")
 
     rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
+    rdf = rdf.Filter("Activity_idx_temp >= 0 ? Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5) < 1.0 : 1", "Activity jet pT fraction < 1.0")
 
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
@@ -549,7 +593,6 @@ def run(args):
     # Remove the Jet_ and _temp columns
     if args.defined_columns:
         pass
-
 
     # Keep only the columns that are needed
     columns = [str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Probe_") or str(col).startswith("Tag_") \
