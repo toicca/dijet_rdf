@@ -107,7 +107,6 @@ bool isGoodLumi(int run, int lumi) {
     print("Applying golden JSON cut")
     print(f"JSON file: {golden_json}")
     rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "Golden JSON"))
-    rdf.Report().Print()
     return rdf
 
 def init_TnP(rdf, dataset):
