@@ -471,6 +471,12 @@ def run(args):
 
 
     # Filter based on triggers and one jet
+    # Check that the triggers are in the file
+    cols = events_rdf.GetColumnNames()
+    for trigger in triggers:
+        if trigger not in cols:
+            print(f"Trigger {trigger} not in the file") 
+            events_rdf = events_rdf.Define(trigger, "0")
     if len(triggers) == 0:
         trg_filter = "1"
     else:
