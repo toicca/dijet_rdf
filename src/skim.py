@@ -65,7 +65,11 @@ weight_info = {
 jet_columns = [
     "Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass", "Jet_jetId",
     "Jet_area", "Jet_nConstituents", "Jet_nElectrons", "Jet_nMuons",
-    "Jet_chEmEF", "Jet_neEmEF", "Jet_chHEF", "Jet_neHEF",
+    "Jet_chEmEF", "Jet_chHEF",
+    "Jet_neEmEF", "Jet_neHEF",
+    "Jet_hfEMEF", "Jet_hfHEF",
+    "Jet_muEF",
+    "Jet_neMultiplicity", "Jet_chMultiplicity",
     "Jet_rawFactor"
 ]
 
@@ -133,7 +137,6 @@ def init_TnP(rdf, dataset):
 
             // Find the probe jet as:
             // leading jet back-to-back with the tag jet
-            // and with pT ratio between 0.9 and 1.1 <- bias in DB measurement
             for (int i = 0; i < Jet_pt.size(); i++) {
                 if (i == idx1 || Jet_pt[i] < 15) {
                     continue;
@@ -339,6 +342,8 @@ def init_TnP(rdf, dataset):
             # For multijet change Probe columns to be zero, as probe is not a jet
             rdf = rdf.Define("Probe_"+column[4:], f"0.0")
 
+    rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
+
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
             .Define("Probe_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Probe_pt, Probe_eta, \
@@ -395,6 +400,17 @@ def do_JEC(rdf):
                 "(DB_direct + MPF_probe - 1.0 + R_un_reco_probe_temp - R_un_gen_probe_temp) / \
                         (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
            )
+
+    # Energy Fraction balance
+    rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmHEF) / Tag_pt")
+        .Define("EFB_chHEF", "(Probe_rawPt * Probe_chHEF) / Tag_pt")
+        .Define("EFB_hfEmEF", "(Probe_rawPt * Probe_hfEmEF) / Tag_pt")
+        .Define("EFB_hfHEF", "(Probe_rawPt * Probe_hfHEF) / Tag_pt")
+        .Define("EFB_muEF", "(Probe_rawPt * Probe_muEF) / Tag_pt")
+        .Define("EFB_neEmEF", "(Probe_rawPt * Probe_neEmEF) / Tag_pt")
+        .Define("EFB_neHEF", "(Probe_rawPt * Probe_neHEF) / Tag_pt")
+    )
+
 
     return rdf
 
