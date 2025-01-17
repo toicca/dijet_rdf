@@ -292,7 +292,7 @@ def init_TnP(rdf, dataset):
             return -1;
         }
                                   
-        std::make_pair<int, int> findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
+        std::pair<int, int> findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             int Photon_jetIdx, float Photon_phi) {
             int idx1 = -1;
