@@ -1,0 +1,8 @@
+HLT_Photon20_HoverELoose
+HLT_Photon30EB_TightID_TightIso
+HLT_Photon50EB_TightID_TightIso
+HLT_Photon55EB_TightID_TightIso
+HLT_Photon75EB_TightID_TightIso
+HLT_Photon90EB_TightID_TightIso
+HLT_Photon110EB_TightID_TightIso 
+HLT_Photon200

@@ -7,6 +7,7 @@ import ctypes
 import numpy as np
 import pandas as pd
 import time
+from typing import List
 
 from processing_utils import file_read_lines, find_site
 
@@ -64,13 +65,20 @@ weight_info = {
 jet_columns = [
     "Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass", "Jet_jetId",
     "Jet_area", "Jet_nConstituents", "Jet_nElectrons", "Jet_nMuons",
-    "Jet_chEmEF", "Jet_neEmEF", "Jet_chHEF", "Jet_neHEF",
+    "Jet_chEmEF", "Jet_chHEF",
+    "Jet_neEmEF", "Jet_neHEF",
+    "Jet_hfEmEF", "Jet_hfHEF",
+    "Jet_muEF",
+    "Jet_neMultiplicity", "Jet_chMultiplicity",
     "Jet_rawFactor"
 ]
 
 def do_cut_golden_json(rdf, golden_json):
     ROOT.gInterpreter.Declare(
 """
+#ifndef GOLDEN_JSON
+#define GOLDEN_JSON
+
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -95,13 +103,14 @@ bool isGoodLumi(int run, int lumi) {
 
     return false;
 }
+
+#endif
 """
     )
     ROOT.init_json(golden_json)
     print("Applying golden JSON cut")
     print(f"JSON file: {golden_json}")
     rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "Golden JSON"))
-    rdf.Report().Print()
     return rdf
 
 def init_TnP(rdf, dataset):
@@ -128,13 +137,12 @@ def init_TnP(rdf, dataset):
 
             // Find the probe jet as:
             // leading jet back-to-back with the tag jet
-            // and with pT ratio between 0.9 and 1.1 <- bias in DB measurement
             for (int i = 0; i < Jet_pt.size(); i++) {
                 if (i == idx1 || Jet_pt[i] < 15) {
                     continue;
                 }
                 if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[idx1])) > 2.7 &&
-                    Jet_pt[i] / Jet_pt[idx1] < 1.1 && Jet_pt[i] / Jet_pt[idx1] > 0.9) {
+                    Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
                     idx2 = i;
                     break;
                 }
@@ -183,7 +191,7 @@ def init_TnP(rdf, dataset):
             int idx1 = -1;
             int idx2 = -1;
             for (int i = 0; i < Muon_pt.size(); i++) {
-                if (abs(Muon_eta[i]) < 2.3 && Muon_pfRelIso03_all[i] < 0.15 &&
+                if (abs(Muon_eta[i]) < 2.4 && Muon_pfRelIso03_all[i] < 0.15 &&
                     Muon_tightId[i]) {
                     // Leading muon pt>20, subleading pt>10
                     if (idx1 == -1 && Muon_pt[i] > 20) {
@@ -203,8 +211,7 @@ def init_TnP(rdf, dataset):
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             float Z_eta, float Z_phi) {
             for (int i = 0; i < Jet_pt.size(); i++) {
-                if (abs(Jet_eta[i]) < 2.5 && Jet_pt[i] > 12 &&
-                    Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Z_phi)) > 2.7) {
+                if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Z_phi)) > 2.7) {
                     return i;
                 }
             }
@@ -262,7 +269,7 @@ def init_TnP(rdf, dataset):
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
                             int Photon_jetIdx, float Photon_phi) {
             for (int i = 0; i < Jet_pt.size(); i++) {
-                if (abs(Jet_eta[i]) < 1.3 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4
+                if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4
                     && i != Photon_jetIdx &&
                     abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
                     return i;
@@ -295,8 +302,8 @@ def init_TnP(rdf, dataset):
         # Change Tag <-> Probe for multijet, since low pt jets better calibrated?
         recoil_filter = "abs(RecoilJet_eta)<2.5 && RecoilJet_pt>30"
         rdf = (rdf.Filter("nJet > 2", "nJet > 2")
-                .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5",
-                    "Leading jet pT > 30 and |eta| < 2.5")
+                .Filter("Jet_pt[0] > 30",
+                    "Leading jet pT > 30")
                 .Define("Probe_pt", "Jet_pt[0]")
                 .Define("Probe_eta", "Jet_eta[0]")
                 .Define("Probe_phi", "Jet_phi[0]")
@@ -334,6 +341,8 @@ def init_TnP(rdf, dataset):
                 continue
             # For multijet change Probe columns to be zero, as probe is not a jet
             rdf = rdf.Define("Probe_"+column[4:], f"0.0")
+
+    rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
 
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
@@ -391,6 +400,16 @@ def do_JEC(rdf):
                 "(DB_direct + MPF_probe - 1.0 + R_un_reco_probe_temp - R_un_gen_probe_temp) / \
                         (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
            )
+
+    # Energy Fraction balance
+    rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmEF) / Tag_pt")
+        .Define("EFB_chHEF", "(Probe_rawPt * Probe_chHEF) / Tag_pt")
+        .Define("EFB_hfEmEF", "(Probe_rawPt * Probe_hfEmEF) / Tag_pt")
+        .Define("EFB_hfHEF", "(Probe_rawPt * Probe_hfHEF) / Tag_pt")
+        .Define("EFB_muEF", "(Probe_rawPt * Probe_muEF) / Tag_pt")
+        .Define("EFB_neEmEF", "(Probe_rawPt * Probe_neEmEF) / Tag_pt")
+        .Define("EFB_neHEF", "(Probe_rawPt * Probe_neHEF) / Tag_pt")
+    )
 
     return rdf
 
@@ -454,7 +473,7 @@ def run(args):
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
     if args.golden_json:
-        event_rdf = do_cut_golden_json(events_rdf, args.golden_json)
+        events_rdf = do_cut_golden_json(events_rdf, args.golden_json)
 
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
@@ -466,6 +485,13 @@ def run(args):
 
 
     # Filter based on triggers and one jet
+    # Check that the triggers are in the file
+    cols = events_rdf.GetColumnNames()
+    for trigger in triggers:
+        if trigger not in cols and "&&" not in trigger:
+            print(f"Trigger {trigger} not in the file") 
+            events_rdf = events_rdf.Define(trigger, "0")
+
     if len(triggers) == 0:
         trg_filter = "1"
     else:
@@ -510,24 +536,28 @@ def run(args):
         output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}")
     elif args.mc_tag:
         output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}")
+        events_rdf = events_rdf.Define("min_run", "0")
+        events_rdf = events_rdf.Define("max_run", "1")
+        events_rdf = events_rdf.Define("int_lumi", "1.")
     else:
         output_path = os.path.join(args.out, f"J4PSkim_{args.dataset}")
+        events_rdf = events_rdf.Define("min_run", "0")
+        events_rdf = events_rdf.Define("max_run", "1")
+        events_rdf = events_rdf.Define("int_lumi", "1.")
 
 
     # Remove the Jet_ and _temp columns
-    print("Removing unnecessary columns")
     if args.defined_columns:
-        columns = events_rdf.GetDefinedColumnNames()
-    else:
-        columns = events_rdf.GetColumnNames()
+        pass
 
-    # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
-    # obtained from failed HTCondor jobs operating on EGamma(0|1) datasets. Some of the files
-    # in these datasets seem to be missing said branches.
-    columns = [str(col) for col in columns \
-                    if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
-                    and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
-                    and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
+
+    # Keep only the columns that are needed
+    columns = [str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Probe_") or str(col).startswith("Tag_") \
+               or "DB_" in str(col) or "MPF_" in str(col) or "HDM_" in str(col) or "EFB_" in str(col)) and not str(col).endswith("_temp")]
+
+    columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
+    columns.extend([trig for trig in triggers if trig in events_rdf.GetColumnNames()])
+
 
     print(f"Writing output for {output_path}.root")
     start = time.time()
