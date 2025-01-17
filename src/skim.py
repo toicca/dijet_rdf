@@ -67,7 +67,7 @@ jet_columns = [
     "Jet_area", "Jet_nConstituents", "Jet_nElectrons", "Jet_nMuons",
     "Jet_chEmEF", "Jet_chHEF",
     "Jet_neEmEF", "Jet_neHEF",
-    "Jet_hfEMEF", "Jet_hfHEF",
+    "Jet_hfEmEF", "Jet_hfHEF",
     "Jet_muEF",
     "Jet_neMultiplicity", "Jet_chMultiplicity",
     "Jet_rawFactor"
@@ -402,7 +402,7 @@ def do_JEC(rdf):
            )
 
     # Energy Fraction balance
-    rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmHEF) / Tag_pt")
+    rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmEF) / Tag_pt")
         .Define("EFB_chHEF", "(Probe_rawPt * Probe_chHEF) / Tag_pt")
         .Define("EFB_hfEmEF", "(Probe_rawPt * Probe_hfEmEF) / Tag_pt")
         .Define("EFB_hfHEF", "(Probe_rawPt * Probe_hfHEF) / Tag_pt")
@@ -410,7 +410,6 @@ def do_JEC(rdf):
         .Define("EFB_neEmEF", "(Probe_rawPt * Probe_neEmEF) / Tag_pt")
         .Define("EFB_neHEF", "(Probe_rawPt * Probe_neHEF) / Tag_pt")
     )
-
 
     return rdf
 
@@ -537,24 +536,28 @@ def run(args):
         output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}")
     elif args.mc_tag:
         output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}")
+        events_rdf = events_rdf.Define("min_run", "0")
+        events_rdf = events_rdf.Define("max_run", "1")
+        events_rdf = events_rdf.Define("int_lumi", "1.")
     else:
         output_path = os.path.join(args.out, f"J4PSkim_{args.dataset}")
+        events_rdf = events_rdf.Define("min_run", "0")
+        events_rdf = events_rdf.Define("max_run", "1")
+        events_rdf = events_rdf.Define("int_lumi", "1.")
 
 
     # Remove the Jet_ and _temp columns
-    print("Removing unnecessary columns")
     if args.defined_columns:
-        columns = events_rdf.GetDefinedColumnNames()
-    else:
-        columns = events_rdf.GetColumnNames()
+        pass
 
-    # Filtering of branches L1_*, Electron_* and *_mvaTTH is based on information
-    # obtained from failed HTCondor jobs operating on EGamma(0|1) datasets. Some of the files
-    # in these datasets seem to be missing said branches.
-    columns = [str(col) for col in columns \
-                    if not str(col).startswith("Jet_") and not str(col).endswith("_temp") \
-                    and not str(col).startswith("L1_") and not str(col).startswith("Electron_") \
-                    and not str(col).endswith("_mvaTTH") and not "test" in str(col).lower()]
+
+    # Keep only the columns that are needed
+    columns = [str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Probe_") or str(col).startswith("Tag_") \
+               or "DB_" in str(col) or "MPF_" in str(col) or "HDM_" in str(col) or "EFB_" in str(col)) and not str(col).endswith("_temp")]
+
+    columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
+    columns.extend([trig for trig in triggers if trig in events_rdf.GetColumnNames()])
+
 
     print(f"Writing output for {output_path}.root")
     start = time.time()
