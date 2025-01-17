@@ -71,6 +71,9 @@ jet_columns = [
 def do_cut_golden_json(rdf, golden_json):
     ROOT.gInterpreter.Declare(
 """
+#ifndef GOLDEN_JSON
+#define GOLDEN_JSON
+
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -95,6 +98,8 @@ bool isGoodLumi(int run, int lumi) {
 
     return false;
 }
+
+#endif
 """
     )
     ROOT.init_json(golden_json)
