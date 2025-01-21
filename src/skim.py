@@ -198,6 +198,7 @@ def init_TnP(rdf, dataset):
                 .Define("Tag_eta", "Jet_eta[Tag_idx_temp]")
                 .Define("Tag_phi", "Jet_phi[Tag_idx_temp]")
                 .Define("Tag_mass", "Jet_mass[Tag_idx_temp]")
+                .Define("Tag_rawPt", "(1.0 - Jet_rawFactor[Tag_idx_temp]) * Tag_pt")
                 .Define("Tag_label", "0")
                 .Define("Activity_idx_temp", "TnP_idx_temp.second")
         )
@@ -275,6 +276,7 @@ def init_TnP(rdf, dataset):
                             Muon_eta[Muon_idx_temp.second], Muon_phi[Muon_idx_temp.second], \
                             Muon_mass[Muon_idx_temp.second])")
                 .Define("Tag_pt", "static_cast<float>(Z_4vec_temp.Pt())")
+                .Define("Tag_rawPt", "Tag_pt")
                 .Define("Tag_eta", "static_cast<float>(Z_4vec_temp.Eta())")
                 .Define("Tag_phi", "static_cast<float>(Z_4vec_temp.Phi())")
                 .Define("Tag_mass", "static_cast<float>(Z_4vec_temp.M())")
@@ -348,6 +350,7 @@ def init_TnP(rdf, dataset):
                 .Define("Activity_idx_temp", "Jet_indices_temp.second")
                 .Filter("Probe_idx_temp >= 0", "Jet found")
                 .Define("Tag_pt", f"Photon_pt[Tag_idx_temp]")
+                .Define("Tag_rawPt", "Tag_pt")
                 .Define("Tag_eta", f"Photon_eta[Tag_idx_temp]")
                 .Define("Tag_phi", f"Photon_phi[Tag_idx_temp]")
                 .Define("Tag_mass", "0.0")
@@ -376,6 +379,7 @@ def init_TnP(rdf, dataset):
                 .Define("RecoilJet_phi", f"ROOT::VecOps::Take(Jet_phi, RecoilJet_ids)")
                 .Define("RecoilJet_mass", f"ROOT::VecOps::Take(Jet_mass, RecoilJet_ids)")
                 .Define("Tag_pt", f"RecoilJet_pt[{recoil_filter}]")
+                .Define("Tag_rawPt", "0.0") # TODO
                 .Define("Tag_eta", f"RecoilJet_eta[{recoil_filter}]")
                 .Define("Tag_phi", f"RecoilJet_phi[{recoil_filter}]")
                 .Define("Tag_mass", f"RecoilJet_mass[{recoil_filter}]")
@@ -444,6 +448,7 @@ def do_JEC(rdf):
     rdf = (rdf.Define("DB_direct",
         "-1.0 * Tag_polarVec_temp.Dot(Probe_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("DB_ratio", "Probe_pt / Tag_pt")
+            .Define("DB_raw_ratio" "Probe_rawPt / Tag_rawPt")
             .Define("MPF_tag",
                 "1.0 + PuppiMET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("MPF_probe",
@@ -613,7 +618,8 @@ def run(args):
 
     # Keep only the columns that are needed
     columns = [str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Probe_") or str(col).startswith("Tag_") \
-               or "DB_" in str(col) or "MPF_" in str(col) or "HDM_" in str(col) or "EFB_" in str(col)) and not str(col).endswith("_temp")]
+                   or str(col).startswith("Rho_") or str(col).startswith("PV_") or str(col).startswith("RawPFMET") or str(col).startswith("RawPuppiMET") \
+                   or "DB_" in str(col) or "MPF_" in str(col) or "HDM_" in str(col) or "EFB_" in str(col)) and not str(col).endswith("_temp")]
 
     columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
     columns.extend([trig for trig in triggers if trig in events_rdf.GetColumnNames()])
