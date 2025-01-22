@@ -454,7 +454,7 @@ def do_JEC(rdf):
             .Define("DB_raw_direct",
                 "-1.0 * Tag_raw_polarVec_temp.Dot(Probe_raw_polarVec_temp) / (Tag_rawPt * Tag_rawPt)")
             .Define("DB_ratio", "Probe_pt / Tag_pt")
-            .Define("DB_raw_ratio" "Probe_rawPt / Tag_rawPt")
+            .Define("DB_raw_ratio", "Probe_rawPt / Tag_rawPt")
             .Define("MPF_tag",
                 "1.0 + PuppiMET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("MPF_raw_tag",
