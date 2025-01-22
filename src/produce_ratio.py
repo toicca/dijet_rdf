@@ -7,30 +7,20 @@ import time
 
 from find_range import find_run_range
 
-hist_info = [
-        ("DB_direct_DataVsMC", "Tag_pt", "DB_direct"),
-        ("DB_ratio_DataVsMC", "Tag_pt", "DB_ratio"),
-        ("MPF_tag_DataVSMC", "Tag_pt", "MPF_tag"),
-        ("MPF_probe_DataVsMC", "Probe_pt", "MPF_probe"),
-        ("HDM_tag_DataVsMC", "Tag_pt", "HDM_tag"),
-        ("HDM_probe_DataVsMC", "Probe_pt", "HDM_probe")
-        ]
-
 def data_hists(rdf, hist_config, bins):
     hd = {}
     hd["int_lumi"] = rdf.Mean("int_lumi").GetValue()
-    hd["min_run"] = rdf.Mean("min_run").GetValue()
-    hd["max_run"] = rdf.Mean("max_run").GetValue()
+    hd["min_run"] = rdf.Min("min_run").GetValue()
+    hd["max_run"] = rdf.Max("max_run").GetValue()
     for hist in hist_config:
         name = hist_config[hist]["name"]
         title = hist_config[hist]["title"]
         if hist_config[hist]["type"] == "Histo1D":
             x_bins = hist_config[hist]["x_bins"]
             x_val = hist_config[hist]["x_val"]
-            x_cut = hist_config[hist].get("x_cut")
-            if x_cut:
-                rdf_cut = rdf.Filter(f"{x_val} > {x_cut}")
-                hd[hist] = rdf_cut.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+            cut = hist_config[hist].get("cut")
+            if cut:
+                hd[hist] = rdf.Filter(cut).Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
                         x_val, "weight")
             else:
                 hd[hist] = rdf.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
@@ -39,10 +29,9 @@ def data_hists(rdf, hist_config, bins):
             x_bins = hist_config[hist]["x_bins"]
             x_val = hist_config[hist]["x_val"]
             y_val = hist_config[hist]["y_val"]
-            x_cut = hist_config[hist].get("x_cut")
-            if x_cut:
-                rdf_cut = rdf.Filter(f"{x_val} > {x_cut}")
-                hd[hist] = rdf_cut.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+            cut = hist_config[hist].get("cut")
+            if cut:
+                hd[hist] = rdf.Filter(cut).Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
                         x_val, y_val, "weight")
             else:
                 hd[hist] = rdf.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
@@ -52,14 +41,14 @@ def data_hists(rdf, hist_config, bins):
 def lumi_data(rdf, hist_config):
     ld = {}
     ld["int_lumi"] = rdf.Mean("int_lumi")
-    ld["min_run"] = rdf.Mean("min_run")
-    ld["max_run"] = rdf.Mean("max_run")
+    ld["min_run"] = rdf.Min("min_run")
+    ld["max_run"] = rdf.Max("max_run")
     for hist in hist_config:
         x_val = hist_config[hist]["x_val"]
         y_val = hist_config[hist]["y_val"]
-        x_cut = hist_config[hist].get("x_cut")
-        if x_cut:
-            ld[hist] = rdf.Filter(f"{x_val} > {x_cut}").Stats(y_val, "weight")
+        cut = hist_config[hist].get("cut")
+        if cut:
+            ld[hist] = rdf.Filter(cut).Stats(y_val, "weight")
         else:
             ld[hist] = rdf.Stats(y_val, "weight")
     return ld
@@ -74,14 +63,15 @@ def produce_cumulative(lds, lm, hist_config, bins):
 
     clumi = 0.0
     lumi = 0.0
-    lumi_bins = []
+    lumi_bins = [0.0]
     for ld in lds:
         lumi = ld["int_lumi"].GetValue()
         clumi += lumi
-        lumi_bins.append(clumi - 0.5*lumi)
-    lumi_bins.append(clumi + 0.5*lumi);
+        lumi_bins.append(clumi)
 
     hs = {}
+    hs["min_runs"] = ROOT.TH1D(f"min_runs", "min_runs", len(lumi_bins)-1, np.array(lumi_bins))
+    hs["max_runs"] = ROOT.TH1D(f"max_runs", "max_runs", len(lumi_bins)-1, np.array(lumi_bins))
     for hist in hist_config:
         name = hist_config[hist]["name"]
         title = f"{hist};Cumulative luminosity (fb^{{-1}});<Data/MC>"
@@ -90,11 +80,14 @@ def produce_cumulative(lds, lm, hist_config, bins):
                 np.array(lumi_bins))
 
     print("Filling cumulative histograms")
-    clumi = 0.0
     start_cumulative = time.time()
     for i, ld in enumerate(lds):
         int_lumi = ld["int_lumi"].GetValue()
-        clumi += int_lumi
+        min_run = ld["min_run"].GetValue()
+        max_run = ld["max_run"].GetValue()
+
+        hs["min_runs"].SetBinContent(i+1, min_run)
+        hs["max_runs"].SetBinContent(i+1, max_run)
         for hist in hist_config:
             start_ratio = time.time()
             md = ld[hist].GetValue().GetMean()
@@ -102,12 +95,13 @@ def produce_cumulative(lds, lm, hist_config, bins):
             mm = lm[hist].GetValue().GetMean()
             em = lm[hist].GetValue().GetMeanErr()
 
-            ratio = md / mm
-            ratio_err = np.abs(ratio)*np.sqrt((ed/md)**2+(em/mm)**2)
-            hs[hist].SetBinContent(i+1, ratio)
-            hs[hist].SetBinError(i+1, ratio_err)
+            if mm > 0.0 and md > 0.0:
+                ratio = md / mm
+                ratio_err = np.abs(ratio)*np.sqrt((ed/md)**2+(em/mm)**2)
+                hs[hist].SetBinContent(i+1, ratio)
+                hs[hist].SetBinError(i+1, ratio_err)
     print(f"Done filling cumulative histograms (took {time.time() - start_cumulative} s)")
-    hists = []
+    hists = [hs["min_runs"], hs["max_runs"]]
     for hist in hist_config:
         hists.append(hs[hist])
 
@@ -119,9 +113,9 @@ def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
     if hist_config["type"] == "Histo1D":
         x_bins = hist_config["x_bins"]
         x_val = hist_config["x_val"]
-        x_cut = hist_config.get("x_cut")
-        if x_cut:
-            hn = rdf_numerator.Filter(f"{x_val} > {x_cut}").Histo1D((name, title,
+        cut = hist_config.get("cut")
+        if cut:
+            hn = rdf_numerator.Filter(cut).Histo1D((name, title,
                 bins[x_bins]["n"], bins[x_bins]["bins"]), x_val, "weight")
         else:
             hn = rdf_numerator.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
@@ -133,9 +127,9 @@ def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
         x_bins = hist_config["x_bins"]
         x_val = hist_config["x_val"]
         y_val = hist_config["y_val"]
-        x_cut = hist_config.get("x_cut")
-        if x_cut:
-            hn = rdf_numerator.Filter(f"{x_val} > {x_cut}").Profile1D((name, title,
+        cut = hist_config.get("cut")
+        if cut:
+            hn = rdf_numerator.Filter(cut).Profile1D((name, title,
                 bins[x_bins]["n"], bins[x_bins]["bins"]), x_val, y_val, "weight")
         else:
             hn = rdf_numerator.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
@@ -149,6 +143,8 @@ def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
 def run(args):
     # Shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
+
+    print("Producing ratio(s)...")
 
     if args.nThreads:
         ROOT.EnableImplicitMT(args.nThreads)
@@ -193,9 +189,9 @@ def run(args):
     for hist in hist_config:
         x_val = hist_config[hist]["x_val"]
         y_val = hist_config[hist]["y_val"]
-        x_cut = hist_config[hist].get("x_cut")
-        if x_cut:
-            lm[hist] = rdf_mc.Filter(f"{x_val} > {x_cut}").Stats(y_val, "weight")
+        cut = hist_config[hist].get("cut")
+        if cut:
+            lm[hist] = rdf_mc.Filter(cut).Stats(y_val, "weight")
         else:
             lm[hist] = rdf_mc.Stats(y_val, "weight")
 
@@ -223,8 +219,8 @@ def run(args):
             ROOT.RDF.Experimental.AddProgressBar(rdf_data)
             ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
 
-        min_run = int(rdf_data.Mean("min_run").GetValue())
-        max_run = int(rdf_data.Mean("max_run").GetValue())
+        min_run = int(rdf_data.Min("min_run").GetValue())
+        max_run = int(rdf_data.Max("max_run").GetValue())
         print(f"Group run range: [{min_run}, {max_run}]")
         if args.data_tag:
             output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_{args.data_tag}_vs_{args.mc_tag}.root"
