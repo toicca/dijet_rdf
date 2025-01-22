@@ -578,6 +578,16 @@ def run(args):
     else:
         events_rdf = (events_rdf.Define("weight", "1.0"))
 
+    # Define Pileup_ columns for data
+    if not args.is_mc:
+        events_rdf = (events_rdf.Define("Pileup_gpudensity", "0.0")
+                    .Define("Pileup_nPU", "0")
+                    .Define("Pileup_nTrueInt", "0.0")
+                    .Define("Pileup_pthatmax", "0.0")
+                    .Define("Pileup_sumEOOT", "0.0")
+                    .Define("Pileup_sumLOOT", "0.0")
+        )
+
     # Set name of the output file
     if args.run_range:
         run_range = args.run_range.split(",")
@@ -618,7 +628,8 @@ def run(args):
 
     # Keep only the columns that are needed
     columns = [str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Probe_") or str(col).startswith("Tag_") \
-                   or str(col).startswith("Rho_") or str(col).startswith("PV_") or str(col).startswith("RawPFMET") or str(col).startswith("RawPuppiMET") \
+                   or str(col).startswith("Rho_") or str(col).startswith("PV_") or str(col).startswith("Pileup_") \
+                   or str(col).startswith("RawPFMET") or str(col).startswith("RawPuppiMET") \
                    or "DB_" in str(col) or "MPF_" in str(col) or "HDM_" in str(col) or "EFB_" in str(col)) and not str(col).endswith("_temp")]
 
     columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
