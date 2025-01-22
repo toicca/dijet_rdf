@@ -141,21 +141,19 @@ def init_TnP(rdf, dataset):
                                   
         std::pair<std::pair<int, int>, int> findTagProbeIdxs(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
                             ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId) {
-            int idx1 = -1;
-            int idx2 = -1;
-                                  
-            // Find the tag jet as the leading barrel jet
-            for (int i = 0; i < Jet_pt.size(); i++) {
-                if (abs(Jet_eta[i]) < 1.3 && Jet_pt[i] > 15 && Jet_jetId[i] >= 4) {
-                    idx1 = i;
-                    break;
-                }
-            }
 
+            int idx1 = (int(Jet_phi[0]) * 100) % 2;
+            int idx2 = -1;
+
+            // Check that the tag is in barrel
+            if (abs(Jet_eta[idx1]) > 1.3 || Jet_pt[idx1] < 15 || Jet_jetId[idx1] < 4) {
+                return std::make_pair(std::make_pair(-1, -1), -1);
+            }
+                                  
             // Find the probe jet as:
             // leading jet back-to-back with the tag jet
             for (int i = 0; i < Jet_pt.size(); i++) {
-                if (i == idx1 || Jet_pt[i] < 15) {
+                if (i == idx1 || Jet_pt[i] < 12 || Jet_jetId[i] < 4) {
                     continue;
                 }
                 if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[idx1])) > 2.7 &&
@@ -171,15 +169,6 @@ def init_TnP(rdf, dataset):
                 if (i != idx1 && i != idx2 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
                     idx3 = i;
                     break;
-                }
-            }
-
-            // If probe also in barrel, randomize the indices
-            if (idx2 != -1 && abs(Jet_eta[idx2]) < 1.3 && idx1 != -1) {
-                bool swap = (int(Jet_phi[idx1] * 100) % 2) == 0; // Jets are ~uniform in phi, \
-                        use this to generate a random number
-                if (swap) {
-                    std::swap(idx1, idx2);
                 }
             }
 
