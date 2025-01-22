@@ -414,9 +414,13 @@ def init_TnP(rdf, dataset):
             .Define("Probe_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Probe_pt, Probe_eta, \
                     Probe_phi, Probe_mass)")
             .Define("Tag_polarVec_temp", "ROOT::Math::Polar2DVector(Tag_pt, Tag_phi)")
+            .Define("Tag_raw_polarVec_temp", "ROOT::Math::Polar2DVector(Tag_rawPt, Tag_phi)")
             .Define("Probe_polarVec_temp", "ROOT::Math::Polar2DVector(Probe_pt, Probe_phi)")
+            .Define("Probe_raw_polarVec_temp", "ROOT::Math::Polar2DVector(Probe_rawPt, Probe_phi)")
             .Define("PuppiMET_polarVec_temp", "ROOT::Math::Polar2DVector(PuppiMET_pt, \
                     PuppiMET_phi)")
+            .Define("RawPuppiMET_polarVec_temp", "ROOT::Math::Polar2DVector(RawPuppiMET_pt, \
+                    RawPuppiMET_phi)")
     )
 
     # Activity vector for HDM
@@ -446,13 +450,19 @@ def init_TnP(rdf, dataset):
 
 def do_JEC(rdf):
     rdf = (rdf.Define("DB_direct",
-        "-1.0 * Tag_polarVec_temp.Dot(Probe_polarVec_temp) / (Tag_pt * Tag_pt)")
+                "-1.0 * Tag_polarVec_temp.Dot(Probe_polarVec_temp) / (Tag_pt * Tag_pt)")
+            .Define("DB_raw_direct",
+                "-1.0 * Tag_raw_polarVec_temp.Dot(Probe_raw_polarVec_temp) / (Tag_rawPt * Tag_rawPt)")
             .Define("DB_ratio", "Probe_pt / Tag_pt")
             .Define("DB_raw_ratio" "Probe_rawPt / Tag_rawPt")
             .Define("MPF_tag",
                 "1.0 + PuppiMET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
+            .Define("MPF_raw_tag",
+                "1.0 + RawPuppiMET_polarVec_temp.Dot(Tag_raw_polarVec_temp) / (Tag_rawPt * Tag_rawPt)")
             .Define("MPF_probe",
                 "1.0 + PuppiMET_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
+            .Define("MPF_raw_probe",
+                "1.0 + RawPuppiMET_polarVec_temp.Dot(Probe_raw_polarVec_temp) / (Probe_rawPt * Probe_rawPt)")
             .Define("R_un_reco_tag_temp",
                 "JetActivity_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("R_un_gen_tag_temp", "1.0")
