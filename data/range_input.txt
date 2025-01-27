@@ -1,2 +1,0 @@
-/store/data/Run2024B/JetMET0/NANOAOD/PromptJMENano-v1/2820000/d029e427-dd57-41ad-94f6-28b6c0c64a0f.root                                                                                                                                             
-/store/data/Run2024B/JetMET0/NANOAOD/PromptJMENano-v1/2820000/6d022e7e-774f-4086-99dd-1476712ec6f2.root

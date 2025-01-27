@@ -1,2 +1,0 @@
-DYto2L-2Jets_MLL:
-/store/mc/Run3Winter24NanoAOD/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/NANOAODSIM/JMENanoV14_133X_mcRun3_2024_realistic_v10-v2/80000/8d6fac83-f562-4725-a17c-70f91eeb46ac.root
