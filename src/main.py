@@ -192,6 +192,8 @@ def parse_arguments():
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
     skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
+    skim_parser.add_argument("--groups_of", type=int, help="Perform skim in groups with \
+            given number of files")
 
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()
