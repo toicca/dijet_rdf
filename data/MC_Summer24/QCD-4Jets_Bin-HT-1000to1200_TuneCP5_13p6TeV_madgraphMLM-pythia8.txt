@@ -387,7 +387,6 @@
 /store/mc/RunIII2024Summer24NanoAOD/QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2530000/98f310b8-c108-4117-b5a3-1e8c5c328cde.root
 /store/mc/RunIII2024Summer24NanoAOD/QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2530000/8455e514-5858-4c09-91ec-b859a5aba880.root
 /store/mc/RunIII2024Summer24NanoAOD/QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2530000/ad7dd5cb-2d81-405f-ac84-d1494c18d082.root
-/store/mc/RunIII2024Summer24NanoAOD/QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2530000/83f85864-5e9e-4e0d-b589-439685e50a86.root
 /store/mc/RunIII2024Summer24NanoAOD/QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2530000/c952f471-62af-4aa7-ba02-cb7046b36771.root
 /store/mc/RunIII2024Summer24NanoAOD/QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2530000/7e35d38c-118a-439b-b60f-c669ffc60af2.root
 /store/mc/RunIII2024Summer24NanoAOD/QCD-4Jets_Bin-HT-1000to1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2530000/4f859f1e-0d35-4685-ada1-ee250a49efb1.root

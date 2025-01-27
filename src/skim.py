@@ -508,6 +508,12 @@ def run(args):
     else:
         files = [s.strip() for s in args.filelist.split(',')]
 
+    if args.groups_of:
+        n = args.groups_of
+        groups = [files[n*i:n*(i+1)] for i in range(int((len(files)+n-1)/n))]
+    else:
+        groups = [files]
+
     triggers: List[str] = []
     if args.triggerlist:
         triggers = args.triggerlist.split(",")
@@ -518,6 +524,14 @@ def run(args):
     if not os.path.exists(args.out):
         os.makedirs(args.out)
 
+    for i, group in enumerate(groups):
+        if args.is_mc:
+            skim(group, triggers, args, group_id=i)
+        else:
+            skim(group, triggers, args)
+
+
+def skim(files, triggers, args, group_id=None):
     # Load the files
     print(f"Processing files")
     events_chain = ROOT.TChain("Events")
@@ -610,7 +624,10 @@ def run(args):
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
         output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}")
     elif args.mc_tag:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}")
+        if group_id is None:
+            output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}")
+        else:
+            output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}_{group_id}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
@@ -636,9 +653,10 @@ def run(args):
 
 
     print(f"Writing output for {output_path}.root")
+    snapshot_options = ROOT.RDF.RSnapshotOptions()
     start = time.time()
-    events_rdf.Snapshot("Events", output_path+"_events.root", columns)
-    runs_rdf.Snapshot("Runs", output_path+"_runs.root")
+    events_rdf.Snapshot("Events", output_path+"_events.root", columns, snapshot_options)
+    runs_rdf.Snapshot("Runs", output_path+"_runs.root", "", snapshot_options)
     print(f"snapshot finished in {time.time()-start} s for {output_path}.root")
 
     start = time.time()

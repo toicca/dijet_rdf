@@ -28,7 +28,6 @@
 /store/mc/RunIII2024Summer24NanoAOD/GJ-4Jets_Bin-HT-600to1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/140000/75659617-7bca-4c2a-a789-1739a2643d46.root
 /store/mc/RunIII2024Summer24NanoAOD/GJ-4Jets_Bin-HT-600to1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2520000/6b2596df-99bf-442f-9c37-a80a44ddc337.root
 /store/mc/RunIII2024Summer24NanoAOD/GJ-4Jets_Bin-HT-600to1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2520000/6b053e7f-002c-4632-8d93-aed5a8ee394a.root
-/store/mc/RunIII2024Summer24NanoAOD/GJ-4Jets_Bin-HT-600to1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2520000/df86da38-15a0-406c-aeff-5fd6e8ba30a3.root
 /store/mc/RunIII2024Summer24NanoAOD/GJ-4Jets_Bin-HT-600to1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2520000/86d0986d-64c4-4d26-bca8-c667ab0e7301.root
 /store/mc/RunIII2024Summer24NanoAOD/GJ-4Jets_Bin-HT-600to1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2520000/305a878f-0ef4-4a28-97d9-f7de3da2a489.root
 /store/mc/RunIII2024Summer24NanoAOD/GJ-4Jets_Bin-HT-600to1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/140X_mcRun3_2024_realistic_v26-v2/2520000/ae85924b-32e9-486f-930a-e024b786f65d.root
