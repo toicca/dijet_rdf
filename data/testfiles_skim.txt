@@ -1,0 +1,3 @@
+/store/data/Run2024C/JetMET0/NANOAOD/PromptReco-v1/000/379/413/00000/6e33c547-53b2-4a29-8d15-96e81bb6c9fa.root
+/store/data/Run2024C/JetMET0/NANOAOD/PromptReco-v1/000/379/415/00000/97643ae4-432b-4e27-9a9e-a37f0d5e5ebf.root
+/store/data/Run2024C/JetMET0/NANOAOD/PromptReco-v1/000/379/416/00000/35095e68-1f94-4daf-ab40-bbff805dd495.root

@@ -525,7 +525,7 @@ def run(args):
         os.makedirs(args.out)
 
     for i, group in enumerate(groups):
-        if args.is_mc:
+        if args.is_mc and len(groups) > 1:
             skim(group, triggers, args, group_id=i)
         else:
             skim(group, triggers, args)
@@ -533,14 +533,19 @@ def run(args):
 
 def skim(files, triggers, args, group_id=None):
     # Load the files
-    print(f"Processing files")
+
+    if group_id is None:
+        print(f"Processing files")
+    else:
+        print(f"Processing file group #{group_id}")
+
     events_chain = ROOT.TChain("Events")
     runs_chain = ROOT.TChain("Runs")
 
     for file in files:
         if not args.is_local:
-            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            events_chain.Add(f"root://xrootd-cms.infn.it//{file}")
+            runs_chain.Add(f"root://xrootd-cms.infn.it//{file}")
         else:
             events_chain.Add(file)
             runs_chain.Add(file)
@@ -653,10 +658,9 @@ def skim(files, triggers, args, group_id=None):
 
 
     print(f"Writing output for {output_path}.root")
-    snapshot_options = ROOT.RDF.RSnapshotOptions()
     start = time.time()
-    events_rdf.Snapshot("Events", output_path+"_events.root", columns, snapshot_options)
-    runs_rdf.Snapshot("Runs", output_path+"_runs.root", "", snapshot_options)
+    events_rdf.Snapshot("Events", output_path+"_events.root", columns)
+    runs_rdf.Snapshot("Runs", output_path+"_runs.root")
     print(f"snapshot finished in {time.time()-start} s for {output_path}.root")
 
     start = time.time()
