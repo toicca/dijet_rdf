@@ -117,9 +117,10 @@ def parse_arguments():
     # Produce time evolution config
     time_evolution_parser = subparsers.add_parser("produce_time_evolution", help="Produce time \
             evolution for given input files")
-    time_evolution_parser.add_argument("--filelist", type=str, help="Comma separated list of \
+    time_evolution_files = time_evolution_parser.add_mutually_exclusive_group(required=True)
+    time_evolution_files.add_argument("--filelist", type=str, help="Comma separated list of \
             input files")
-    time_evolution_parser.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+    time_evolution_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
     time_evolution_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
