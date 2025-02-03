@@ -7,6 +7,10 @@ import json
 from processing_utils import find_site, get_bins, read_config_file
 
 def create_histogram(rdf, hist_config, bins):
+    cut = hist_config[hist].get("cut")
+    if cut:
+        rdf = (rdf.Filter(cut))
+
     if hist_config["type"] == "Histo1D":
         return rdf.Histo1D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"]),
