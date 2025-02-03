@@ -96,8 +96,6 @@ def parse_arguments():
             config file.')
     ratio_parser.add_argument("--groups_of", type=int, help="Produce ratios for \
             groups containing given number of runs")
-    ratio_parser.add_argument("--cumulative_lumi", action="store_true", help="Produce cumulative \
-            luminosity results")
 
     # Produce responses config
     responses_parser = subparsers.add_parser("produce_responses", help="Produce responses \
@@ -119,21 +117,18 @@ def parse_arguments():
     # Produce time evolution config
     time_evolution_parser = subparsers.add_parser("produce_time_evolution", help="Produce time \
             evolution for given input files")
-    time_evolution_files = time_evolution_parser.add_mutually_exclusive_group(required=True)
-    time_evolution_files.add_argument("--filelist", type=str, help="Comma separated list of \
-            root files produced by dijet_rdf")
-    time_evolution_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+    time_evolution_parser.add_argument("--filelist", type=str, help="Comma separated list of \
+            input files")
+    time_evolution_parser.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
-    time_evolution_triggers = time_evolution_parser.add_mutually_exclusive_group()
-    time_evolution_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
-            triggers for which plots will be produced \
-            (default value 'all')")
-    time_evolution_triggers.add_argument("--triggerpath", type=str, help="Path to a file \
-            containing a list of triggers for which plots \
-            will be produced")
-    time_evolution_parser.add_argument("--out", type=str, required=True, default="",
-            help="Name of the output root file")
-    time_evolution_parser.add_argument("--config", type=str, default="", help="Path to config file")
+    time_evolution_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
+            (output file name included)")
+    time_evolution_parser.add_argument("--data_tag", type=str, help="data tag")
+    time_evolution_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    time_evolution_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
+    time_evolution_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to the histogram \
+            config file.')
 
     # Produce vetomaps config
     vetomaps_parser = subparsers.add_parser("produce_vetomaps", help="Produce VetoMaps for files \
