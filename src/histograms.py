@@ -7,7 +7,7 @@ import json
 from processing_utils import find_site, get_bins, read_config_file
 
 def create_histogram(rdf, hist_config, bins):
-    cut = hist_config[hist].get("cut")
+    cut = hist_config.get("cut")
     if cut:
         rdf = (rdf.Filter(cut))
 
