@@ -38,19 +38,23 @@ def data_hists(rdf, hist_config, bins):
                         x_val, y_val, "weight")
     return hd
 
-def lumi_data(rdf, hist_config):
+def lumi_data(rdf, hist_config, triggers):
     ld = {}
     ld["int_lumi"] = rdf.Mean("int_lumi")
     ld["min_run"] = rdf.Min("min_run")
     ld["max_run"] = rdf.Max("max_run")
+    trg_filter = "1"
+    if len(triggers) > 0:
+        trg_filter = " || ".join(triggers)
+
     for hist in hist_config:
         x_val = hist_config[hist]["x_val"]
         y_val = hist_config[hist]["y_val"]
         cut = hist_config[hist].get("cut")
         if cut:
-            ld[hist] = rdf.Filter(cut).Stats(y_val, "weight")
+            ld[hist] = rdf.Filter(trg_filter).Filter(cut).Stats(y_val, "weight")
         else:
-            ld[hist] = rdf.Stats(y_val, "weight")
+            ld[hist] = rdf.Filter(trg_filter).Stats(y_val, "weight")
     return ld
 
 
@@ -120,6 +124,12 @@ def run(args):
     else:
         raise ValueError("No file list provided")
 
+    triggers = []
+    if args.triggerlist:
+        triggers = args.triggerlist.split(",")
+    elif args.triggerpath:
+        triggers = file_read_lines(args.triggerpath)
+
     bins = get_bins()
     hist_config = dict(read_config_file(args.hist_config))
     del hist_config["DEFAULT"]
@@ -131,7 +141,7 @@ def run(args):
     for file in files:
         rdf = ROOT.RDataFrame("Events", file)
 
-        ld = lumi_data(rdf, hist_config)
+        ld = lumi_data(rdf, hist_config, triggers)
         lds.append(ld)
 
     min_run = int(min([ld["min_run"].GetValue() for ld in lds]))
