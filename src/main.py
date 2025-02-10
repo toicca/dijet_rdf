@@ -26,6 +26,11 @@ def parse_arguments():
     hist_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
     hist_files.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas.')
+    hist_triggers = hist_parser.add_mutually_exclusive_group()
+    hist_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    hist_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
     hist_parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not \
             set will append root://cms-xrd-global.cern.ch/ \
             to the start of file names.')
