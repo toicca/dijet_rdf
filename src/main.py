@@ -122,6 +122,11 @@ def parse_arguments():
             input files")
     time_evolution_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
+    time_evolution_triggers = time_evolution_parser.add_mutually_exclusive_group()
+    time_evolution_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    time_evolution_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
     time_evolution_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
     time_evolution_parser.add_argument("--data_tag", type=str, help="data tag")
