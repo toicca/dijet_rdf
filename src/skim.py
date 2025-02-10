@@ -50,8 +50,8 @@ weight_info = {
         "GJ-4Jets_Bin-HT-1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.632,
         "GJ-4Jets_Bin-HT-40to400-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 43.92,
         "GJ-4Jets_Bin-HT-400to600-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 11.77,
-        "GJ-4Jets_Bin-HT-1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 4.743,
-        "GJ-4Jets_Bin-HT-600to1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.018
+        "GJ-4Jets_Bin-HT-600to1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 4.743,
+        "GJ-4Jets_Bin-HT-1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.018
     },
 # TODO
 #    "nGenEvents" : {
@@ -139,8 +139,8 @@ def init_TnP(rdf, dataset):
         #ifndef DIJET_IDXS
         #define DIJET_IDXS
                                   
-        std::pair<std::pair<int, int>, int> findTagProbeIdxs(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
-                            ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId) {
+        std::pair<std::pair<int, int>, int> findTagProbeIdxs(const ROOT::RVec<float>& Jet_eta, const ROOT::RVec<float>& Jet_pt,
+                            const ROOT::RVec<float>& Jet_phi, const ROOT::RVec<int>& Jet_jetId) {
 
             int idx1 = (int(Jet_phi[0]) * 100) % 2;
             int idx2 = -1;
@@ -202,9 +202,9 @@ def init_TnP(rdf, dataset):
         #ifndef ZJET_IDXS
         #define ZJET_IDXS
                                   
-        std::pair<int, int> findMuonIdxs(ROOT::RVec<float> Muon_eta, ROOT::RVec<float> Muon_pt,
-                            ROOT::RVec<float> Muon_pfRelIso03_all, ROOT::RVec<int> Muon_tightId,
-                            ROOT::RVec<float> Muon_charge) {
+        std::pair<int, int> findMuonIdxs(const ROOT::RVec<float>& Muon_eta, const ROOT::RVec<float>& Muon_pt,
+                            const ROOT::RVec<float>& Muon_pfRelIso03_all, const ROOT::RVec<int>& Muon_tightId,
+                            const ROOT::RVec<float>& Muon_charge) {
             int idx1 = -1;
             int idx2 = -1;
             for (int i = 0; i < Muon_pt.size(); i++) {
@@ -224,8 +224,8 @@ def init_TnP(rdf, dataset):
             return std::make_pair(idx1, idx2);
         }
 
-        std::pair<int, int> findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
-                            ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
+        std::pair<int, int> findJetIdx(const ROOT::RVec<float>& Jet_eta, const ROOT::RVec<float>& Jet_pt,
+                            const ROOT::RVec<float>& Jet_phi, const ROOT::RVec<int>& Jet_jetId,
                             float Z_eta, float Z_phi) {
             int idx1 = -1;
             int idx2 = -1;
@@ -287,9 +287,9 @@ def init_TnP(rdf, dataset):
         #ifndef EGAMMA_IDXS
         #define EGAMMA_IDXS
         
-        int findPhotonIdx(ROOT::RVec<float> Photon_eta, ROOT::RVec<float> Photon_pt,
-                            ROOT::RVec<int> Photon_cutBased, ROOT::RVec<float> Photon_hoe,
-                            ROOT::RVec<float> Photon_r9) {
+        int findPhotonIdx(const ROOT::RVec<float>& Photon_eta, const ROOT::RVec<float>& Photon_pt,
+                            const ROOT::RVec<int>& Photon_cutBased, const ROOT::RVec<float>& Photon_hoe,
+                            const ROOT::RVec<float>& Photon_r9) {
             for (int i = 0; i < Photon_pt.size(); i++) {
                 if (abs(Photon_eta[i]) < 1.3 && Photon_pt[i] > 15 && Photon_cutBased[i] == 3 &&
                     Photon_hoe[i] < 0.02148 && Photon_r9[i] > 0.94 && Photon_r9[i] < 1.00) {
@@ -300,8 +300,8 @@ def init_TnP(rdf, dataset):
             return -1;
         }
                                   
-        std::pair<int, int> findJetIdx(ROOT::RVec<float> Jet_eta, ROOT::RVec<float> Jet_pt,
-                            ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId,
+        std::pair<int, int> findJetIdx(const ROOT::RVec<float>& Jet_eta, const ROOT::RVec<float>& Jet_pt,
+                            const ROOT::RVec<float>& Jet_phi, const ROOT::RVec<int>& Jet_jetId,
                             int Photon_jetIdx, float Photon_phi) {
             int idx1 = -1;
             int idx2 = -1;
