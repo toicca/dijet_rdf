@@ -43,6 +43,7 @@ def lumi_data(rdf, hist_config, triggers):
     ld["int_lumi"] = rdf.Mean("int_lumi")
     ld["min_run"] = rdf.Min("min_run")
     ld["max_run"] = rdf.Max("max_run")
+
     trg_filter = "1"
     if len(triggers) > 0:
         trg_filter = " || ".join(triggers)

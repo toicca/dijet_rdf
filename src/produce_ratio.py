@@ -15,27 +15,28 @@ def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
         x_val = hist_config["x_val"]
         cut = hist_config.get("cut")
         if cut:
-            hn = rdf_numerator.Filter(cut).Histo1D((name, title,
+            hn = rdf_numerator.Filter(cut).Histo1D((f"data_{name}", title,
                 bins[x_bins]["n"], bins[x_bins]["bins"]), x_val, "weight")
         else:
-            hn = rdf_numerator.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+            hn = rdf_numerator.Histo1D((f"data_{name}", title, bins[x_bins]["n"], bins[x_bins]["bins"]),
                     x_val, "weight")
-        h_ratio = hn.ProjectionX().Clone(name)
+        h_ratio = hn.Clone(f"ratio_{name}")
         h_ratio.Divide(h_denominator)
-        return h_ratio
+        return [hn, h_ratio]
     elif hist_config["type"] == "Profile1D":
         x_bins = hist_config["x_bins"]
         x_val = hist_config["x_val"]
         y_val = hist_config["y_val"]
         cut = hist_config.get("cut")
         if cut:
-            hn = rdf_numerator.Filter(cut).Profile1D((name, title,
+            hn = rdf_numerator.Filter(cut).Profile1D((f"data_{name}", title,
                 bins[x_bins]["n"], bins[x_bins]["bins"]), x_val, y_val, "weight")
         else:
-            hn = rdf_numerator.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+            hn = rdf_numerator.Profile1D((f"data_{name}", title, bins[x_bins]["n"], bins[x_bins]["bins"]),
                     x_val, y_val, "weight")
-        hn.Divide(h_denominator)
-        return hn
+        h_ratio = hn.Clone(f"ratio_{name}")
+        h_ratio.Divide(h_denominator)
+        return [hn, h_ratio]
     else:
         raise ValueError(f"Histogram type {hist_config['type']} not supported by produce_ratio. \
                 Supported types: Histo1D, Profile1D")
@@ -57,6 +58,16 @@ def run(args):
 
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
+
+    triggers = []
+    if args.triggerlist:
+        triggers = args.triggerlist.split(",")
+    elif args.triggerpath:
+        triggers = file_read_lines(args.triggerpath)
+
+    if len(triggers) > 0:
+        trg_filter = " || ".join(triggers)
+        rdf_mc = (rdf_mc.Filter(trg_filter))
 
     data_files = [s.strip() for s in args.data_files.split(",")]
     if args.groups_of:
@@ -81,8 +92,13 @@ def run(args):
         x_bins = hist_config[hist]["x_bins"]
         x_val = hist_config[hist]["x_val"]
         y_val = hist_config[hist]["y_val"]
-        h = rdf_mc.Profile1D((f"{name}_denom", f"{title}_denom", bins[x_bins]["n"], bins[x_bins]["bins"]),
-            x_val, y_val, "weight")
+        cut = hist_config[hist].get("cut")
+        if cut:
+            h = rdf_mc.Filter(cut).Profile1D((f"mc_{name}", title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                x_val, y_val, "weight")
+        else:
+            h = rdf_mc.Profile1D((f"mc_{name}", title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                x_val, y_val, "weight")
         hm[hist] = h.ProjectionX()
 
     lm = {}
@@ -111,7 +127,10 @@ def run(args):
         if args.progress_bar:
             ROOT.RDF.Experimental.AddProgressBar(rdf_runs)
             ROOT.RDF.Experimental.AddProgressBar(rdf_data)
-            ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
+
+        if len(triggers) > 0:
+            trg_filter = " || ".join(triggers)
+            rdf_data = (rdf_data.Filter(trg_filter))
 
         min_run = int(rdf_data.Min("min_run").GetValue())
         max_run = int(rdf_data.Max("max_run").GetValue())
@@ -121,12 +140,17 @@ def run(args):
         else:
             output_path = f"{args.out}/J4PRatio_runs{min_run}to{max_run}_vs_{args.mc_tag}.root"
 
-        file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
-
+        hists_out = []
         for hist in hist_config:
-            h = produce_ratio(rdf_data, hm[hist], hist_config[hist], bins)
-            h.Write()
+            [hn, h] = produce_ratio(rdf_data, hm[hist], hist_config[hist], bins)
+            hists_out.append(hm[hist])
+            hists_out.append(hn)
+            hists_out.append(h)
+            print(f"{hist} processed")
 
+        file_ratio = ROOT.TFile.Open(f"{output_path}", "RECREATE")
+        for h in hists_out:
+            h.Write()
         file_ratio.Close()
 
         if len(groups) > 1:
