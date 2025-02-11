@@ -90,6 +90,11 @@ def parse_arguments():
             containing skimmed run data")
     ratio_parser.add_argument("--mc_files", type=str, required=True, help="A list of root files \
             containing skimmed MC data")
+    ratio_triggers = ratio_parser.add_mutually_exclusive_group()
+    ratio_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    ratio_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
     ratio_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
     ratio_parser.add_argument("--data_tag", type=str, help="data tag")
@@ -97,8 +102,8 @@ def parse_arguments():
     ratio_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     ratio_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
-    ratio_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to the histogram \
-            config file.')
+    ratio_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to \
+            the histogram config file.')
     ratio_parser.add_argument("--groups_of", type=int, help="Produce ratios for \
             groups containing given number of runs")
 
@@ -178,6 +183,8 @@ def parse_arguments():
     skim_files.add_argument("--filelist", type=str, help="Comma separated list of root files")
     skim_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
+    skim_parser.add_argument("--nsteps", type=int, help="Number of steps input files are grouped into.")
+    skim_parser.add_argument("--step", type=int, help="Step to be processed.")
     skim_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
     skim_parser.add_argument("--is_local", action="store_true", help='Run locally. If not set will \
             append root://cms-xrd-global.cern.ch/ to the start of file names')
@@ -198,8 +205,6 @@ def parse_arguments():
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
     skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
-    skim_parser.add_argument("--groups_of", type=int, help="Perform skim in groups with \
-            given number of files")
 
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()
@@ -209,6 +214,8 @@ def parse_arguments():
             raise ValueError("is_mc not set but mc_tag given")
         if args.is_mc and args.run_range:
             raise ValueError("run_range and is_mc both set")
+        if (args.step and not args.nsteps) or (args.nsteps and not args.step):
+            raise ValueError("nsteps and step should be passed together")
 
     return args
 
