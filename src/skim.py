@@ -601,7 +601,7 @@ def skim(files, triggers, args, step=None):
     # Set name of the output file
     step_str = ""
     if step:
-        step_str = f"_step{step}"
+        step_str = f"_{step}"
     if args.run_range:
         run_range = args.run_range.split(",")
         assert(len(run_range) == 2)
