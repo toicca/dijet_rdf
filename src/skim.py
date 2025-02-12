@@ -130,11 +130,11 @@ bool isGoodLumi(int run, int lumi) {
     rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "Golden JSON"))
     return rdf
 
-def init_TnP(rdf, dataset):
-    # TODO:
-    # - Implement an index finding function for probe jets, to increase clarity
-    #   and to avoid cutting on the jet collection
-    if dataset == "dijet":
+def init_TnP(rdf, channel):
+    """
+    Initialize the tag and probe variables for the analysis
+    """
+    if channel == "dijet":
         ROOT.gInterpreter.Declare("""
         #ifndef DIJET_IDXS
         #define DIJET_IDXS
@@ -197,7 +197,7 @@ def init_TnP(rdf, dataset):
             rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
 
 
-    elif dataset == "zjet":
+    elif channel == "zjet":
         ROOT.gInterpreter.Declare("""
         #ifndef ZJET_IDXS
         #define ZJET_IDXS
@@ -282,7 +282,7 @@ def init_TnP(rdf, dataset):
         for column in jet_columns:
             rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
 
-    elif dataset == "egamma":
+    elif channel == "egamma":
         ROOT.gInterpreter.Declare("""
         #ifndef EGAMMA_IDXS
         #define EGAMMA_IDXS
@@ -349,7 +349,7 @@ def init_TnP(rdf, dataset):
         for column in jet_columns:
             rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
 
-    elif dataset == "multijet":
+    elif channel == "multijet":
         # Change Tag <-> Probe for multijet, since low pt jets better calibrated?
         recoil_filter = "abs(RecoilJet_eta)<2.5 && RecoilJet_pt>30"
         rdf = (rdf.Filter("nJet > 2", "nJet > 2")
@@ -393,7 +393,27 @@ def init_TnP(rdf, dataset):
             if column in ["Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"]:
                 continue
             # For multijet change Probe columns to be zero, as probe is not a jet
-            rdf = rdf.Define("Probe_"+column[4:], f"0.0")
+            rdf = rdf.Define("Probe_"+column[4:], "0.0")
+
+    else:
+        rdf = (rdf.Define("Tag_pt", "0.0")
+                .Define("Tag_eta", "0.0")
+                .Define("Tag_phi", "0.0")
+                .Define("Tag_mass", "0.0")
+                .Define("Tag_rawPt", "0.0")
+                .Define("Tag_label", "-1")
+                .Define("Probe_pt", "0.0")
+                .Define("Probe_eta", "0.0")
+                .Define("Probe_phi", "0.0")
+                .Define("Probe_mass", "0.0")
+                .Define("Probe_rawPt", "0.0")
+                .Define("Activity_idx_temp", "-1")
+        )
+
+        for column in jet_columns:
+            if column in ["Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"]:
+                continue
+            rdf = rdf.Define("Probe_"+column[4:], "0.0")
 
     rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
     rdf = rdf.Filter("Activity_idx_temp >= 0 ? Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5) < 1.0 : 1", "Activity jet pT fraction < 1.0")
@@ -421,10 +441,10 @@ def init_TnP(rdf, dataset):
             .Redefine("JetActivity_fourVec_temp", "ROOT::VecOps::Sum(JetActivity_fourVec_temp, \
                     ROOT::Math::PtEtaPhiMVector())")
     )
-    if dataset == "dijet" or dataset == "multijet":
+    if channel == "dijet" or channel == "multijet":
         rdf = (rdf.Redefine("JetActivity_fourVec_temp",
                             "JetActivity_fourVec_temp - Tag_fourVec_temp - Probe_fourVec_temp"))
-    elif dataset == "zjet" or dataset == "egamma":
+    elif channel == "zjet" or channel == "egamma":
         rdf = (rdf.Redefine("JetActivity_fourVec_temp",
                             "JetActivity_fourVec_temp - Probe_fourVec_temp"))
     rdf = (rdf.Define("JetActivity_pt", "float(JetActivity_fourVec_temp.Pt())")
