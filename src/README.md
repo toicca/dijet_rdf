@@ -16,3 +16,4 @@ Additionally, you can specify
 - `--golden_json` to specify a JSON to filter the runs and lumisections, ie. `--golden_json /eos/user/c/cmsdqm/www/CAF/certification/Collisions24/2024I_Golden.json`
 - `--run_range` to specify the runs when the data was collected and to calculate the luminosity collected in that range, ie. `--run_range 384069,384128`. This option requires a JSON passed with the `--golden_json`.
 - `--nsteps` and `--step` to split the input filelist to `--nsteps` and to process the step number `--step`, ie. `--nsteps 10 --step 0` will split the input files to 10 sets and process the first set.
+- `--correction_json` and `--correction_key` to define the `data/` correction json to use and which corrections to use from the file, ie. `--correction_json data/corrections/summer24_corrections.json --correction_key 2024H`
