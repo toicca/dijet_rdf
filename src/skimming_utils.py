@@ -111,7 +111,7 @@ json filter_json;
 void init_json(std::string jsonFile) {
     std::cout << "Initializing JSON file" << std::endl;
     std::ifstream f(jsonFile);
-    golden_json = json::parse(f);
+    filter_json = json::parse(f);
 }
 
 bool isGoodLumi(int run, int lumi) {
