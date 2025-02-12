@@ -396,13 +396,13 @@ def init_TnP(rdf, channel):
             rdf = rdf.Define("Probe_"+column[4:], "0.0")
 
     else:
-        rdf = (rdf.Define("Tag_pt", "0.0")
+        rdf = (rdf.Define("Tag_pt", "-1.0")
                 .Define("Tag_eta", "0.0")
                 .Define("Tag_phi", "0.0")
                 .Define("Tag_mass", "0.0")
                 .Define("Tag_rawPt", "0.0")
                 .Define("Tag_label", "-1")
-                .Define("Probe_pt", "0.0")
+                .Define("Probe_pt", "-1.0")
                 .Define("Probe_eta", "0.0")
                 .Define("Probe_phi", "0.0")
                 .Define("Probe_mass", "0.0")
