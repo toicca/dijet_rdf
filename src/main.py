@@ -205,6 +205,10 @@ def parse_arguments():
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
     skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
+    skim_parser.add_argument("--correction_json", type=str, help="Path to a JSON file defining \
+                             JECs, vetomaps, etc.")
+    skim_parser.add_argument("--correction_key", type=str, help="Key in the correction JSON file \
+                             defining the corrections to be applied")
 
     # Parse command line arguments, overriding config file values
     args = parser.parse_args()

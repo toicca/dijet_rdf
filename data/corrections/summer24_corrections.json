@@ -1,0 +1,8 @@
+{
+    "Run2024H": {
+        "jec_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2024_Winter24/jet_jerc.json.gz",
+        "jec_stack": "Winter24Prompt24_RunH_V2_DATA_L1L2L3Res_AK4PFPuppi",
+        "vetomap_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2024_Winter24/jetvetomaps.json.gz",
+        "vetomap_set": "Winter24Prompt2024BCDEFGHI_V1"
+    }
+}

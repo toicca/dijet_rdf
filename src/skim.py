@@ -10,6 +10,7 @@ import time
 from typing import List
 
 from processing_utils import file_read_lines, find_site
+from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags
 
 weight_info = {
     "xsec" : {
@@ -90,45 +91,6 @@ jet_columns = [
     "Jet_rawFactor"
 ]
 
-def do_cut_golden_json(rdf, golden_json):
-    ROOT.gInterpreter.Declare(
-"""
-#ifndef GOLDEN_JSON
-#define GOLDEN_JSON
-
-#include <iostream>
-#include <nlohmann/json.hpp>
-#include <fstream>
-#include <string>
-
-using json = nlohmann::json;
-
-json golden_json;
-
-void init_json(std::string jsonFile) {
-    std::cout << "Initializing JSON file" << std::endl;
-    std::ifstream f(jsonFile);
-    golden_json = json::parse(f);
-}
-
-bool isGoodLumi(int run, int lumi) {
-   for (auto& lumiRange : golden_json[std::to_string(run)]) {
-       if (lumi >= lumiRange[0] && lumi <= lumiRange[1]) {
-           return true;
-       }
-   }
-
-    return false;
-}
-
-#endif
-"""
-    )
-    ROOT.init_json(golden_json)
-    print("Applying golden JSON cut")
-    print(f"JSON file: {golden_json}")
-    rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "Golden JSON"))
-    return rdf
 
 def init_TnP(rdf, channel):
     """
@@ -230,20 +192,6 @@ def do_JEC(rdf):
 
     return rdf
 
-def get_Flags(campaign=None):
-    # TODO: Implement campaign-specific flags
-    flags = [
-            "Flag_goodVertices",
-            "Flag_globalSuperTightHalo2016Filter",
-            "Flag_EcalDeadCellTriggerPrimitiveFilter",
-            "Flag_BadPFMuonFilter",
-            "Flag_BadPFMuonDzFilter",
-            "Flag_hfNoisyHitsFilter",
-            "Flag_eeBadScFilter",
-            "Flag_ecalBadCalibFilter"
-    ]
-
-    return flags
 
 def run(args):
     # shut up ROOT
@@ -301,9 +249,32 @@ def skim(files, triggers, args, step=None):
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
     if args.golden_json:
-        events_rdf = do_cut_golden_json(events_rdf, args.golden_json)
+        events_rdf = filter_json(events_rdf, args.golden_json)
 
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
+
+    # Apply corrections
+    if args.correction_json:
+        import json
+        import correctionlib
+        correctionlib.register_pyroot_binding()
+
+        with open(args.correction_json) as f:
+            correction_info = json.load(f)
+
+        correction_info = correction_info[args.correction_key]
+
+        # JECs
+        if "jec_path" and "jec_stack" in correction_info:
+            events_rdf = correct_jets(events_rdf, correction_info["jec_path"], correction_info["jec_stack"])
+
+        # Vetomaps
+        if "vetomap_path" and "vetomap_set" in correction_info:
+            events_rdf = find_vetojets(events_rdf, correction_info["vetomap_path"], correction_info["vetomap_set"])
+    else:
+        # Define that no jets were vetoed
+        events_rdf = events_rdf.Define("Jet_vetoed", "ROOT::VecOps::RVec<bool>(Jet_pt.size(), false)")
+
 
     # Initialize the JEC variables
     print("Initializing TnP variables")
@@ -404,6 +375,8 @@ def skim(files, triggers, args, step=None):
     # Include triggers
     columns.extend([trig for trig in triggers if trig in events_rdf.GetColumnNames()])
 
+    # Check for duplicates
+    columns = list(set(columns))
 
     print(f"Writing output for {output_path}.root")
     start = time.time()
