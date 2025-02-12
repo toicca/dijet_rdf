@@ -26,6 +26,11 @@ def parse_arguments():
     hist_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
     hist_files.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas.')
+    hist_triggers = hist_parser.add_mutually_exclusive_group()
+    hist_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    hist_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
     hist_parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not \
             set will append root://cms-xrd-global.cern.ch/ \
             to the start of file names.')
@@ -85,6 +90,11 @@ def parse_arguments():
             containing skimmed run data")
     ratio_parser.add_argument("--mc_files", type=str, required=True, help="A list of root files \
             containing skimmed MC data")
+    ratio_triggers = ratio_parser.add_mutually_exclusive_group()
+    ratio_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    ratio_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
     ratio_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
     ratio_parser.add_argument("--data_tag", type=str, help="data tag")
@@ -92,12 +102,10 @@ def parse_arguments():
     ratio_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     ratio_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
-    ratio_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to the histogram \
-            config file.')
+    ratio_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to \
+            the histogram config file.')
     ratio_parser.add_argument("--groups_of", type=int, help="Produce ratios for \
             groups containing given number of runs")
-    ratio_parser.add_argument("--cumulative_lumi", action="store_true", help="Produce cumulative \
-            luminosity results")
 
     # Produce responses config
     responses_parser = subparsers.add_parser("produce_responses", help="Produce responses \
@@ -121,19 +129,22 @@ def parse_arguments():
             evolution for given input files")
     time_evolution_files = time_evolution_parser.add_mutually_exclusive_group(required=True)
     time_evolution_files.add_argument("--filelist", type=str, help="Comma separated list of \
-            root files produced by dijet_rdf")
+            input files")
     time_evolution_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
     time_evolution_triggers = time_evolution_parser.add_mutually_exclusive_group()
     time_evolution_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
-            triggers for which plots will be produced \
-            (default value 'all')")
-    time_evolution_triggers.add_argument("--triggerpath", type=str, help="Path to a file \
-            containing a list of triggers for which plots \
-            will be produced")
-    time_evolution_parser.add_argument("--out", type=str, required=True, default="",
-            help="Name of the output root file")
-    time_evolution_parser.add_argument("--config", type=str, default="", help="Path to config file")
+            triggers")
+    time_evolution_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
+    time_evolution_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
+            (output file name included)")
+    time_evolution_parser.add_argument("--data_tag", type=str, help="data tag")
+    time_evolution_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    time_evolution_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
+    time_evolution_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to the histogram \
+            config file.')
 
     # Produce vetomaps config
     vetomaps_parser = subparsers.add_parser("produce_vetomaps", help="Produce VetoMaps for files \
@@ -172,6 +183,8 @@ def parse_arguments():
     skim_files.add_argument("--filelist", type=str, help="Comma separated list of root files")
     skim_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
+    skim_parser.add_argument("--nsteps", type=int, help="Number of steps input files are grouped into.")
+    skim_parser.add_argument("--step", type=int, help="Step to be processed.")
     skim_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
     skim_parser.add_argument("--is_local", action="store_true", help='Run locally. If not set will \
             append root://cms-xrd-global.cern.ch/ to the start of file names')
@@ -201,6 +214,8 @@ def parse_arguments():
             raise ValueError("is_mc not set but mc_tag given")
         if args.is_mc and args.run_range:
             raise ValueError("run_range and is_mc both set")
+        if (args.step and not args.nsteps) or (args.nsteps and not args.step):
+            raise ValueError("nsteps and step should be passed together")
 
     return args
 

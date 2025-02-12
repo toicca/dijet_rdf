@@ -4,9 +4,18 @@ import os
 import subprocess
 import json
 # import tomllib
-from processing_utils import find_site, get_bins, read_config_file
+from processing_utils import find_site, get_bins, read_config_file, file_read_lines
 
-def create_histogram(rdf, hist_config, bins):
+def create_histogram(rdf, hist_config, bins, triggers):
+    if len(triggers) > 0:
+        trg_filter = " || ".join(triggers)
+        rdf = (rdf.Filter(trg_filter))
+
+    cut = hist_config.get("cut")
+
+    if cut:
+        rdf = (rdf.Filter(cut))
+
     if hist_config["type"] == "Histo1D":
         return rdf.Histo1D((hist_config["name"], hist_config["title"],
                             bins[hist_config["x_bins"]]["n"], bins[hist_config["x_bins"]]["bins"]),
@@ -49,13 +58,19 @@ def make_histograms(args):
                 
     # Split the file list and trigger list if they are given as a string
     if args.filelist:
-        filelist = args.filelist.split(",")
+        filelist = [s.strip() for s in args.filelist.split(",")]
     elif args.filepaths:
         paths = [p.strip() for p in args.filepaths.split(",")]
         for path in paths:
             files.extend(file_read_lines(path, find_ROOT=True))
     else:
         raise ValueError("No file list provided")
+
+    triggers = []
+    if args.triggerlist:
+        triggers = args.triggerlist.split(",")
+    elif args.triggerpath:
+        triggers = file_read_lines(args.triggerpath)
 
     # Load the files
     for file in filelist:
@@ -84,7 +99,7 @@ def make_histograms(args):
     for hist in hist_config:
         if hist.lower() == "default":
             continue
-        histograms[hist] = create_histogram(events_rdf, hist_config[hist], bins).GetValue()
+        histograms[hist] = create_histogram(events_rdf, hist_config[hist], bins, triggers).GetValue()
 
     return histograms
 

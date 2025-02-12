@@ -27,8 +27,8 @@ weight_info = {
         "QCD-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 58840000.0,
         "QCD-4Jets_HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 3046.0,
         # zjet
-        "DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8": 6695.0, # Summer24
-        "DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.0, # Winter24 -> single sample so xsec doesn't contribute
+        "DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8": 6695.0, # Winter24
+        "DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.0, # Summer24 -> single sample so xsec doesn't contribute
         # egamma Summer24
         "GJ-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 15240.0,
         "GJ-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 8111.0,
@@ -50,8 +50,8 @@ weight_info = {
         "GJ-4Jets_Bin-HT-1000-PTG-100to200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.632,
         "GJ-4Jets_Bin-HT-40to400-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 43.92,
         "GJ-4Jets_Bin-HT-400to600-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 11.77,
-        "GJ-4Jets_Bin-HT-1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 4.743,
-        "GJ-4Jets_Bin-HT-600to1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.018
+        "GJ-4Jets_Bin-HT-600to1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 4.743,
+        "GJ-4Jets_Bin-HT-1000-PTG-200_Par-dRGJ-0p25_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.018
     },
 # TODO
 #    "nGenEvents" : {
@@ -260,6 +260,11 @@ def run(args):
     else:
         files = [s.strip() for s in args.filelist.split(',')]
 
+    if args.nsteps and args.step:
+        n = args.nsteps
+        i = args.step
+        files = files[i::n]
+
     triggers: List[str] = []
     if args.triggerlist:
         triggers = args.triggerlist.split(",")
@@ -270,15 +275,21 @@ def run(args):
     if not os.path.exists(args.out):
         os.makedirs(args.out)
 
+    skim(files, triggers, args, args.step)
+
+
+def skim(files, triggers, args, step=None):
     # Load the files
-    print(f"Processing files")
     events_chain = ROOT.TChain("Events")
     runs_chain = ROOT.TChain("Runs")
 
     for file in files:
         if not args.is_local:
-            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            try:
+                events_chain.Add(f"root://cms-xrd-global.cern.ch//{file}")
+                runs_chain.Add(f"root://cms-xrd-global.cern.ch//{file}")
+            except Exception as e:
+                print(f"Skipping problematic run: {e}")
         else:
             events_chain.Add(file)
             runs_chain.Add(file)
@@ -340,6 +351,9 @@ def run(args):
         )
 
     # Set name of the output file
+    step_str = ""
+    if step:
+        step_str = f"_{step}"
     if args.run_range:
         run_range = args.run_range.split(",")
         assert(len(run_range) == 2)
@@ -360,14 +374,14 @@ def run(args):
         events_rdf = events_rdf.Define("min_run", f"{run_range[0]}")
         events_rdf = events_rdf.Define("max_run", f"{run_range[1]}")
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
-        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}")
+        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}{step_str}")
     elif args.mc_tag:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}")
+        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
     else:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.dataset}")
+        output_path = os.path.join(args.out, f"J4PSkim_{args.dataset}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")

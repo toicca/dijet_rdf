@@ -3,99 +3,121 @@ from processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
+import time
 
-def time_evolution(filelist: List[str], trigger_list: List[str], output_path: str):
-    
-    time_histograms = ("multijet/MPF/MPF_multijet_RunVsResponse",
-                       "multijet/DB/DB_multijet_RunVsResponse",)
+from find_range import find_run_range
 
-    # Load the root files to be analyzed
-    files = [ROOT.TFile(file, "READ") for file in filelist]
+def data_hists(rdf, hist_config, bins):
+    hd = {}
+    hd["int_lumi"] = rdf.Mean("int_lumi").GetValue()
+    hd["min_run"] = rdf.Min("min_run").GetValue()
+    hd["max_run"] = rdf.Max("max_run").GetValue()
+    for hist in hist_config:
+        name = hist_config[hist]["name"]
+        title = hist_config[hist]["title"]
+        if hist_config[hist]["type"] == "Histo1D":
+            x_bins = hist_config[hist]["x_bins"]
+            x_val = hist_config[hist]["x_val"]
+            cut = hist_config[hist].get("cut")
+            if cut:
+                hd[hist] = rdf.Filter(cut).Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                        x_val, "weight")
+            else:
+                hd[hist] = rdf.Histo1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                    x_val, "weight")
+        elif hist_config[hist]["type"] == "Profile1D":
+            x_bins = hist_config[hist]["x_bins"]
+            x_val = hist_config[hist]["x_val"]
+            y_val = hist_config[hist]["y_val"]
+            cut = hist_config[hist].get("cut")
+            if cut:
+                hd[hist] = rdf.Filter(cut).Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                        x_val, y_val, "weight")
+            else:
+                hd[hist] = rdf.Profile1D((name, title, bins[x_bins]["n"], bins[x_bins]["bins"]),
+                        x_val, y_val, "weight")
+    return hd
 
-    if len(trigger_list) == 0:
-        print("No triggers provided. Using all triggers from the first file.")
-        trigger_keys = files[0].GetListOfKeys()
-        trigger_list = [tkey.GetName() for tkey in trigger_keys]
+def lumi_data(rdf, hist_config, triggers):
+    ld = {}
+    ld["int_lumi"] = rdf.Mean("int_lumi")
+    ld["min_run"] = rdf.Min("min_run")
+    ld["max_run"] = rdf.Max("max_run")
 
-    out_file = ROOT.TFile(output_path, "UPDATE")
-    for trigger in trigger_list:
-        for hist in time_histograms:
-            bins = []
-            vals = []
-            yerrs = []
-            upper_edges = []
-            for file in files:
-                h = file.Get(trigger + "/" + hist)
-                h.Rebin(h.GetNbinsX())
-                bins.append(h.GetBinLowEdge(1))
-                vals.append(h.GetBinContent(1))
-                yerrs.append(h.GetBinError(1))
-                upper_edges.append(h.GetBinWidth(1) + h.GetBinLowEdge(1))
+    trg_filter = "1"
+    if len(triggers) > 0:
+        trg_filter = " || ".join(triggers)
 
-            # Sort the bins and values by the bin edges
-            bins, vals, yerrs, upper_edges = zip(*sorted(zip(bins, vals, yerrs, upper_edges)))
-            bins = list(bins) + [upper_edges[-1]]
-
-            out_hist = ROOT.TH1D(hist.split("/")[-1] + "_Evolution", hist.split("/")[-1] + "_Evolution", len(bins)-1, np.array(bins, dtype=float))
-
-            for i in range(len(vals)):
-                out_hist.SetBinContent(i+1, vals[i])
-                out_hist.SetBinError(i+1, yerrs[i])
-            
-            if not out_file.GetDirectory(trigger + "/TimeEvolution/" + hist.split("/")[0]):
-                out_file.mkdir(trigger+"/TimeEvolution/"+hist.split("/")[0])
-            out_file.cd(trigger+"/TimeEvolution/"+hist.split("/")[0])
-            out_hist.Write()
-            out_file.cd()
-
-    out_file.Close()
-
-
-def cumulative_response(filelist: List[str], trigger_list: List[str], output_path: str):
-    
-    response_histograms = ("multijet/MPF/MPF_multijet_PtRecoilVsResponseCorrected",
-                           "multijet/DB/DB_multijet_PtRecoilVsResponseCorrected",)
-    
-    # Load the root files to be analyzed
-    files = [ROOT.TFile(file, "READ") for file in filelist]
-
-    if len(trigger_list) == 0:
-        print("No triggers provided. Using all triggers from the first file.")
-        trigger_keys = files[0].GetListOfKeys()
-        trigger_list = [tkey.GetName() for tkey in trigger_keys]
-
-    out_file = ROOT.TFile(output_path, "UPDATE")
-
-    bins = get_bins()
-
-    for trigger in trigger_list:
-        for hist in response_histograms:
-            cum_prof = ROOT.TProfile(hist.split("/")[-1] + "_Cumulative", hist.split("/")[-1] + "_Cumulative", bins["pt"]["n"], bins["pt"]["bins"])
-
-            for file in files:
-                h = file.Get(trigger + "/" + hist)
-                cum_prof.Add(h)
-
-            if not out_file.GetDirectory(trigger + "/CumulativeResponses/" + hist.split("/")[0]):
-                out_file.mkdir(trigger + "/CumulativeResponses/" + hist.split("/")[0])
-            out_file.cd(trigger + "/CumulativeResponses/" + hist.split("/")[0])
-            cum_prof.Write()
-            out_file.cd()
+    for hist in hist_config:
+        x_val = hist_config[hist]["x_val"]
+        y_val = hist_config[hist]["y_val"]
+        cut = hist_config[hist].get("cut")
+        if cut:
+            ld[hist] = rdf.Filter(trg_filter).Filter(cut).Stats(y_val, "weight")
+        else:
+            ld[hist] = rdf.Filter(trg_filter).Stats(y_val, "weight")
+    return ld
 
 
+def produce_time_evolution(lds, hist_config, bins):
+    handles = []
+    for ld in lds:
+        for hist in hist_config:
+            handles.append(ld[hist])
+    ROOT.RDF.RunGraphs(handles)
+
+    clumi = 0.0
+    lumi = 0.0
+    lumi_bins = [0.0]
+    for ld in lds:
+        lumi = ld["int_lumi"].GetValue()
+        clumi += lumi
+        lumi_bins.append(clumi)
+
+    hs = {}
+    hs["min_runs"] = ROOT.TH1D(f"min_runs", "min_runs", len(lumi_bins)-1, np.array(lumi_bins))
+    hs["max_runs"] = ROOT.TH1D(f"max_runs", "max_runs", len(lumi_bins)-1, np.array(lumi_bins))
+    for hist in hist_config:
+        name = hist_config[hist]["name"]
+        title = f"{hist};Cumulative luminosity (fb^{{-1}});<Response>"
+
+        hs[hist] = ROOT.TH1D(f"{name}_int_lumi", title, len(lumi_bins)-1,
+                np.array(lumi_bins))
+
+    print("Filling time evolution histograms")
+    start_time_evolution = time.time()
+    for i, ld in enumerate(lds):
+        int_lumi = ld["int_lumi"].GetValue()
+        min_run = ld["min_run"].GetValue()
+        max_run = ld["max_run"].GetValue()
+
+        hs["min_runs"].SetBinContent(i+1, min_run)
+        hs["max_runs"].SetBinContent(i+1, max_run)
+        for hist in hist_config:
+            start_ratio = time.time()
+            md = ld[hist].GetValue().GetMean()
+            ed = ld[hist].GetValue().GetMeanErr()
+            hs[hist].SetBinContent(i+1, md)
+            hs[hist].SetBinError(i+1, ed)
+    print(f"Done filling time evolution histograms (took {time.time() - start_time_evolution} s)")
+    hists = [hs["min_runs"], hs["max_runs"]]
+    for hist in hist_config:
+        hists.append(hs[hist])
+
+    return hists
 
 def run(args):
-    trigger_list: List[str] = []
-    files: List[str] = []
-    
-    if args.triggerlist:
-        trigger_list = args.triggerlist.split(",")
-    elif args.triggerpath:
-        trigger_list = file_read_lines(args.triggerpath)
+    # Shut up ROOT
+    ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
-    # Split the file list and trigger list if they are given as a string
+    print("Producing time evolution histograms...")
+
+    if args.nThreads:
+        ROOT.EnableImplicitMT(args.nThreads)
+
+    files = []
     if args.filelist:
-        files= args.filelist.split(",")
+        files = [s.strip() for s in args.filelist.split(",")]
     elif args.filepaths:
         paths = [p.strip() for p in args.filepaths.split(",")]
         for path in paths:
@@ -103,15 +125,36 @@ def run(args):
     else:
         raise ValueError("No file list provided")
 
-    output_path = args.out
+    triggers = []
+    if args.triggerlist:
+        triggers = args.triggerlist.split(",")
+    elif args.triggerpath:
+        triggers = file_read_lines(args.triggerpath)
 
-    if args.config:
-        config_file = args.config
-        config = read_config_file(config_file)
+    bins = get_bins()
+    hist_config = dict(read_config_file(args.hist_config))
+    del hist_config["DEFAULT"]
 
-    # create root file, there could be an option to update
-    outf = ROOT.TFile(output_path, "RECREATE")
-    outf.Close()
+    chain_data = ROOT.TChain("Events")
+    chain_runs = ROOT.TChain("Runs")
 
-    time_evolution(files, trigger_list, output_path) 
-    cumulative_response(files, trigger_list, output_path)
+    lds = []
+    for file in files:
+        rdf = ROOT.RDataFrame("Events", file)
+
+        ld = lumi_data(rdf, hist_config, triggers)
+        lds.append(ld)
+
+    min_run = int(min([ld["min_run"].GetValue() for ld in lds]))
+    max_run = int(max([ld["max_run"].GetValue() for ld in lds]))
+    print(f"Group run range: [{min_run}, {max_run}]")
+    if args.data_tag:
+        output_path = f"{args.out}/J4PTimeEvolution_runs{min_run}to{max_run}_{args.data_tag}.root"
+    else:
+        output_path = f"{args.out}/J4PTimeEvolution_runs{min_run}to{max_run}.root"
+
+    output_file = ROOT.TFile.Open(f"{output_path}", "RECREATE")
+    hs = produce_time_evolution(lds, hist_config, bins)
+    for h in hs:
+            h.Write()
+    output_file.Close()
