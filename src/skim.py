@@ -372,18 +372,22 @@ def run(args):
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
 
+    # Include defined columns
+    columns = [str(col) for col in events_rdf.GetDefinedColumnNames() if not str(col).endswith("_temp")]
 
-    # Remove the Jet_ and _temp columns
-    if args.defined_columns:
-        pass
+    # Include pileup
+    columns.extend([str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Pileup_") \
+                    or str(col).startswith("Rho_") or str(col).startswith("PV_")) and not str(col).endswith("_temp")])
+    
+    # Include MET
+    columns.extend([str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("RawPFMET") \
+                    or str(col).startswith("RawPuppiMET") or str(col).startswith("PuppiMET")) or str(col).startswith("PFMET") \
+                    or str(col).startswith("CorrT1METJet") or str(col).startswith("RawPFMET") and not str(col).endswith("_temp")])
 
-    # Keep only the columns that are needed
-    columns = [str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Probe_") or str(col).startswith("Tag_") \
-                   or str(col).startswith("Rho_") or str(col).startswith("PV_") or str(col).startswith("Pileup_") \
-                   or str(col).startswith("RawPFMET") or str(col).startswith("RawPuppiMET") \
-                   or "DB_" in str(col) or "MPF_" in str(col) or "HDM_" in str(col) or "EFB_" in str(col)) and not str(col).endswith("_temp")]
-
+    # Include run info
     columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
+
+    # Include triggers
     columns.extend([trig for trig in triggers if trig in events_rdf.GetColumnNames()])
 
 
