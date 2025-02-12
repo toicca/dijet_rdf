@@ -130,270 +130,22 @@ bool isGoodLumi(int run, int lumi) {
     rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "Golden JSON"))
     return rdf
 
-def init_TnP(rdf, dataset):
-    # TODO:
-    # - Implement an index finding function for probe jets, to increase clarity
-    #   and to avoid cutting on the jet collection
-    if dataset == "dijet":
-        ROOT.gInterpreter.Declare("""
-        #ifndef DIJET_IDXS
-        #define DIJET_IDXS
-                                  
-        std::pair<std::pair<int, int>, int> findTagProbeIdxs(const ROOT::RVec<float>& Jet_eta, const ROOT::RVec<float>& Jet_pt,
-                            const ROOT::RVec<float>& Jet_phi, const ROOT::RVec<int>& Jet_jetId) {
+def init_TnP(rdf, channel):
+    """
+    Initialize the tag and probe variables for the analysis
+    """
+    if channel == "dijet":
+        from selections.dijet import init_dijet as init_selection
+    elif channel == "zjet":
+        from selections.zmumu import init_zmumu as init_selection
+    elif channel == "egamma":
+        from selections.photonjet import init_photonjet as init_selection
+    elif channel == "multijet":
+        from selections.multijet import init_multijet as init_selection
+    else:
+        from selections.empty import init_empty as init_selection
 
-            int idx1 = (int(Jet_phi[0]) * 100) % 2;
-            int idx2 = -1;
-
-            // Check that the tag is in barrel
-            if (abs(Jet_eta[idx1]) > 1.3 || Jet_pt[idx1] < 15 || Jet_jetId[idx1] < 4) {
-                return std::make_pair(std::make_pair(-1, -1), -1);
-            }
-                                  
-            // Find the probe jet as:
-            // leading jet back-to-back with the tag jet
-            for (int i = 0; i < Jet_pt.size(); i++) {
-                if (i == idx1 || Jet_pt[i] < 12 || Jet_jetId[i] < 4) {
-                    continue;
-                }
-                if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[idx1])) > 2.7 &&
-                    Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
-                    idx2 = i;
-                    break;
-                }
-            }
-
-            // Find the activity jet
-            int idx3 = -1;
-            for (int i = 0; i < Jet_pt.size(); i++) {
-                if (i != idx1 && i != idx2 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
-                    idx3 = i;
-                    break;
-                }
-            }
-
-            return std::make_pair(std::make_pair(idx1, idx2), idx3);
-        }
-                                  
-        #endif
-        """)
-
-        rdf = (rdf.Define("TnP_idx_temp", "findTagProbeIdxs(Jet_eta, Jet_pt, Jet_phi, Jet_jetId)")
-                .Filter("TnP_idx_temp.first.first >= 0 && TnP_idx_temp.first.second >= 0",
-                    "Tag and probe found")
-                .Define("Tag_idx_temp", "TnP_idx_temp.first.first")
-                .Define("Probe_idx_temp", "TnP_idx_temp.first.second")
-                .Define("Tag_pt", "Jet_pt[Tag_idx_temp]")
-                .Define("Tag_eta", "Jet_eta[Tag_idx_temp]")
-                .Define("Tag_phi", "Jet_phi[Tag_idx_temp]")
-                .Define("Tag_mass", "Jet_mass[Tag_idx_temp]")
-                .Define("Tag_rawPt", "(1.0 - Jet_rawFactor[Tag_idx_temp]) * Tag_pt")
-                .Define("Tag_label", "0")
-                .Define("Activity_idx_temp", "TnP_idx_temp.second")
-        )
-
-        # Create a probe jet collection
-        for column in jet_columns:
-            rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
-
-
-    elif dataset == "zjet":
-        ROOT.gInterpreter.Declare("""
-        #ifndef ZJET_IDXS
-        #define ZJET_IDXS
-                                  
-        std::pair<int, int> findMuonIdxs(const ROOT::RVec<float>& Muon_eta, const ROOT::RVec<float>& Muon_pt,
-                            const ROOT::RVec<float>& Muon_pfRelIso03_all, const ROOT::RVec<int>& Muon_tightId,
-                            const ROOT::RVec<float>& Muon_charge) {
-            int idx1 = -1;
-            int idx2 = -1;
-            for (int i = 0; i < Muon_pt.size(); i++) {
-                if (abs(Muon_eta[i]) < 2.4 && Muon_pfRelIso03_all[i] < 0.15 &&
-                    Muon_tightId[i]) {
-                    // Leading muon pt>20, subleading pt>10
-                    if (idx1 == -1 && Muon_pt[i] > 20) {
-                        idx1 = i;
-                    } else if (idx2 == -1 && Muon_charge[i] != Muon_charge[idx1] &&
-                            Muon_pt[i] > 10) {
-                        idx2 = i;
-                        break;
-                    }
-                }
-            }
-                                  
-            return std::make_pair(idx1, idx2);
-        }
-
-        std::pair<int, int> findJetIdx(const ROOT::RVec<float>& Jet_eta, const ROOT::RVec<float>& Jet_pt,
-                            const ROOT::RVec<float>& Jet_phi, const ROOT::RVec<int>& Jet_jetId,
-                            float Z_eta, float Z_phi) {
-            int idx1 = -1;
-            int idx2 = -1;
-            
-            // Find the probe jet
-            for (int i = 0; i < Jet_pt.size(); i++) {
-                if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Z_phi)) > 2.7) {
-                    if (idx1 == -1) {
-                        idx1 = i;
-                        break;
-                    }
-                }
-            }
-
-            // Find the activity jet
-            for (int i = 0; i < Jet_pt.size(); i++) {
-                if (i != idx1 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
-                    idx2 = i;
-                    break;
-                }
-            }
-                                  
-            return std::make_pair(idx1, idx2);
-        }
-                                  
-        #endif
-        """)
-        rdf = (rdf.Filter("nMuon > 1", "nMuon > 1")
-                .Define("Muon_idx_temp", "findMuonIdxs(Muon_eta, Muon_pt, Muon_pfRelIso03_all, \
-                        Muon_tightId, Muon_charge)")
-                .Filter("Muon_idx_temp.first >= 0 && Muon_idx_temp.second >= 0", "Two muons found")
-                .Define("Z_4vec_temp",
-                    "ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.first], \
-                            Muon_eta[Muon_idx_temp.first], Muon_phi[Muon_idx_temp.first], \
-                            Muon_mass[Muon_idx_temp.first]) + \
-                            ROOT::Math::PtEtaPhiMVector(Muon_pt[Muon_idx_temp.second], \
-                            Muon_eta[Muon_idx_temp.second], Muon_phi[Muon_idx_temp.second], \
-                            Muon_mass[Muon_idx_temp.second])")
-                .Define("Tag_pt", "static_cast<float>(Z_4vec_temp.Pt())")
-                .Define("Tag_rawPt", "Tag_pt")
-                .Define("Tag_eta", "static_cast<float>(Z_4vec_temp.Eta())")
-                .Define("Tag_phi", "static_cast<float>(Z_4vec_temp.Phi())")
-                .Define("Tag_mass", "static_cast<float>(Z_4vec_temp.M())")
-                .Define("Tag_label", "1")
-                .Define("Jet_indices_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
-                        Tag_eta, Tag_phi)")
-                .Define("Probe_idx_temp", "Jet_indices_temp.first")
-                .Define("Activity_idx_temp", "Jet_indices_temp.second")
-                .Filter("Probe_idx_temp >= 0", "Jet found")
-                .Filter("Tag_pt > 12", "Z pT > 12")
-                .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
-        )
-
-        for column in jet_columns:
-            rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
-
-    elif dataset == "egamma":
-        ROOT.gInterpreter.Declare("""
-        #ifndef EGAMMA_IDXS
-        #define EGAMMA_IDXS
-        
-        int findPhotonIdx(const ROOT::RVec<float>& Photon_eta, const ROOT::RVec<float>& Photon_pt,
-                            const ROOT::RVec<int>& Photon_cutBased, const ROOT::RVec<float>& Photon_hoe,
-                            const ROOT::RVec<float>& Photon_r9) {
-            for (int i = 0; i < Photon_pt.size(); i++) {
-                if (abs(Photon_eta[i]) < 1.3 && Photon_pt[i] > 15 && Photon_cutBased[i] == 3 &&
-                    Photon_hoe[i] < 0.02148 && Photon_r9[i] > 0.94 && Photon_r9[i] < 1.00) {
-                    return i;
-                }
-            }
-                                  
-            return -1;
-        }
-                                  
-        std::pair<int, int> findJetIdx(const ROOT::RVec<float>& Jet_eta, const ROOT::RVec<float>& Jet_pt,
-                            const ROOT::RVec<float>& Jet_phi, const ROOT::RVec<int>& Jet_jetId,
-                            int Photon_jetIdx, float Photon_phi) {
-            int idx1 = -1;
-            int idx2 = -1;
-                                  
-            // Find the probe jet
-            for (int i = 0; i < Jet_pt.size(); i++) {
-                if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4
-                    && i != Photon_jetIdx &&
-                    abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
-                    idx1 = i;
-                    break;
-                }
-            }
-
-            // Find the activity jet
-            for (int i = 0; i < Jet_pt.size(); i++) {
-                if (i != idx1 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
-                    idx2 = i;
-                    break;
-                }
-            }
-                                  
-            return std::make_pair(idx1, idx2);
-        }
-                                  
-        #endif
-        """)
-
-        rdf = (rdf.Define("Tag_idx_temp", "findPhotonIdx(Photon_eta, Photon_pt, Photon_cutBased, \
-                Photon_hoe, Photon_r9)")
-                .Filter("Tag_idx_temp >= 0", "Photon found")
-                .Define("Jet_indices_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
-                        Photon_jetIdx[Tag_idx_temp], Photon_phi[Tag_idx_temp])")
-                .Define("Probe_idx_temp", "Jet_indices_temp.first")
-                .Define("Activity_idx_temp", "Jet_indices_temp.second")
-                .Filter("Probe_idx_temp >= 0", "Jet found")
-                .Define("Tag_pt", f"Photon_pt[Tag_idx_temp]")
-                .Define("Tag_rawPt", "Tag_pt")
-                .Define("Tag_eta", f"Photon_eta[Tag_idx_temp]")
-                .Define("Tag_phi", f"Photon_phi[Tag_idx_temp]")
-                .Define("Tag_mass", "0.0")
-                .Define("Tag_label", "2")
-        )
-
-        for column in jet_columns:
-            rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
-
-    elif dataset == "multijet":
-        # Change Tag <-> Probe for multijet, since low pt jets better calibrated?
-        recoil_filter = "abs(RecoilJet_eta)<2.5 && RecoilJet_pt>30"
-        rdf = (rdf.Filter("nJet > 2", "nJet > 2")
-                .Filter("Jet_pt[0] > 30",
-                    "Leading jet pT > 30")
-                .Define("Probe_pt", "Jet_pt[0]")
-                .Define("Probe_eta", "Jet_eta[0]")
-                .Define("Probe_phi", "Jet_phi[0]")
-                .Define("Probe_mass", "Jet_mass[0]")
-                .Define("Tag_label", "3")
-                .Define("RecoilJet_ids",
-                    "ROOT::VecOps::Drop(ROOT::VecOps::Enumerate(Jet_pt), \
-                            ROOT::VecOps::RVec<int>{0})")
-                .Define("RecoilJet_pt", f"ROOT::VecOps::Take(Jet_pt, RecoilJet_ids)")
-                .Define("RecoilJet_eta", f"ROOT::VecOps::Take(Jet_eta, RecoilJet_ids)")
-                .Define("RecoilJet_phi", f"ROOT::VecOps::Take(Jet_phi, RecoilJet_ids)")
-                .Define("RecoilJet_mass", f"ROOT::VecOps::Take(Jet_mass, RecoilJet_ids)")
-                .Define("Tag_pt", f"RecoilJet_pt[{recoil_filter}]")
-                .Define("Tag_rawPt", "0.0") # TODO
-                .Define("Tag_eta", f"RecoilJet_eta[{recoil_filter}]")
-                .Define("Tag_phi", f"RecoilJet_phi[{recoil_filter}]")
-                .Define("Tag_mass", f"RecoilJet_mass[{recoil_filter}]")
-                .Define("Tag_ids", f"RecoilJet_ids[{recoil_filter}]")
-                .Define("TagMJ_fourVec_temp",
-                    "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Tag_pt, \
-                            Tag_eta, Tag_phi, Tag_mass)")
-                .Redefine("TagMJ_fourVec_temp",
-                    "ROOT::VecOps::Sum(TagMJ_fourVec_temp, ROOT::Math::PtEtaPhiMVector())")
-                .Redefine("Tag_pt",
-                    "float(TagMJ_fourVec_temp.Pt())")
-                .Redefine("Tag_eta",
-                    "float(TagMJ_fourVec_temp.Eta())")
-                .Redefine("Tag_phi",
-                    "float(TagMJ_fourVec_temp.Phi())")
-                .Redefine("Tag_mass",
-                    "float(TagMJ_fourVec_temp.M())")
-                .Define("Activity_idx_temp", "-1") # No activity jet for multijet
-        )
-
-        for column in jet_columns:
-            if column in ["Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"]:
-                continue
-            # For multijet change Probe columns to be zero, as probe is not a jet
-            rdf = rdf.Define("Probe_"+column[4:], f"0.0")
+    rdf = init_selection(rdf, jet_columns)
 
     rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
     rdf = rdf.Filter("Activity_idx_temp >= 0 ? Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5) < 1.0 : 1", "Activity jet pT fraction < 1.0")
@@ -421,10 +173,10 @@ def init_TnP(rdf, dataset):
             .Redefine("JetActivity_fourVec_temp", "ROOT::VecOps::Sum(JetActivity_fourVec_temp, \
                     ROOT::Math::PtEtaPhiMVector())")
     )
-    if dataset == "dijet" or dataset == "multijet":
+    if channel == "dijet" or channel == "multijet":
         rdf = (rdf.Redefine("JetActivity_fourVec_temp",
                             "JetActivity_fourVec_temp - Tag_fourVec_temp - Probe_fourVec_temp"))
-    elif dataset == "zjet" or dataset == "egamma":
+    elif channel == "zjet" or channel == "egamma":
         rdf = (rdf.Redefine("JetActivity_fourVec_temp",
                             "JetActivity_fourVec_temp - Probe_fourVec_temp"))
     rdf = (rdf.Define("JetActivity_pt", "float(JetActivity_fourVec_temp.Pt())")
@@ -634,18 +386,22 @@ def skim(files, triggers, args, step=None):
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
 
+    # Include defined columns
+    columns = [str(col) for col in events_rdf.GetDefinedColumnNames() if not str(col).endswith("_temp")]
 
-    # Remove the Jet_ and _temp columns
-    if args.defined_columns:
-        pass
+    # Include pileup
+    columns.extend([str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Pileup_") \
+                    or str(col).startswith("Rho_") or str(col).startswith("PV_")) and not str(col).endswith("_temp")])
+    
+    # Include MET
+    columns.extend([str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("RawPFMET") \
+                    or str(col).startswith("RawPuppiMET") or str(col).startswith("PuppiMET")) or str(col).startswith("PFMET") \
+                    or str(col).startswith("CorrT1METJet") or str(col).startswith("RawPFMET") and not str(col).endswith("_temp")])
 
-    # Keep only the columns that are needed
-    columns = [str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Probe_") or str(col).startswith("Tag_") \
-                   or str(col).startswith("Rho_") or str(col).startswith("PV_") or str(col).startswith("Pileup_") \
-                   or str(col).startswith("RawPFMET") or str(col).startswith("RawPuppiMET") \
-                   or "DB_" in str(col) or "MPF_" in str(col) or "HDM_" in str(col) or "EFB_" in str(col)) and not str(col).endswith("_temp")]
-
+    # Include run info
     columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
+
+    # Include triggers
     columns.extend([trig for trig in triggers if trig in events_rdf.GetColumnNames()])
 
 

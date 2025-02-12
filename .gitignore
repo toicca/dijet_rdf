@@ -4,6 +4,7 @@ src/JetMETObjects/src/*.so
 src/JetMETObjects/src/*.pcm
 out/
 output/
+out_skim/
 .vscode/
 CMSSW_14_0_4/
 *.swp
