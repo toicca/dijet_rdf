@@ -10,7 +10,7 @@ import time
 from typing import List
 
 from processing_utils import file_read_lines, find_site
-from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags
+from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags, sort_jets
 
 weight_info = {
     "xsec" : {
@@ -88,7 +88,8 @@ jet_columns = [
     "Jet_hfEmEF", "Jet_hfHEF",
     "Jet_muEF",
     "Jet_neMultiplicity", "Jet_chMultiplicity",
-    "Jet_rawFactor"
+    "Jet_rawFactor",
+    "Jet_btagPNetQvG"
 ]
 
 
@@ -99,7 +100,7 @@ def init_TnP(rdf, channel):
     if channel == "dijet":
         from selections.dijet import init_dijet as init_selection
     elif channel == "zjet":
-        from selections.zmumu import init_zmumu as init_selection
+        from selections.zmm import init_zmm as init_selection
     elif channel == "egamma":
         from selections.photonjet import init_photonjet as init_selection
     elif channel == "multijet":
@@ -234,8 +235,8 @@ def skim(files, triggers, args, step=None):
     for file in files:
         if not args.is_local:
             try:
-                events_chain.Add(f"root://cms-xrd-global.cern.ch//{file}")
-                runs_chain.Add(f"root://cms-xrd-global.cern.ch//{file}")
+                events_chain.Add(f"root://xrootd-cms.infn.it//{file}")
+                runs_chain.Add(f"root://xrootd-cms.infn.it//{file}")
             except Exception as e:
                 print(f"Skipping problematic run: {e}")
         else:
@@ -267,6 +268,7 @@ def skim(files, triggers, args, step=None):
         # JECs
         if "jec_path" and "jec_stack" in correction_info:
             events_rdf = correct_jets(events_rdf, correction_info["jec_path"], correction_info["jec_stack"])
+            events_rdf = sort_jets(events_rdf, jet_columns)
 
         # Vetomaps
         if "vetomap_path" and "vetomap_set" in correction_info:
@@ -278,7 +280,7 @@ def skim(files, triggers, args, step=None):
 
     # Initialize the JEC variables
     print("Initializing TnP variables")
-    events_rdf = init_TnP(events_rdf, args.dataset)
+    events_rdf = init_TnP(events_rdf, args.channel)
     print("Initializing JEC variables")
     events_rdf = do_JEC(events_rdf)
 
@@ -345,14 +347,14 @@ def skim(files, triggers, args, step=None):
         events_rdf = events_rdf.Define("min_run", f"{run_range[0]}")
         events_rdf = events_rdf.Define("max_run", f"{run_range[1]}")
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
-        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.channel}{step_str}")
     elif args.mc_tag:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
     else:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.dataset}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
@@ -366,8 +368,8 @@ def skim(files, triggers, args, step=None):
     
     # Include MET
     columns.extend([str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("RawPFMET") \
-                    or str(col).startswith("RawPuppiMET") or str(col).startswith("PuppiMET")) or str(col).startswith("PFMET") \
-                    or str(col).startswith("CorrT1METJet") or str(col).startswith("RawPFMET") and not str(col).endswith("_temp")])
+                    or str(col).startswith("RawPuppiMET") or str(col).startswith("PuppiMET") or str(col).startswith("PFMET") \
+                    or str(col).startswith("CorrT1METJet") or str(col).startswith("RawPFMET")) and not str(col).endswith("_temp")])
 
     # Include run info
     columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
@@ -377,6 +379,7 @@ def skim(files, triggers, args, step=None):
 
     # Check for duplicates
     columns = list(set(columns))
+    columns.sort()
 
     print(f"Writing output for {output_path}.root")
     start = time.time()

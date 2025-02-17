@@ -7,7 +7,7 @@ Skims are created with the command `python3 main.py skim`.
 The command requires
 - input files passed with the flag `--filelist` or `--filepaths`. `--filelists` takes as input a commma separated list of root files, ie. `--filelist file1.root,file2.root`, and `--filepaths` takes as input a `.txt` file with a list of root files, ie. `--filepaths data/DT_2024/JetMET/Run2024H.txt`. If the files are located on the same filesystem as where the commands are run, the flag `--is_local` needs to be passed to the script.
 - output directory passed with the `--out`, ie. `--out out_skim/`
-- channel that the skim should be based on, ie. `--dataset dijet`.
+- channel that the skim should be based on, ie. `--channel dijet`.
 
 Additionally, you can specify
 - `--progress_bar` to follow the progress and performance of the skimming.

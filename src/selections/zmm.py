@@ -1,6 +1,6 @@
 import ROOT
 
-def init_zmumu(rdf, jet_columns):
+def init_zmm(rdf, jet_columns):
     ROOT.gInterpreter.Declare("""
     #ifndef ZJET_IDXS
     #define ZJET_IDXS
@@ -76,10 +76,12 @@ def init_zmumu(rdf, jet_columns):
             .Define("Jet_indices_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
                     Tag_eta, Tag_phi)")
             .Define("Probe_idx_temp", "Jet_indices_temp.first")
+            .Filter("Jet_vetoed[Probe_idx_temp] == 0", "Jet not vetoed")
             .Define("Activity_idx_temp", "Jet_indices_temp.second")
             .Filter("Probe_idx_temp >= 0", "Jet found")
             .Filter("Tag_pt > 12", "Z pT > 12")
             .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
+            .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 
     for column in jet_columns:

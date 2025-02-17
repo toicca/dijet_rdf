@@ -27,8 +27,8 @@ def init_photonjet(rdf, jet_columns):
         // Find the probe jet
         for (int i = 0; i < Jet_pt.size(); i++) {
             if (Jet_pt[i] > 12 && Jet_jetId[i] >= 4
-                && i != Photon_jetIdx &&
-                abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
+                    && i != Photon_jetIdx
+                    && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Photon_phi)) > 2.7) {
                 idx1 = i;
                 break;
             }
@@ -54,6 +54,7 @@ def init_photonjet(rdf, jet_columns):
             .Define("Jet_indices_temp", "findJetIdx(Jet_eta, Jet_pt, Jet_phi, Jet_jetId, \
                     Photon_jetIdx[Tag_idx_temp], Photon_phi[Tag_idx_temp])")
             .Define("Probe_idx_temp", "Jet_indices_temp.first")
+            .Filter("Jet_vetoed[Probe_idx_temp] == 0", "Probe not vetoed")
             .Define("Activity_idx_temp", "Jet_indices_temp.second")
             .Filter("Probe_idx_temp >= 0", "Jet found")
             .Define("Tag_pt", f"Photon_pt[Tag_idx_temp]")
@@ -62,6 +63,7 @@ def init_photonjet(rdf, jet_columns):
             .Define("Tag_phi", f"Photon_phi[Tag_idx_temp]")
             .Define("Tag_mass", "0.0")
             .Define("Tag_label", "2")
+            .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 
     for column in jet_columns:
