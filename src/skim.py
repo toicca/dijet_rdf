@@ -360,7 +360,7 @@ def skim(files, triggers, args, step=None):
         events_rdf = events_rdf.Define("int_lumi", "1.")
 
     # Include defined columns
-    columns = [str(col) for col in events_rdf.GetDefinedColumnNames() if not str(col).endswith("_temp")]
+    columns = [str(col) for col in events_rdf.GetDefinedColumnNames() if not str(col).endswith("_temp") and not str(col).startswith("Jet_")]
 
     # Include pileup
     columns.extend([str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("Pileup_") \
