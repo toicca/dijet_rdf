@@ -105,6 +105,10 @@ def get_bins(fill_range : tuple = (376370, 380100), isMC : bool = False) -> dict
     bins["lumi"] = {}
     bins["lumi"]["bins"] = np.linspace(0, 1600, 1600, dtype=float)
     bins["lumi"]["n"] = len(bins["lumi"]["bins"]) - 1
+
+    bins["tagger"] = {}
+    bins["tagger"]["bins"] = np.linspace(0, 1, 100, dtype=float)
+    bins["tagger"]["n"] = len(bins["tagger"]["bins"]) - 1
     
     return bins
 
