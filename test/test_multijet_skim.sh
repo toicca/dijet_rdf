@@ -13,3 +13,7 @@ python3 src/main.py skim \
   --correction_json data/corrections/summer24_corrections.json \
   --correction_key Run2024H \
   --progress_bar
+
+RET=$?
+
+exit $RET
