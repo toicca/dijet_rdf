@@ -10,7 +10,7 @@ import time
 from typing import List
 
 from processing_utils import file_read_lines, find_site
-from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags
+from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags, sort_jets
 
 weight_info = {
     "xsec" : {
@@ -88,7 +88,8 @@ jet_columns = [
     "Jet_hfEmEF", "Jet_hfHEF",
     "Jet_muEF",
     "Jet_neMultiplicity", "Jet_chMultiplicity",
-    "Jet_rawFactor"
+    "Jet_rawFactor",
+    "Jet_btagPNetQvG"
 ]
 
 
@@ -234,8 +235,8 @@ def skim(files, triggers, args, step=None):
     for file in files:
         if not args.is_local:
             try:
-                events_chain.Add(f"root://cms-xrd-global.cern.ch//{file}")
-                runs_chain.Add(f"root://cms-xrd-global.cern.ch//{file}")
+                events_chain.Add(f"root://xrootd-cms.infn.it//{file}")
+                runs_chain.Add(f"root://xrootd-cms.infn.it//{file}")
             except Exception as e:
                 print(f"Skipping problematic run: {e}")
         else:
@@ -267,6 +268,7 @@ def skim(files, triggers, args, step=None):
         # JECs
         if "jec_path" and "jec_stack" in correction_info:
             events_rdf = correct_jets(events_rdf, correction_info["jec_path"], correction_info["jec_stack"])
+            events_rdf = sort_jets(events_rdf, jet_columns)
 
         # Vetomaps
         if "vetomap_path" and "vetomap_set" in correction_info:
@@ -366,8 +368,8 @@ def skim(files, triggers, args, step=None):
     
     # Include MET
     columns.extend([str(col) for col in events_rdf.GetColumnNames() if (str(col).startswith("RawPFMET") \
-                    or str(col).startswith("RawPuppiMET") or str(col).startswith("PuppiMET")) or str(col).startswith("PFMET") \
-                    or str(col).startswith("CorrT1METJet") or str(col).startswith("RawPFMET") and not str(col).endswith("_temp")])
+                    or str(col).startswith("RawPuppiMET") or str(col).startswith("PuppiMET") or str(col).startswith("PFMET") \
+                    or str(col).startswith("CorrT1METJet") or str(col).startswith("RawPFMET")) and not str(col).endswith("_temp")])
 
     # Include run info
     columns.extend(["weight", "run", "luminosityBlock", "event", "int_lumi", "min_run", "max_run"])
@@ -377,6 +379,7 @@ def skim(files, triggers, args, step=None):
 
     # Check for duplicates
     columns = list(set(columns))
+    columns.sort()
 
     print(f"Writing output for {output_path}.root")
     start = time.time()

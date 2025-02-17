@@ -45,7 +45,7 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
             .Define("Jet_correctionFactor", f"get_correction({','.join(ccols)})")
             .Redefine("Jet_pt", "Jet_pt * Jet_correctionFactor")
             .Redefine("Jet_mass", "(1.0 - Jet_rawFactor) * Jet_mass * Jet_correctionFactor")
-            .Redefine("Jet_rawFactor", "1.0-Jet_correctionFactor")
+            .Redefine("Jet_rawFactor", "1.0-1.0/Jet_correctionFactor")
     )
 
     return rdf
@@ -74,6 +74,10 @@ const ROOT::VecOps::RVec<int> get_veto( const ROOT::VecOps::RVec<float>& eta, co
     ROOT::VecOps::RVec<bool> veto_flags;
 
     for (size_t i = 0; i < eta.size(); i++) {
+        if (abs(eta[i]) > 5.31 || abs(phi[i]) > 3.14159) {
+            veto_flags.push_back(true);
+            continue;
+        } 
         float veto = veval->evaluate({type, eta[i], phi[i]});
         if (veto > 0.0) {
             veto_flags.push_back(true);
@@ -147,3 +151,10 @@ def get_Flags(campaign=None):
     ]
 
     return flags
+
+def sort_jets(rdf, jet_columns):
+    # Sort jets by pt
+    rdf = rdf.Define("Jet_pt_index", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Jet_pt))")
+    for col in jet_columns:
+        rdf = rdf.Define(f"{col}", f"ROOT::VecOps::Take({col}, Jet_pt_index)")
+    return rdf
