@@ -49,6 +49,8 @@ def init_dijet(rdf, jet_columns):
                 "Tag and probe found")
             .Define("Tag_idx_temp", "TnP_idx_temp.first.first")
             .Define("Probe_idx_temp", "TnP_idx_temp.first.second")
+            .Filter("Jet_vetoed[Tag_idx_temp] == 0", "Tag not vetoed")
+            .Filter("Jet_vetoed[Probe_idx_temp] == 0", "Probe not vetoed")
             .Define("Tag_pt", "Jet_pt[Tag_idx_temp]")
             .Define("Tag_eta", "Jet_eta[Tag_idx_temp]")
             .Define("Tag_phi", "Jet_phi[Tag_idx_temp]")
