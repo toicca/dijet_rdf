@@ -221,7 +221,8 @@ def parse_arguments():
             raise ValueError("is_mc not set but mc_tag given")
         if args.is_mc and args.run_range:
             raise ValueError("run_range and is_mc both set")
-        if (args.step and not args.nsteps) or (args.nsteps and not args.step):
+        if (args.step is not None and args.nsteps is None) or \
+                (args.nsteps is not None and args.step is None):
             raise ValueError("nsteps and step should be passed together")
         if args.dataset:
             print("--dataset is deprecated. Use --channel instead.")
