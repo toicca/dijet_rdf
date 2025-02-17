@@ -56,6 +56,7 @@ def init_dijet(rdf, jet_columns):
             .Define("Tag_rawPt", "(1.0 - Jet_rawFactor[Tag_idx_temp]) * Tag_pt")
             .Define("Tag_label", "0")
             .Define("Activity_idx_temp", "TnP_idx_temp.second")
+            .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 
     # Create a probe jet collection

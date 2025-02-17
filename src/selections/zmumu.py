@@ -80,6 +80,7 @@ def init_zmumu(rdf, jet_columns):
             .Filter("Probe_idx_temp >= 0", "Jet found")
             .Filter("Tag_pt > 12", "Z pT > 12")
             .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
+            .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 
     for column in jet_columns:
