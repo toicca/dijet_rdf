@@ -70,20 +70,18 @@ auto veval = vset->at("{vset}");
 #ifndef GET_VETO
 #define GET_VETO
 
-const ROOT::VecOps::RVec<int> get_veto( const ROOT::VecOps::RVec<float>& eta, const ROOT::VecOps::RVec<float>& phi, std::string type="jetvetomap") {
+ROOT::VecOps::RVec<bool> get_veto( const ROOT::VecOps::RVec<float>& eta, 
+                                   const ROOT::VecOps::RVec<float>& phi, 
+                                   std::string type="jetvetomap") {
     ROOT::VecOps::RVec<bool> veto_flags;
 
     for (size_t i = 0; i < eta.size(); i++) {
-        if (abs(eta[i]) > 5.31 || abs(phi[i]) > 3.14159) {
+        if (abs(eta[i]) > 5.131 || abs(phi[i]) > 3.14159) {
             veto_flags.push_back(true);
             continue;
         } 
         float veto = veval->evaluate({type, eta[i], phi[i]});
-        if (veto > 0.0) {
-            veto_flags.push_back(true);
-        } else {
-            veto_flags.push_back(false);
-        }
+        veto_flags.push_back(veto > 0.0);
     }
 
     return veto_flags;
