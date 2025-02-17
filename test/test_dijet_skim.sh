@@ -1,4 +1,6 @@
 #!/bin/bash
+source /cvmfs/sft.cern.ch/lcg/views/LCG_107a/x86_64-el9-gcc14-opt/setup.sh
+
 python3 src/main.py skim \
   --filepath data/DT_2024/JetMET/Run2024H.txt \
   --golden_json /eos/user/c/cmsdqm/www/CAF/certification/Collisions24/2024H_Golden.json \
