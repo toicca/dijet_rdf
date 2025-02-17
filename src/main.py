@@ -195,7 +195,7 @@ def parse_arguments():
     skim_parser.add_argument("--out", type=str, required=True, default="", help="Output path")
     skim_parser.add_argument("--dataset", type=str,
             choices=["dijet", "zjet", "egamma", "multijet"],
-            help="Dataset type: dijet, zjet, egamma or multijet", deprecated=True)
+            help="Dataset type: dijet, zjet, egamma or multijet")
     skim_parser.add_argument("--channel", type=str,
             choices=["dijet", "zmm", "photonjet", "multijet"],
             help="Channel type: dijet, zmm, photonjet or multijet")
