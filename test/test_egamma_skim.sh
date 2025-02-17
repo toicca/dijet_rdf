@@ -8,4 +8,6 @@ python3 src/main.py skim \
   --nThreads 8 \
   --nsteps 20 \
   --step 1 \
+  --correction_json data/corrections/summer24_corrections.json \
+  --correction_key Run2024H \
   --progress_bar

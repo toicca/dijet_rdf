@@ -156,5 +156,5 @@ def sort_jets(rdf, jet_columns):
     # Sort jets by pt
     rdf = rdf.Define("Jet_pt_index", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Jet_pt))")
     for col in jet_columns:
-        rdf = rdf.Define(f"{col}", f"ROOT::VecOps::Take({col}, Jet_pt_index)")
+        rdf = rdf.Redefine(f"{col}", f"ROOT::VecOps::Take({col}, Jet_pt_index)")
     return rdf
