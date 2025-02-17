@@ -280,7 +280,7 @@ def skim(files, triggers, args, step=None):
 
     # Initialize the JEC variables
     print("Initializing TnP variables")
-    events_rdf = init_TnP(events_rdf, args.dataset)
+    events_rdf = init_TnP(events_rdf, args.channel)
     print("Initializing JEC variables")
     events_rdf = do_JEC(events_rdf)
 
@@ -347,14 +347,14 @@ def skim(files, triggers, args, step=None):
         events_rdf = events_rdf.Define("min_run", f"{run_range[0]}")
         events_rdf = events_rdf.Define("max_run", f"{run_range[1]}")
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
-        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.dataset}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.channel}{step_str}")
     elif args.mc_tag:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.dataset}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
     else:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.dataset}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")

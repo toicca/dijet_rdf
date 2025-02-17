@@ -193,9 +193,12 @@ def parse_arguments():
     skim_triggers.add_argument('-tl','--triggerlist', type=str,
             help='Input files separated by commas')
     skim_parser.add_argument("--out", type=str, required=True, default="", help="Output path")
-    skim_parser.add_argument("--dataset", type=str, required=True,
+    skim_parser.add_argument("--dataset", type=str,
             choices=["dijet", "zjet", "egamma", "multijet"],
-            help="Dataset type: dijet, zjet, egamma or multijet")
+            help="Dataset type: dijet, zjet, egamma or multijet", deprecated=True)
+    skim_parser.add_argument("--channel", type=str,
+            choices=["dijet", "zmm", "photonjet", "multijet"],
+            help="Channel type: dijet, zmm, photonjet or multijet")
     skim_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     skim_parser.add_argument("--golden_json", type=str, help="Golden JSON for filtering")
@@ -220,6 +223,9 @@ def parse_arguments():
             raise ValueError("run_range and is_mc both set")
         if (args.step and not args.nsteps) or (args.nsteps and not args.step):
             raise ValueError("nsteps and step should be passed together")
+        if args.dataset:
+            print("--dataset is deprecated. Use --channel instead.")
+            args.channel = args.dataset
 
     return args
 
