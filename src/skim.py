@@ -101,7 +101,7 @@ def init_TnP(rdf, channel):
         from selections.dijet import init_dijet as init_selection
     elif channel == "zmm":
         from selections.zmm import init_zmm as init_selection
-    elif channel == "egamma":
+    elif channel == "photonjet":
         from selections.photonjet import init_photonjet as init_selection
     elif channel == "multijet":
         from selections.multijet import init_multijet as init_selection
