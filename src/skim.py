@@ -181,6 +181,7 @@ def do_JEC(rdf):
                         (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
            )
 
+
     # Energy Fraction balance
     rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmEF) / Tag_pt")
         .Define("EFB_chHEF", "(Probe_rawPt * Probe_chHEF) / Tag_pt")
@@ -277,6 +278,13 @@ def skim(files, triggers, args, step=None):
         # Define that no jets were vetoed
         events_rdf = events_rdf.Define("Jet_vetoed", "ROOT::VecOps::RVec<bool>(Jet_pt.size(), false)")
 
+    # Define energy fraction variables in case not in NanoAOD (added in V14)
+    ef_cols = ["Jet_chEmEF", "Jet_chHEF", "Jet_hfEmEF", "Jet_muEF", "Jet_neEmEF", "Jet_neHEF"]
+    rdf_cols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Jet_")]
+
+    for ef in ef_cols:
+        if ef not in rdf_cols:
+            rdf = rdf.Define(ef, "-1.0")
 
     # Initialize the JEC variables
     print("Initializing TnP variables")

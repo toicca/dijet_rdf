@@ -23,7 +23,7 @@ def init_multijet(rdf, jet_columns):
     """)
 
     rdf = (rdf.Filter("nJet > 3", "nJet > 3")
-            .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5",
+            .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5 && Jet_jetId[0] >= 4",
                 "Leading jet pT > 30 and |eta| < 2.5")
             .Define("RecoilJet_idx_temp", "findRecoilJetIdxs(Jet_pt, Jet_eta, Jet_phi, Jet_mass, Jet_jetId)")
             .Define("RecoilJet_vetoed", "ROOT::VecOps::Take(Jet_vetoed, RecoilJet_idx_temp)")

@@ -1,0 +1,37 @@
+{
+    "Summer23": {
+        "jec_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23/jet_jerc.json.gz",
+        "jec_stack": "Summer23Prompt23_V1_MC_L1L2L3Res_AK4PFPuppi",
+        "jec_cols": "Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area",
+        "vetomap_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23/jetvetomaps.json.gz",
+        "vetomap_set": "Summer23Prompt23_RunC_V1"
+    },
+    "Summer23BPix": {
+        "jec_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23BPix/jet_jerc.json.gz",
+        "jec_stack": "Summer23BPixPrompt23_V1_MC_L1L2L3Res_AK4PFPuppi",
+        "jec_cols": "Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area,Jet_phi",
+        "vetomap_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23BPix/jetvetomaps.json.gz",
+        "vetomap_set": "Summer23BPixPrompt23_RunD_V1"
+    },
+    "Run2023Cv123": {
+        "jec_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23/jet_jerc.json.gz",
+        "jec_stack": "Summer23Prompt23_RunCv123_V1_DATA_L1L2L3Res_AK4PFPuppi",
+        "jec_cols": "Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area",
+        "vetomap_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23/jetvetomaps.json.gz",
+        "vetomap_set": "Summer23Prompt23_RunC_V1"
+    },
+    "Run2023Cv4": {
+        "jec_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23/jet_jerc.json.gz",
+        "jec_stack": "Summer23Prompt23_RunCv4_V1_DATA_L1L2L3Res_AK4PFPuppi",
+        "jec_cols": "Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area",
+        "vetomap_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23/jetvetomaps.json.gz",
+        "vetomap_set": "Summer23Prompt23_RunC_V1"
+    },
+    "Run2023D": {
+        "jec_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23BPix/jet_jerc.json.gz",
+        "jec_stack": "Summer23BPixPrompt23_RunD_V1_DATA_L1L2L3Res_AK4PFPuppi",
+        "jec_cols": "Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area,Jet_phi",
+        "vetomap_path": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/2023_Summer23BPix/jetvetomaps.json.gz",
+        "vetomap_set": "Summer23BPixPrompt23_RunD_V1"
+    }
+}

@@ -1,6 +1,6 @@
 import ROOT
 
-def correct_jets(rdf, cfile, cstack, ccols=["Jet_rawPt", "Jet_eta", "Rho_fixedGridRhoFastjetAll", "Jet_area", "Jet_phi"]):
+def correct_jets(rdf, cfile, cstack, ccols="Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area,Jet_phi"):
     ROOT.gInterpreter.Declare(
 f"""
 #ifndef JET_CORRECTIONS
@@ -42,7 +42,7 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
 """)
 
     rdf = (rdf.Define("Jet_rawPt", "(1.0 - Jet_rawFactor) * Jet_pt")
-            .Define("Jet_correctionFactor", f"get_correction({','.join(ccols)})")
+            .Define("Jet_correctionFactor", f"get_correction({ccols})")
             .Redefine("Jet_pt", "Jet_pt * Jet_correctionFactor")
             .Redefine("Jet_mass", "(1.0 - Jet_rawFactor) * Jet_mass * Jet_correctionFactor")
             .Redefine("Jet_rawFactor", "1.0-1.0/Jet_correctionFactor")
