@@ -111,6 +111,14 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
             .Redefine("Jet_pt", "Jet_pt * Jet_correctionFactor")
             .Redefine("Jet_mass", "(1.0 - Jet_rawFactor) * Jet_mass * Jet_correctionFactor")
             .Redefine("Jet_rawFactor", "1.0-1.0/Jet_correctionFactor")
+            .Define("UncorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_rawPt, Jet_phi)")
+            .Redefine("UncorrectedJet_temp", "ROOT::VecOps::Sum(UncorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
+            .Define("CorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_pt, Jet_phi)")
+            .Redefine("CorrectedJet_temp", "ROOT::VecOps::Sum(CorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
+            .Define("PuppiMET_temp", "ROOT::Math::Polar2DVectorF(PuppiMET_pt, PuppiMET_phi)")
+            .Define("T1MET_temp", "PuppiMET_temp + UncorrectedJet_temp - CorrectedJet_temp") # -RC?
+            .Redefine("PuppiMET_pt", "float(PuppiMET_temp.R())")
+            .Redefine("PuppiMET_phi", "float(PuppiMET_temp.Phi())")
     )
 
     return rdf
