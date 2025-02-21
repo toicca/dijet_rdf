@@ -22,7 +22,7 @@ fi
 
 python3 src/main.py hist \
   -hconf data/histograms/EGM_histograms.ini \
-  -fl out_skim/J4PSkim_egamma_1.root \
+  -fl out_skim/J4PSkim_photonjet_1.root \
   --triggerpath data/triggerlists/EGM_triggers.txt \
   -loc \
   -pbar \
