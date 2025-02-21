@@ -338,7 +338,7 @@ def skim(files, triggers, args, step=None):
 
     # Set name of the output file
     step_str = ""
-    if step:
+    if step is not None:
         step_str = f"_{step}"
     if args.run_range:
         run_range = args.run_range.split(",")
