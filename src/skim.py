@@ -213,7 +213,7 @@ def run(args):
     else:
         files = [s.strip() for s in args.filelist.split(',')]
 
-    if args.nsteps and args.step:
+    if args.nsteps is not None and args.step is not None:
         n = args.nsteps
         i = args.step
         files = files[i::n]

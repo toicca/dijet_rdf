@@ -224,6 +224,9 @@ def parse_arguments():
         if (args.step is not None and args.nsteps is None) or \
                 (args.nsteps is not None and args.step is None):
             raise ValueError("nsteps and step should be passed together")
+        if (args.step is not None and args.nsteps is not None):
+            if args.step > args.nsteps:
+                raise ValueError("step should be less than nsteps")
         if args.dataset:
             print("--dataset is deprecated. Use --channel instead.")
             args.channel = args.dataset
