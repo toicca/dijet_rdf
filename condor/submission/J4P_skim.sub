@@ -1,0 +1,24 @@
++JobFlavour = "longlunch"
+MY.XRDCP_CREATE_DIR = True
+x509userproxy = /afs/cern.ch/user/n/ntoikka/x509up_u151058
+
+eospath = /eos/user/n/ntoikka/dijet_rdf
+
+output_destination = root://eosuser.cern.ch/$(eospath)/condor/output/logs_$(ClusterId)
+
+executable = $(eospath)/condor/script/J4P_skim.sh
+
+output = jec-skim-egamma-$(ClusterId)-$(ProcId).out
+error = jec-skim-egamma-$(ClusterId)-$(ProcId).err
+log = jec-skim-egamma-$(ClusterId).log
+
+request_cpus = 4
+max_retries = 5
+
+nsteps = 20
+queue $(nsteps) arguments from (
+	$(eospath)/data/DT_2024/EGamma/Run2024H.txt $(eospath) $(Step) $(nsteps) photonjet EGM $(x509userproxy)
+	$(eospath)/data/DT_2024/Muon/Run2024H.txt $(eospath) $(Step) $(nsteps) zmm ZJET $(x509userproxy)
+	$(eospath)/data/DT_2024/JetMET/Run2024H.txt $(eospath) $(Step) $(nsteps) dijet JME $(x509userproxy)
+	$(eospath)/data/DT_2024/JetMET/Run2024H.txt $(eospath) $(Step) $(nsteps) multijet JME $(x509userproxy)
+)

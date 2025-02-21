@@ -1,6 +1,71 @@
 import ROOT
 
-def correct_jets(rdf, cfile, cstack, ccols=["Jet_rawPt", "Jet_eta", "Rho_fixedGridRhoFastjetAll", "Jet_area", "Jet_phi"]):
+def correct_jetId(rdf):
+    ROOT.gInterpreter.Declare("""
+    #ifndef JETID_FIX
+    #define JETID_FIX
+
+    
+ROOT::VecOps::RVec<unsigned int> fix_jetId(const ROOT::VecOps::RVec<int>& Jet_jetId, const ROOT::VecOps::RVec<float>& Jet_eta, const ROOT::VecOps::RVec<float>& Jet_neHEF, const ROOT::VecOps::RVec<float>& Jet_neEmEF, const ROOT::VecOps::RVec<float>& Jet_muEF, const ROOT::VecOps::RVec<float>& Jet_chEmEF) {
+    ROOT::VecOps::RVec<unsigned int> Jet_passJetId(Jet_eta.size(), 0);
+    
+    for (size_t i = 0; i < Jet_eta.size(); ++i) {
+        bool passTight = false;
+        bool passTightLepVeto = false;
+        
+        if (abs(Jet_eta[i]) <= 2.7)
+            passTight = Jet_jetId[i] & (1 << 1);
+        else if (abs(Jet_eta[i]) > 2.7 && abs(Jet_eta[i]) <= 3.0)
+            passTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neHEF[i] < 0.99);
+        else if (abs(Jet_eta[i]) > 3.0)
+            passTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neEmEF[i] < 0.4);
+        
+        if (passTight) {
+            passTightLepVeto = (abs(Jet_eta[i]) > 2.7) ? passTight : (passTight && (Jet_muEF[i] < 0.8) && (Jet_chEmEF[i] < 0.8));
+            Jet_passJetId[i] = passTightLepVeto ? 6 : 2;
+        }
+    }
+    return Jet_passJetId;
+}
+
+ROOT::VecOps::RVec<unsigned int> fix_jetId(const ROOT::VecOps::RVec<float>& Jet_eta, const ROOT::VecOps::RVec<float>& Jet_neHEF, const ROOT::VecOps::RVec<float>& Jet_neEmEF, const ROOT::VecOps::RVec<int>& Jet_chMultiplicity, const ROOT::VecOps::RVec<int>& Jet_neMultiplicity, const ROOT::VecOps::RVec<float>& Jet_chHEF, const ROOT::VecOps::RVec<float>& Jet_muEF, const ROOT::VecOps::RVec<float>& Jet_chEmEF) {
+    ROOT::VecOps::RVec<unsigned int> Jet_passJetId(Jet_eta.size(), 0);
+    
+    for (size_t i = 0; i < Jet_eta.size(); ++i) {
+        bool passTight = false;
+        bool passTightLepVeto = false;
+        
+        if (abs(Jet_eta[i]) <= 2.6)
+            passTight = (Jet_neHEF[i] < 0.99) && (Jet_neEmEF[i] < 0.9) && (Jet_chMultiplicity[i] + Jet_neMultiplicity[i] > 1) && (Jet_chHEF[i] > 0.01) && (Jet_chMultiplicity[i] > 0);
+        else if (abs(Jet_eta[i]) > 2.6 && abs(Jet_eta[i]) <= 2.7)
+            passTight = (Jet_neHEF[i] < 0.90) && (Jet_neEmEF[i] < 0.99);
+        else if (abs(Jet_eta[i]) > 2.7 && abs(Jet_eta[i]) <= 3.0)
+            passTight = (Jet_neHEF[i] < 0.99);
+        else if (abs(Jet_eta[i]) > 3.0)
+            passTight = (Jet_neMultiplicity[i] >= 2) && (Jet_neEmEF[i] < 0.4);
+        
+        if (passTight) {
+            passTightLepVeto = (abs(Jet_eta[i]) > 2.7) ? passTight : (passTight && (Jet_muEF[i] < 0.8) && (Jet_chEmEF[i] < 0.8));
+            Jet_passJetId[i] = passTightLepVeto ? 6 : 2;
+        }
+    }
+    return Jet_passJetId;
+}
+#endif
+    """)
+
+    jetcols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Jet_")]
+
+    if "Jet_chMultiplicity" in jetcols:
+        id_input = "Jet_eta,Jet_neHEF,Jet_neEmEF,Jet_chMultiplicity,Jet_neMultiplicity,Jet_chHEF,Jet_muEF,Jet_chEmEF"
+    else:
+        id_input = "Jet_jetId,Jet_eta,Jet_neHEF,Jet_neEmEF,Jet_muEF,Jet_chEmEF"
+
+    rdf = rdf.Redefine("Jet_jetId", f"fix_jetId({id_input})")
+
+    return rdf
+
+def correct_jets(rdf, cfile, cstack, ccols="Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area,Jet_phi"):
     ROOT.gInterpreter.Declare(
 f"""
 #ifndef JET_CORRECTIONS
@@ -42,10 +107,18 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
 """)
 
     rdf = (rdf.Define("Jet_rawPt", "(1.0 - Jet_rawFactor) * Jet_pt")
-            .Define("Jet_correctionFactor", f"get_correction({','.join(ccols)})")
+            .Define("Jet_correctionFactor", f"get_correction({ccols})")
             .Redefine("Jet_pt", "Jet_pt * Jet_correctionFactor")
             .Redefine("Jet_mass", "(1.0 - Jet_rawFactor) * Jet_mass * Jet_correctionFactor")
             .Redefine("Jet_rawFactor", "1.0-1.0/Jet_correctionFactor")
+            .Define("UncorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_rawPt, Jet_phi)")
+            .Redefine("UncorrectedJet_temp", "ROOT::VecOps::Sum(UncorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
+            .Define("CorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_pt, Jet_phi)")
+            .Redefine("CorrectedJet_temp", "ROOT::VecOps::Sum(CorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
+            .Define("PuppiMET_temp", "ROOT::Math::Polar2DVectorF(PuppiMET_pt, PuppiMET_phi)")
+            .Define("T1MET_temp", "PuppiMET_temp + UncorrectedJet_temp - CorrectedJet_temp") # -RC?
+            .Redefine("PuppiMET_pt", "float(PuppiMET_temp.R())")
+            .Redefine("PuppiMET_phi", "float(PuppiMET_temp.Phi())")
     )
 
     return rdf

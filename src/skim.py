@@ -10,7 +10,7 @@ import time
 from typing import List
 
 from processing_utils import file_read_lines, find_site
-from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags, sort_jets
+from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags, sort_jets, correct_jetId
 
 weight_info = {
     "xsec" : {
@@ -99,18 +99,21 @@ def init_TnP(rdf, channel):
     """
     if channel == "dijet":
         from selections.dijet import init_dijet as init_selection
-    elif channel == "zjet":
+    elif channel == "zmm":
         from selections.zmm import init_zmm as init_selection
-    elif channel == "egamma":
+    elif channel == "photonjet":
         from selections.photonjet import init_photonjet as init_selection
     elif channel == "multijet":
         from selections.multijet import init_multijet as init_selection
     else:
+        print("NOTICE: Running on empty selection")
         from selections.empty import init_empty as init_selection
 
     rdf = init_selection(rdf, jet_columns)
 
-    rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
+    probe_cols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Probe_")]
+    if "Probe_rawPt" not in probe_cols:
+        rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
     rdf = rdf.Filter("Activity_idx_temp >= 0 ? Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5) < 1.0 : 1", "Activity jet pT fraction < 1.0")
 
     # Label non-flat branches as _temp to drop them later
@@ -181,6 +184,7 @@ def do_JEC(rdf):
                         (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
            )
 
+
     # Energy Fraction balance
     rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmEF) / Tag_pt")
         .Define("EFB_chHEF", "(Probe_rawPt * Probe_chHEF) / Tag_pt")
@@ -209,7 +213,7 @@ def run(args):
     else:
         files = [s.strip() for s in args.filelist.split(',')]
 
-    if args.nsteps and args.step:
+    if args.nsteps is not None and args.step is not None:
         n = args.nsteps
         i = args.step
         files = files[i::n]
@@ -254,6 +258,8 @@ def skim(files, triggers, args, step=None):
 
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
+    events_rdf = correct_jetId(events_rdf)
+
     # Apply corrections
     if args.correction_json:
         import json
@@ -277,6 +283,13 @@ def skim(files, triggers, args, step=None):
         # Define that no jets were vetoed
         events_rdf = events_rdf.Define("Jet_vetoed", "ROOT::VecOps::RVec<bool>(Jet_pt.size(), false)")
 
+    # Define energy fraction variables in case not in NanoAOD (added in V14)
+    ef_cols = ["Jet_chEmEF", "Jet_chHEF", "Jet_hfEmEF", "Jet_muEF", "Jet_neEmEF", "Jet_neHEF"]
+    rdf_cols = [str(col) for col in events_rdf.GetColumnNames() if str(col).startswith("Jet_")]
+
+    for ef in ef_cols:
+        if ef not in rdf_cols:
+            rdf = rdf.Define(ef, "-1.0")
 
     # Initialize the JEC variables
     print("Initializing TnP variables")
