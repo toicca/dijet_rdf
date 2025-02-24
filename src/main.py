@@ -202,8 +202,6 @@ def parse_arguments():
     skim_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     skim_parser.add_argument("--golden_json", type=str, help="Golden JSON for filtering")
-    skim_parser.add_argument("--defined_columns", action="store_true", help="Save only defined \
-            columns to the output file.")
     skim_parser.add_argument("--is_mc", action="store_true", help="Set if input files are MC data.")
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
