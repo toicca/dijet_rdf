@@ -9,24 +9,17 @@ def init_dijet(rdf, jet_columns):
                         ROOT::RVec<float> Jet_phi, ROOT::RVec<int> Jet_jetId) {
 
         int idx1 = (int(Jet_phi[0]) * 100) % 2;
-        int idx2 = -1;
+        int idx2 = 1 - idx1;
 
         // Check that the tag is in barrel
         if (abs(Jet_eta[idx1]) > 1.3 || Jet_pt[idx1] < 15 || Jet_jetId[idx1] < 4) {
             return std::make_pair(std::make_pair(-1, -1), -1);
         }
-                                
-        // Find the probe jet as:
-        // leading jet back-to-back with the tag jet
-        for (int i = 0; i < Jet_pt.size(); i++) {
-            if (i == idx1 || Jet_pt[i] < 12 || Jet_jetId[i] < 4) {
-                continue;
-            }
-            if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[idx1])) > 2.7 &&
-                Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
-                idx2 = i;
-                break;
-            }
+
+        // Check that the probe is back-to-back with the tag
+        if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[idx2], Jet_phi[idx1]) < 2.7 ||
+            Jet_pt[idx2] < 12 || Jet_jetId[idx2] < 4) {
+            return std::make_pair(std::make_pair(-1, -1), -1);
         }
 
         // Find the activity jet
