@@ -17,7 +17,7 @@ def init_dijet(rdf, jet_columns):
         }
 
         // Check that the probe is back-to-back with the tag
-        if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[idx2], Jet_phi[idx1]) < 2.7 ||
+        if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[idx2], Jet_phi[idx1])) < 2.7 ||
             Jet_pt[idx2] < 12 || Jet_jetId[idx2] < 4) {
             return std::make_pair(std::make_pair(-1, -1), -1);
         }
