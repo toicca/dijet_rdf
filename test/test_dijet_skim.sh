@@ -21,7 +21,7 @@ if [ $RET -ne 0 ]; then
 fi
 
 python3 src/main.py hist \
-  -hconf data/histograms/JME_histograms.ini \
+  -hconf data/histograms/JECs.ini \
   -fl out_skim/J4PSkim_dijet_1.root \
   --triggerpath data/triggerlists/JME_triggers.txt \
   -loc \
