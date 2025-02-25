@@ -50,6 +50,8 @@ def create_histogram(rdf, hist_config, bins, triggers):
         raise ValueError(f"Unknown histogram type: {hist_config['type']}")
 
 def make_histograms(args):
+    bins = get_bins()
+
     if args.nThreads:
         ROOT.EnableImplicitMT(args.nThreads)
 
@@ -61,8 +63,9 @@ def make_histograms(args):
         filelist = [s.strip() for s in args.filelist.split(",")]
     elif args.filepaths:
         paths = [p.strip() for p in args.filepaths.split(",")]
+        filelist = []
         for path in paths:
-            files.extend(file_read_lines(path, find_ROOT=True))
+            filelist.extend(file_read_lines(path, find_ROOT=True))
     else:
         raise ValueError("No file list provided")
 
@@ -89,17 +92,18 @@ def make_histograms(args):
 
     # with open(config['histogram_config'], 'rb') as f:
         # hist_config = tomllib.load(f)
-    hist_config = configparser.ConfigParser()
-    hist_config.read(args.hist_config)
-    hist_config = dict(hist_config)
-    bins = get_bins()
 
+    hist_configs = args.hist_config.split(",")
     histograms = {}
+    for hist_in in hist_configs:
+        hist_config = configparser.ConfigParser()
+        hist_config.read(hist_in)
+        hist_config = dict(hist_config)
 
-    for hist in hist_config:
-        if hist.lower() == "default":
-            continue
-        histograms[hist] = create_histogram(events_rdf, hist_config[hist], bins, triggers).GetValue()
+        for hist in hist_config:
+            if hist.lower() == "default":
+                continue
+            histograms[hist] = create_histogram(events_rdf, hist_config[hist], bins, triggers).GetValue()
 
     return histograms
 
