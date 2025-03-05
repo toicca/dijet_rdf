@@ -21,7 +21,7 @@ if [ $RET -ne 0 ]; then
 fi
 
 python3 src/main.py hist \
-  -hconf data/histograms/kinematics.ini \
+  -hconf data/histograms/kinematics.ini,data/histograms/JECs.ini \
   -fl out_skim/J4PSkim_photonjet_1.root \
   --triggerpath data/triggerlists/EGM_triggers.txt \
   -loc \

@@ -33,6 +33,7 @@ def init_multijet(rdf, jet_columns):
             .Define("Probe_eta", "Jet_eta[0]")
             .Define("Probe_phi", "Jet_phi[0]")
             .Define("Probe_mass", "Jet_mass[0]")
+            .Define("Probe_isFirst", "true")
             .Filter("Jet_vetoed[0] == 0", "Lead jet not vetoed")
             .Define("Tag_label", "3")
             .Define("RecoilJet_pt", f"ROOT::VecOps::Take(Jet_pt, RecoilJet_idx_temp)")

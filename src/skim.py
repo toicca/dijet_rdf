@@ -114,7 +114,7 @@ def init_TnP(rdf, channel):
     probe_cols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Probe_")]
     if "Probe_rawPt" not in probe_cols:
         rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
-    rdf = rdf.Filter("Activity_idx_temp >= 0 ? Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5) < 1.0 : 1", "Activity jet pT fraction < 1.0")
+    rdf = rdf.Filter("Activity_idx_temp >= 0 ? (Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5)) < 1.0 : 1", "Activity jet pT fraction < 1.0")
 
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
@@ -253,6 +253,23 @@ def skim(files, triggers, args, step=None):
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
+    # Filter based on triggers and one jet
+    # Check that the triggers are in the file
+    cols = events_rdf.GetColumnNames()
+    for trigger in triggers:
+        if trigger not in cols and "&&" not in trigger:
+            print(f"Trigger {trigger} not in the file") 
+            events_rdf = events_rdf.Define(trigger, "0")
+
+    if len(triggers) == 0:
+        trg_filter = "1"
+    else:
+        trg_filter = " || ".join(triggers)
+    flag_filter = " && ".join(get_Flags())
+    events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
+            .Filter(flag_filter, flag_filter)
+            )
+
     if args.golden_json:
         events_rdf = filter_json(events_rdf, args.golden_json)
 
@@ -298,22 +315,6 @@ def skim(files, triggers, args, step=None):
     events_rdf = do_JEC(events_rdf)
 
 
-    # Filter based on triggers and one jet
-    # Check that the triggers are in the file
-    cols = events_rdf.GetColumnNames()
-    for trigger in triggers:
-        if trigger not in cols and "&&" not in trigger:
-            print(f"Trigger {trigger} not in the file") 
-            events_rdf = events_rdf.Define(trigger, "0")
-
-    if len(triggers) == 0:
-        trg_filter = "1"
-    else:
-        trg_filter = " || ".join(triggers)
-    flag_filter = " && ".join(get_Flags())
-    events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
-            .Filter(flag_filter, flag_filter)
-            )
 
     # Define a weight column
     if args.is_mc:
@@ -410,7 +411,7 @@ def skim(files, triggers, args, step=None):
     print(output_path+".root")
 
     # Get a report of the processing
-    report = events_rdf.Report()
+    report = events_rdf.Report().GetValue()
 
     begin = report.begin()
     end = report.end()
