@@ -126,14 +126,15 @@ def make_histograms(args):
     # with open(config['histogram_config'], 'rb') as f:
         # hist_config = tomllib.load(f)
 
-    regions = args.regions.split(",")
     region_configs = {}
-    for region in regions:
-        region_config = configparser.ConfigParser()
-        region_config.read(region)
-        region_config = dict(region_config)
-        for region in region_config:
-            region_configs[region] = region_config[region].get("cut")
+    if args.regions:
+        regions = args.regions.split(",")
+        for region in regions:
+            region_config = configparser.ConfigParser()
+            region_config.read(region)
+            region_config = dict(region_config)
+            for region in region_config:
+                region_configs[region] = region_config[region].get("cut")
 
     hist_configs = args.hist_config.split(",")
     histograms = {}
