@@ -11,6 +11,7 @@ from typing import List
 
 from processing_utils import file_read_lines, find_site
 from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags, sort_jets, correct_jetId
+from selections.JEC import jet_columns, run_JEC 
 
 weight_info = {
     "xsec" : {
@@ -79,123 +80,6 @@ weight_info = {
 #        "GJ-4Jets_HT-600_TuneCP5_13p6TeV_madgraphMLM-pythia8": ???
 #    }
 }
-
-jet_columns = [
-    "Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass", "Jet_jetId",
-    "Jet_area", "Jet_nConstituents", "Jet_nElectrons", "Jet_nMuons",
-    "Jet_chEmEF", "Jet_chHEF",
-    "Jet_neEmEF", "Jet_neHEF",
-    "Jet_hfEmEF", "Jet_hfHEF",
-    "Jet_muEF",
-    "Jet_neMultiplicity", "Jet_chMultiplicity",
-    "Jet_rawFactor",
-    "Jet_btagPNetQvG"
-]
-
-
-def init_TnP(rdf, channel):
-    """
-    Initialize the tag and probe variables for the analysis
-    """
-    if channel == "dijet":
-        from selections.dijet import init_dijet as init_selection
-    elif channel == "zmm":
-        from selections.zmm import init_zmm as init_selection
-    elif channel == "photonjet":
-        from selections.photonjet import init_photonjet as init_selection
-    elif channel == "multijet":
-        from selections.multijet import init_multijet as init_selection
-    else:
-        print("NOTICE: Running on empty selection")
-        from selections.empty import init_empty as init_selection
-
-    rdf = init_selection(rdf, jet_columns)
-
-    probe_cols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Probe_")]
-    if "Probe_rawPt" not in probe_cols:
-        rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
-    rdf = rdf.Filter("Activity_idx_temp >= 0 ? (Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5)) < 1.0 : 1", "Activity jet pT fraction < 1.0")
-
-    # Label non-flat branches as _temp to drop them later
-    rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
-            .Define("Probe_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Probe_pt, Probe_eta, \
-                    Probe_phi, Probe_mass)")
-            .Define("Tag_polarVec_temp", "ROOT::Math::Polar2DVector(Tag_pt, Tag_phi)")
-            .Define("Tag_raw_polarVec_temp", "ROOT::Math::Polar2DVector(Tag_rawPt, Tag_phi)")
-            .Define("Probe_polarVec_temp", "ROOT::Math::Polar2DVector(Probe_pt, Probe_phi)")
-            .Define("Probe_raw_polarVec_temp", "ROOT::Math::Polar2DVector(Probe_rawPt, Probe_phi)")
-            .Define("PuppiMET_polarVec_temp", "ROOT::Math::Polar2DVector(PuppiMET_pt, \
-                    PuppiMET_phi)")
-            .Define("RawPuppiMET_polarVec_temp", "ROOT::Math::Polar2DVector(RawPuppiMET_pt, \
-                    RawPuppiMET_phi)")
-    )
-
-    # Activity vector for HDM
-    # For dijet and multijet this is the sum of all the jets minus the tag and probe
-    # For zjet and egamma this is the sum of all the jets minus the probe
-    rdf = (rdf.Define("JetActivity_fourVec_temp", 
-                    "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(Jet_pt, Jet_eta, \
-                            Jet_phi, Jet_mass)")
-            .Redefine("JetActivity_fourVec_temp", "ROOT::VecOps::Sum(JetActivity_fourVec_temp, \
-                    ROOT::Math::PtEtaPhiMVector())")
-    )
-    if channel == "dijet" or channel == "multijet":
-        rdf = (rdf.Redefine("JetActivity_fourVec_temp",
-                            "JetActivity_fourVec_temp - Tag_fourVec_temp - Probe_fourVec_temp"))
-    elif channel == "zjet" or channel == "egamma":
-        rdf = (rdf.Redefine("JetActivity_fourVec_temp",
-                            "JetActivity_fourVec_temp - Probe_fourVec_temp"))
-    rdf = (rdf.Define("JetActivity_pt", "float(JetActivity_fourVec_temp.Pt())")
-            .Define("JetActivity_eta", "float(JetActivity_fourVec_temp.Eta())")
-            .Define("JetActivity_phi", "float(JetActivity_fourVec_temp.Phi())")
-            .Define("JetActivity_mass", "float(JetActivity_fourVec_temp.M())")
-            .Define("JetActivity_polarVec_temp",
-                "ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi)")
-    )
-    
-    return rdf
-
-def do_JEC(rdf):
-    rdf = (rdf.Define("DB_direct",
-                "-1.0 * Tag_polarVec_temp.Dot(Probe_polarVec_temp) / (Tag_pt * Tag_pt)")
-            .Define("DB_raw_direct",
-                "-1.0 * Tag_raw_polarVec_temp.Dot(Probe_raw_polarVec_temp) / (Tag_rawPt * Tag_rawPt)")
-            .Define("DB_ratio", "Probe_pt / Tag_pt")
-            .Define("DB_raw_ratio", "Probe_rawPt / Tag_rawPt")
-            .Define("MPF_tag",
-                "1.0 + PuppiMET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
-            .Define("MPF_raw_tag",
-                "1.0 + RawPuppiMET_polarVec_temp.Dot(Tag_raw_polarVec_temp) / (Tag_rawPt * Tag_rawPt)")
-            .Define("MPF_probe",
-                "1.0 + PuppiMET_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
-            .Define("MPF_raw_probe",
-                "1.0 + RawPuppiMET_polarVec_temp.Dot(Probe_raw_polarVec_temp) / (Probe_rawPt * Probe_rawPt)")
-            .Define("R_un_reco_tag_temp",
-                "JetActivity_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
-            .Define("R_un_gen_tag_temp", "1.0")
-            .Define("R_un_reco_probe_temp",
-                "JetActivity_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
-            .Define("R_un_gen_probe_temp", "1.0")
-            .Define("HDM_tag",
-                "(DB_direct + MPF_tag - 1.0 + R_un_reco_tag_temp - R_un_gen_tag_temp) / \
-                        (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
-            .Define("HDM_probe",
-                "(DB_direct + MPF_probe - 1.0 + R_un_reco_probe_temp - R_un_gen_probe_temp) / \
-                        (cos(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)))")
-           )
-
-
-    # Energy Fraction balance
-    rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmEF) / Tag_pt")
-        .Define("EFB_chHEF", "(Probe_rawPt * Probe_chHEF) / Tag_pt")
-        .Define("EFB_hfEmEF", "(Probe_rawPt * Probe_hfEmEF) / Tag_pt")
-        .Define("EFB_hfHEF", "(Probe_rawPt * Probe_hfHEF) / Tag_pt")
-        .Define("EFB_muEF", "(Probe_rawPt * Probe_muEF) / Tag_pt")
-        .Define("EFB_neEmEF", "(Probe_rawPt * Probe_neEmEF) / Tag_pt")
-        .Define("EFB_neHEF", "(Probe_rawPt * Probe_neHEF) / Tag_pt")
-    )
-
-    return rdf
 
 
 def run(args):
@@ -300,21 +184,7 @@ def skim(files, triggers, args, step=None):
         # Define that no jets were vetoed
         events_rdf = events_rdf.Define("Jet_vetoed", "ROOT::VecOps::RVec<bool>(Jet_pt.size(), false)")
 
-    # Define energy fraction variables in case not in NanoAOD (added in V14)
-    ef_cols = ["Jet_chEmEF", "Jet_chHEF", "Jet_hfEmEF", "Jet_muEF", "Jet_neEmEF", "Jet_neHEF"]
-    rdf_cols = [str(col) for col in events_rdf.GetColumnNames() if str(col).startswith("Jet_")]
-
-    for ef in ef_cols:
-        if ef not in rdf_cols:
-            rdf = rdf.Define(ef, "-1.0")
-
-    # Initialize the JEC variables
-    print("Initializing TnP variables")
-    events_rdf = init_TnP(events_rdf, args.channel)
-    print("Initializing JEC variables")
-    events_rdf = do_JEC(events_rdf)
-
-
+    events_rdf = run_JEC(events_rdf, args)
 
     # Define a weight column
     if args.is_mc:
@@ -435,8 +305,8 @@ def skim(files, triggers, args, step=None):
     all_hist.SetCanExtend(ROOT.TH1.kAllAxes)
     eff_hist = ROOT.TH1D("eff", "eff", len(cuts), 0, len(cuts))
     eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
-    cum_eff_hist = ROOT.TH1D("cum_eff", "cum_eff", len(cuts), 0, len(cuts))
-    cum_eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
+    cumu_eff_hist = ROOT.TH1D("cumu_eff", "cumu_eff", len(cuts), 0, len(cuts))
+    cumu_eff_hist.SetCanExtend(ROOT.TH1.kAllAxes)
 
     for _, cut in enumerate(cuts):
         #print(i, cut)
@@ -444,18 +314,18 @@ def skim(files, triggers, args, step=None):
             pass_hist.Fill(key, value["pass"])
             all_hist.Fill(key, value["all"])
             eff_hist.Fill(key, value["eff"])
-            cum_eff_hist.Fill(key, value["cumulativeEff"])
+            cumu_eff_hist.Fill(key, value["cumulativeEff"])
 
     pass_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
     all_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
     eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
-    cum_eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
+    cumu_eff_hist.SetError(np.zeros(len(cuts), dtype=np.float64))
 
     # Save the histograms to test.root
     f = ROOT.TFile(output_path+".root", "UPDATE")
     pass_hist.Write()
     all_hist.Write()
     eff_hist.Write()
-    cum_eff_hist.Write()
+    cumu_eff_hist.Write()
     f.Close()
 
