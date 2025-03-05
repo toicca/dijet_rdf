@@ -9,7 +9,7 @@ import produce_ratio
 import produce_responses
 import produce_time_evolution
 import produce_vetomaps
-from plotting import produce_plots, add_plots_parser
+from plotting import produce_plots
 import skim
 
 def parse_arguments():
@@ -22,7 +22,7 @@ def parse_arguments():
     find_json.add_find_json_parser(subparsers)
     find_newest.add_find_newest_parser(subparsers)
     find_range.add_find_range_parser(subparsers)
-    add_plots_parser(subparsers)
+    produce_plots.add_plots_parser(subparsers)
     skim.add_skim_parser(subparsers)
     produce_vetomaps.add_vetomaps_parser(subparsers)
     

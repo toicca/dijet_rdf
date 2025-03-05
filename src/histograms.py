@@ -8,17 +8,22 @@ from processing_utils import find_site, get_bins, read_config_file, file_read_li
 
 def add_hist_parser(subparsers):
     hist_parser = subparsers.add_parser('hist', help='Produce histograms from skimmed files.')
+
     hist_files = hist_parser.add_mutually_exclusive_group(required=True)
     hist_files.add_argument('-c', '--config', type=str, help='Path to the config file. If set, \
             overrides all other options.')
     hist_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
     hist_files.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas.')
+
     hist_triggers = hist_parser.add_mutually_exclusive_group()
     hist_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
             triggers")
     hist_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
             a list of triggers")
+
+    hist_parser.add_argument('-reg', '--regions', type=str, help='Comma separated list of \
+            .ini files with cuts for different regions.')
     hist_parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not \
             set will append root://cms-xrd-global.cern.ch/ \
             to the start of file names.')
@@ -121,12 +126,26 @@ def make_histograms(args):
     # with open(config['histogram_config'], 'rb') as f:
         # hist_config = tomllib.load(f)
 
+    regions = args.regions.split(",")
+    region_configs = {}
+    for region in regions:
+        region_config = configparser.ConfigParser()
+        region_config.read(region)
+        region_config = dict(region_config)
+        for region in region_config:
+            region_configs[region] = region_config[region].get("cut")
+
     hist_configs = args.hist_config.split(",")
     histograms = {}
     for hist_in in hist_configs:
         hist_config = configparser.ConfigParser()
         hist_config.read(hist_in)
         hist_config = dict(hist_config)
+
+        for hist in hist_config:
+            for region in region_configs:
+                hist_config[hist+"_"+region] = hist_config[hist].copy()
+                hist_config[hist+"_"+region]["cut"] = hist_config[hist+"_"+region]["cut"] + " && " + region_configs[region]
 
         for hist in hist_config:
             if hist.lower() == "default":

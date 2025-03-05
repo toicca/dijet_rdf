@@ -175,6 +175,9 @@ def skim(files, triggers, args, step=None):
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
+    if args.golden_json:
+        events_rdf = filter_json(events_rdf, args.golden_json)
+
     # Filter based on triggers and one jet
     # Check that the triggers are in the file
     cols = events_rdf.GetColumnNames()
@@ -191,9 +194,6 @@ def skim(files, triggers, args, step=None):
     events_rdf = (events_rdf.Filter(trg_filter, trg_filter)
             .Filter(flag_filter, flag_filter)
             )
-
-    if args.golden_json:
-        events_rdf = filter_json(events_rdf, args.golden_json)
 
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
