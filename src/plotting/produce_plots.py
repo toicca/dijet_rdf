@@ -9,6 +9,21 @@ import pathlib
 import cmsstyle as CMS
 import time
 
+def add_plots_parser(subparsers):
+    # Produce plots config
+    plots_parser = subparsers.add_parser("produce_plots", help="Produce plots for given list of \
+                                            input files")
+    plots_files = plots_parser.add_mutually_exclusive_group(required=True)
+    plots_files.add_argument("--filelist", type=str, help="Comma separated list of root files \
+            produced by dijet_rdf")
+    plots_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
+    plots_parser.add_argument("--out", required=True, type=str, help="Output path")
+    plots_parser.add_argument("--config", type=str, default="", help="Path to config file")
+    plots_parser.add_argument("--all", action="store_true",
+                                help="Produce all plots in given .root files")
+
+
 def file_read_lines(file: str) -> List[str]:
     with open(file) as f:
         return [line.strip() for line in f.readlines()]

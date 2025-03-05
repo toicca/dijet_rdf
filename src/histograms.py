@@ -6,6 +6,34 @@ import json
 # import tomllib
 from processing_utils import find_site, get_bins, read_config_file, file_read_lines
 
+def add_hist_parser(subparsers):
+    hist_parser = subparsers.add_parser('hist', help='Produce histograms from skimmed files.')
+    hist_files = hist_parser.add_mutually_exclusive_group(required=True)
+    hist_files.add_argument('-c', '--config', type=str, help='Path to the config file. If set, \
+            overrides all other options.')
+    hist_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
+    hist_files.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas.')
+    hist_triggers = hist_parser.add_mutually_exclusive_group()
+    hist_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    hist_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
+    hist_parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not \
+            set will append root://cms-xrd-global.cern.ch/ \
+            to the start of file names.')
+    hist_parser.add_argument('-pbar', '--progress_bar', action='store_true',
+            help='Show progress bar.')
+    hist_parser.add_argument('-hconf', '--hist_config', type=str, help='Path to the histogram \
+            config file.')
+    hist_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
+            (run_min and run_max separated by a comma)")
+    hist_parser.add_argument("--run_tag", type=str, help="Run tag")
+    hist_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    hist_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
+            (output file name included)")
+
 def create_histogram(rdf, hist_config, bins, triggers):
     if len(triggers) > 0:
         trg_filter = " || ".join(triggers)
@@ -166,4 +194,4 @@ def run(args):
                 setattr(args, arg, value)
 
     histograms = make_histograms(args)
-    save_histograms(histograms, args)    
+    save_histograms(histograms, args)

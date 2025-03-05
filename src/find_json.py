@@ -2,6 +2,13 @@ import argparse
 import json
 import os
 
+def add_find_json_parser(subparsers):
+    find_json_parser = subparsers.add_parser('find_json', help='Find JSON File appropriate for given run')
+    find_json_parser.add_argument("--json_files", required=True, type=str, help="Comma separated \
+            list of json files")
+    find_json_parser.add_argument("--run_range", required=True, type=str, help="Run number")
+    find_json_parser.add_argument("--out", required=False, type=str, help="Output file")
+
 def run(args):
     json_files = [s.strip() for s in args.json_files.split(",")]
 

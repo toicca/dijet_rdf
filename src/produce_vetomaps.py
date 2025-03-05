@@ -11,6 +11,25 @@ hist_info = (("standard", "PFComposition", "PFComposition_EtaVsPhiVsProfileNEF_s
             ("dijet", "DB", "DB_dijet_EtaprobeVsPhiprobeVsAsymmetry"),
             )
 
+def add_vetomaps_parser(subparsers):
+    # Produce vetomaps config
+    vetomaps_parser = subparsers.add_parser("produce_vetomaps", help="Produce VetoMaps for files \
+            produced by JEC4PROMPT analysis")
+    vetomaps_files = vetomaps_parser.add_mutually_exclusive_group(required=True)
+    vetomaps_files.add_argument("--filelist", type=str, help="Comma separated list of root files \
+            produced by dijet_rdf")
+    vetomaps_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
+    vetomaps_triggers = vetomaps_parser.add_mutually_exclusive_group()
+    vetomaps_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers for which plots will be produced \
+            (default value 'all')")
+    vetomaps_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers for which plots will be produced")
+    vetomaps_parser.add_argument("--out", type=str, default="", help="Output path")
+    vetomaps_parser.add_argument("--config", type=str, default="", help="Path to config file")
+
+
 def produce_vetomap_old(input_file: str, trigger_list: List[str], output_path: str):
     """
     VetoMap producer for dijet_rdf.

@@ -81,6 +81,44 @@ weight_info = {
 #    }
 }
 
+def add_skim_parser(subparsers):
+    # Skimming config
+    skim_parser = subparsers.add_parser("skim", help="Perform skimming for\
+            given list of input files")
+    skim_files = skim_parser.add_mutually_exclusive_group(required=True)
+    skim_files.add_argument("--filelist", type=str, help="Comma separated list of root files")
+    skim_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
+    skim_parser.add_argument("--nsteps", type=int, help="Number of steps input files are grouped into.")
+    skim_parser.add_argument("--step", type=int, help="Step to be processed.")
+    skim_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
+    skim_parser.add_argument("--is_local", action="store_true", help='Run locally. If not set will \
+            append root://cms-xrd-global.cern.ch/ to the start of file names')
+    skim_triggers = skim_parser.add_mutually_exclusive_group()
+    skim_triggers.add_argument('-tp', '--triggerpath', type=str, help='Path to the trigger list')
+    skim_triggers.add_argument('-tl','--triggerlist', type=str,
+            help='Input files separated by commas')
+    skim_parser.add_argument("--out", type=str, required=True, default="", help="Output path")
+    skim_parser.add_argument("--dataset", type=str,
+            choices=["dijet", "zjet", "egamma", "multijet"],
+            help="Dataset type: dijet, zjet, egamma or multijet")
+    skim_parser.add_argument("--channel", type=str,
+            choices=["dijet", "zmm", "photonjet", "multijet"],
+            help="Channel type: dijet, zmm, photonjet or multijet")
+    skim_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    skim_parser.add_argument("--golden_json", type=str, help="Golden JSON for filtering")
+    skim_parser.add_argument("--defined_columns", action="store_true", help="Save only defined \
+            columns to the output file.")
+    skim_parser.add_argument("--is_mc", action="store_true", help="Set if input files are MC data.")
+    skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
+            (run_min and run_max separated by a comma)")
+    skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
+    skim_parser.add_argument("--correction_json", type=str, help="Path to a JSON file defining \
+                             JECs, vetomaps, etc.")
+    skim_parser.add_argument("--correction_key", type=str, help="Key in the correction JSON file \
+                             defining the corrections to be applied")
+
 
 def run(args):
     # shut up ROOT
