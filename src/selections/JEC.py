@@ -18,6 +18,8 @@ def _init_TnP(rdf, channel):
         from selections.dijet import init_dijet as init_selection
     elif channel == "zmm":
         from selections.zmm import init_zmm as init_selection
+    elif channel == "zee":
+        from selections.zee import init_zee as init_selection
     elif channel == "photonjet":
         from selections.photonjet import init_photonjet as init_selection
     elif channel == "multijet":
@@ -104,13 +106,16 @@ def _def_JEC(rdf):
 
 
     # Energy Fraction balance
-    rdf = (rdf.Define("EFB_chEmHEF", "(Probe_rawPt * Probe_chEmEF) / Tag_pt")
+    rdf = (rdf.Define("EFB_chEmEF", "(Probe_rawPt * Probe_chEmEF) / Tag_pt")
         .Define("EFB_chHEF", "(Probe_rawPt * Probe_chHEF) / Tag_pt")
+        .Define("EFB_CHF", "(Probe_rawPt * (Probe_chHEF + Probe_chEmEF)) / Tag_pt")
         .Define("EFB_hfEmEF", "(Probe_rawPt * Probe_hfEmEF) / Tag_pt")
         .Define("EFB_hfHEF", "(Probe_rawPt * Probe_hfHEF) / Tag_pt")
+        .Define("EFB_NHF", "(Probe_rawPt * (Probe_hfHEF + Probe_hfEmEF)) / Tag_pt")
         .Define("EFB_muEF", "(Probe_rawPt * Probe_muEF) / Tag_pt")
         .Define("EFB_neEmEF", "(Probe_rawPt * Probe_neEmEF) / Tag_pt")
         .Define("EFB_neHEF", "(Probe_rawPt * Probe_neHEF) / Tag_pt")
+        .Define("EFB_NEF", "(Probe_rawPt * (Probe_neHEF + Probe_neEmEF)) / Tag_pt")
     )
 
     return rdf

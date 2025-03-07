@@ -15,21 +15,29 @@ def init_zmm(rdf, jet_columns):
         float mtemp = 0.;
 
         for (int i = 0; i < Muon_pt.size(); i++) {
-            if (Muon_pt[i] < 20) continue;
+            // if (Muon_pt[i] < 20) continue;
+            // Not having the pt cuts here allows to "fail" based on the z mass?
             ROOT::Math::PtEtaPhiMVector mu1(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
             for (int j = i+1; j < Muon_pt.size(); j++) {
                 if (Muon_charge[i] == Muon_charge[j]) continue;
-                if (Muon_pt[j] < 12) continue;
                 ROOT::Math::PtEtaPhiMVector mu2(Muon_pt[j], Muon_eta[j], Muon_phi[j], Muon_mass[j]);
                 ROOT::Math::PtEtaPhiMVector Z = mu1 + mu2;
                               
-                mtemp = Z.M();
-                if (abs(mtemp - Zmass) < abs(Z.M() - Zmass)) {
-                    Zmass = mtemp;
+                if (abs(mtemp - Zmass) > abs(Z.M() - Zmass)) {
+                    mtemp = Z.M();
                     idx1 = i;
                     idx2 = j;
                 }
             }
+        }
+
+        if (idx1 == -1 || idx2 == -1) return std::make_pair(-1, -1);
+
+        // Sort muons by pt
+        if (Muon_pt[idx1] < Muon_pt[idx2]) {
+            int temp = idx1;
+            idx1 = idx2;
+            idx2 = temp;
         }
                                 
         return std::make_pair(idx1, idx2);
@@ -58,14 +66,19 @@ def init_zmm(rdf, jet_columns):
         int idx1 = -1;
         int idx2 = -1;
         for (int i = 0; i < Jet_eta.size(); i++) {
+            bool badJet = false;
             for (int j = 0; j < Muon_eta.size(); j++) {
-                if (ROOT::VecOps::DeltaR(Jet_eta[i], Muon_eta[j], Jet_phi[i], Muon_phi[j]) > 0.3) {
-                    if (idx1 == -1) {
-                        idx1 = i;
-                    } else {
-                        idx2 = i;
-                        break;
-                    }
+                if (ROOT::VecOps::DeltaR(Jet_eta[i], Muon_eta[j], Jet_phi[i], Muon_phi[j]) < 0.3) {
+                    badJet = true;
+                    break;
+                }
+            }
+            if (!badJet) {
+                if (idx1 == -1) {
+                    idx1 = i;
+                } else {
+                    idx2 = i;
+                    break;
                 }
             }
         }
@@ -74,19 +87,23 @@ def init_zmm(rdf, jet_columns):
                                 
     #endif
     """)
-    rdf = (rdf.Define("selMuon_pt", "Muon_pt[abs(Muon_eta) < 2.3 && Muon_pfRelIso03_all < 0.15 && Muon_tightId]")
-            .Define("selMuon_eta", "Muon_eta[abs(Muon_eta) < 2.3 && Muon_pfRelIso03_all < 0.15 && Muon_tightId]")
-            .Define("selMuon_charge", "Muon_charge[abs(Muon_eta) < 2.3 && Muon_pfRelIso03_all < 0.15 && Muon_tightId]")
-            .Define("selMuon_phi", "Muon_phi[abs(Muon_eta) < 2.3 && Muon_pfRelIso03_all < 0.15 && Muon_tightId]")
-            .Define("selMuon_mass", "Muon_mass[abs(Muon_eta) < 2.3 && Muon_pfRelIso03_all < 0.15 && Muon_tightId]")
-            .Define("goodMuon_pt", "selMuon_pt[hasTrgObj(selMuon_eta, selMuon_phi, TrigObj_eta, TrigObj_phi, TrigObj_filterBits, TrigObj_id)]")
-            .Define("goodMuon_eta", "selMuon_eta[hasTrgObj(selMuon_eta, selMuon_phi, TrigObj_eta, TrigObj_phi, TrigObj_filterBits, TrigObj_id)]")
-            .Define("goodMuon_charge", "selMuon_charge[hasTrgObj(selMuon_eta, selMuon_phi, TrigObj_eta, TrigObj_phi, TrigObj_filterBits, TrigObj_id)]")
-            .Define("goodMuon_phi", "selMuon_phi[hasTrgObj(selMuon_eta, selMuon_phi, TrigObj_eta, TrigObj_phi, TrigObj_filterBits, TrigObj_id)]")
-            .Define("goodMuon_mass", "selMuon_mass[hasTrgObj(selMuon_eta, selMuon_phi, TrigObj_eta, TrigObj_phi, TrigObj_filterBits, TrigObj_id)]")
+    rdf = (rdf.Define("muonMask", "Muon_pt > 8 && Muon_pfIsoId >= 4 && Muon_pfRelIso04_all < 0.15 && Muon_tightId")
+            .Define("selMuon_pt", "Muon_pt[muonMask]")
+            .Define("selMuon_eta", "Muon_eta[muonMask]")
+            .Define("selMuon_charge", "Muon_charge[muonMask]")
+            .Define("selMuon_phi", "Muon_phi[muonMask]")
+            .Define("selMuon_mass", "Muon_mass[muonMask]")
+            .Define("trigMask", "hasTrgObj(selMuon_eta, selMuon_phi, TrigObj_eta, TrigObj_phi, TrigObj_filterBits, TrigObj_id)")
+            .Define("goodMuon_pt", "selMuon_pt[trigMask]")
+            .Define("goodMuon_eta", "selMuon_eta[trigMask]")
+            .Define("goodMuon_charge", "selMuon_charge[trigMask]")
+            .Define("goodMuon_phi", "selMuon_phi[trigMask]")
+            .Define("goodMuon_mass", "selMuon_mass[trigMask]")
             .Filter("goodMuon_pt.size() > 1 && goodMuon_pt.size() < 4", "2-3 tight muons with trigger match")
             .Define("Muon_idx_temp", "findMuonIdxs(goodMuon_pt, goodMuon_eta, goodMuon_phi, goodMuon_mass, goodMuon_charge)")
             .Filter("Muon_idx_temp.first >= 0 && Muon_idx_temp.second >= 0", "Two muons found")
+            .Filter("goodMuon_pt[Muon_idx_temp.first] > 20 && goodMuon_pt[Muon_idx_temp.second] > 10", "Leading muon pT > 20, subleading muon pT > 12")
+            .Filter("abs(goodMuon_eta[Muon_idx_temp.first]) <= 2.3 && abs(goodMuon_eta[Muon_idx_temp.second]) <= 2.3", "Muon eta <= 2.3")
             .Define("Z_4vec_temp",
                 "ROOT::Math::PtEtaPhiMVector(goodMuon_pt[Muon_idx_temp.first], \
                         goodMuon_eta[Muon_idx_temp.first], goodMuon_phi[Muon_idx_temp.first], \
@@ -100,17 +117,17 @@ def init_zmm(rdf, jet_columns):
             .Define("Tag_phi", "static_cast<float>(Z_4vec_temp.Phi())")
             .Define("Tag_mass", "static_cast<float>(Z_4vec_temp.M())")
             .Define("Tag_label", "1")
-            .Define("JetMuon_idx_temp", "findJetIdxs(Jet_eta, Jet_phi, goodMuon_eta, goodMuon_phi)")
+            .Define("JetMuon_idx_temp", "findJetIdxs(Jet_eta, Jet_phi, selMuon_eta, selMuon_phi)")
             .Define("Probe_idx_temp", "JetMuon_idx_temp.first")
-            .Filter("Probe_idx_temp >= 0", "Jet found")
-            .Filter("Jet_pt[Probe_idx_temp] > 12", "Leading jet pT > 12")
-            .Filter("Jet_jetId[Probe_idx_temp] > 4", "Leading jet Id > 4")
-            .Filter("Jet_vetoed[Probe_idx_temp] == 0", "Jet not vetoed")
-            # .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[Probe_idx_temp], Tag_phi)) > 2.7", "dPhi(Z,jet) > 2.7")
-            # .Filter("(abs(ROOT::VecOps::DeltaPhi(Jet_phi[Probe_idx_temp], Tag_phi)) - 3.14159) < 0.44", "abs(dPhi(Z,jet)) - pi < 0.44")
-            .Define("Activity_idx_temp", "JetMuon_idx_temp.second")
             .Filter("Tag_pt > 12", "Z pT > 12")
             .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
+            .Filter("Probe_idx_temp >= 0", "Jet found")
+            .Filter("Jet_pt[Probe_idx_temp] > 12", "Leading jet pT > 12")
+            .Filter("Jet_jetId[Probe_idx_temp] >= 4", "Leading jet Id >= 4")
+            .Filter("Jet_vetoed[Probe_idx_temp] == 0", "Jet not vetoed")
+            .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[Probe_idx_temp], Tag_phi)) > 2.7", "dPhi(Z,jet) > 2.7")
+            .Define("Tag_deltaPhi", "ROOT::VecOps::DeltaPhi(Jet_phi[Probe_idx_temp], Tag_phi)")
+            .Define("Activity_idx_temp", "JetMuon_idx_temp.second")
             .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 

@@ -1,1 +1,0 @@
-HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 && (Tag_pt < 800)

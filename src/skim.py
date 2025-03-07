@@ -7,6 +7,7 @@ import ctypes
 import numpy as np
 import pandas as pd
 import time
+import json
 from typing import List
 
 from processing_utils import file_read_lines, find_site
@@ -81,6 +82,11 @@ weight_info = {
 #    }
 }
 
+def update_state(self):
+    add_skim_parser(self.subparsers)
+    self.valfuncs['skim'] = validate_args
+    self.commands['skim'] = run
+
 def add_skim_parser(subparsers):
     # Skimming config
     skim_parser = subparsers.add_parser("skim", help="Perform skimming for\
@@ -94,16 +100,14 @@ def add_skim_parser(subparsers):
     skim_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
     skim_parser.add_argument("--is_local", action="store_true", help='Run locally. If not set will \
             append root://cms-xrd-global.cern.ch/ to the start of file names')
-    skim_triggers = skim_parser.add_mutually_exclusive_group()
-    skim_triggers.add_argument('-tp', '--triggerpath', type=str, help='Path to the trigger list')
-    skim_triggers.add_argument('-tl','--triggerlist', type=str,
-            help='Input files separated by commas')
+    skim_parser.add_argument("-tf", "--triggerfile", type=str, required=True, help="Path to the \
+        .json file containing the list of triggers to be used for skimming")
     skim_parser.add_argument("--out", type=str, required=True, default="", help="Output path")
     skim_parser.add_argument("--dataset", type=str,
-            choices=["dijet", "zjet", "egamma", "multijet"],
+            choices=["dijet", "zjet", "zee", "egamma", "multijet"],
             help="Dataset type: dijet, zjet, egamma or multijet")
-    skim_parser.add_argument("--channel", type=str,
-            choices=["dijet", "zmm", "photonjet", "multijet"],
+    skim_parser.add_argument("-ch", "--channel", type=str,
+            choices=["dijet", "zmm", "zee", "photonjet", "multijet"],
             help="Channel type: dijet, zmm, photonjet or multijet")
     skim_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
@@ -119,8 +123,23 @@ def add_skim_parser(subparsers):
     skim_parser.add_argument("--correction_key", type=str, help="Key in the correction JSON file \
                              defining the corrections to be applied")
 
+def validate_args(args):
+    if not args.is_mc and args.mc_tag:
+        raise ValueError("is_mc not set but mc_tag given")
+    if args.is_mc and args.run_range:
+        raise ValueError("run_range and is_mc both set")
+    if (args.step is not None and args.nsteps is None) or \
+            (args.nsteps is not None and args.step is None):
+        raise ValueError("nsteps and step should be passed together")
+    if (args.step is not None and args.nsteps is not None):
+        if args.step > args.nsteps:
+            raise ValueError("step should be less than nsteps")
+    if args.dataset:
+        print("--dataset is deprecated. Use --channel instead.")
+        args.channel = args.dataset
 
-def run(args):
+def run(state):
+    args = state.args
     # shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
@@ -140,11 +159,9 @@ def run(args):
         i = args.step
         files = files[i::n]
 
-    triggers: List[str] = []
-    if args.triggerlist:
-        triggers = args.triggerlist.split(",")
-    elif args.triggerpath:
-        triggers = file_read_lines(args.triggerpath)
+    # Load the trigger json
+    with open(args.triggerfile) as f:
+        triggers = json.load(f)[args.channel].keys()
 
     # Write and hadd the output
     if not os.path.exists(args.out):
@@ -303,10 +320,17 @@ def skim(files, triggers, args, step=None):
     columns = list(set(columns))
     columns.sort()
 
+    # Lazy snapshot
+    ss_options = ROOT.RDF.RSnapshotOptions()
+    ss_options.fLazy = True
+
     print(f"Writing output for {output_path}.root")
     start = time.time()
-    events_rdf.Snapshot("Events", output_path+"_events.root", columns)
-    runs_rdf.Snapshot("Runs", output_path+"_runs.root")
+    events_ss = events_rdf.Snapshot("Events", output_path+"_events.root", columns, options=ss_options)
+    runs_ss = runs_rdf.Snapshot("Runs", output_path+"_runs.root", options=ss_options)
+    # Get a report of the processing and process the snapshot
+    report = events_rdf.Report()
+    ROOT.RDF.RunGraphs([events_ss, runs_ss, report])
     print(f"snapshot finished in {time.time()-start} s for {output_path}.root")
 
     start = time.time()
@@ -318,8 +342,6 @@ def skim(files, triggers, args, step=None):
 
     print(output_path+".root")
 
-    # Get a report of the processing
-    report = events_rdf.Report().GetValue()
 
     begin = report.begin()
     end = report.end()

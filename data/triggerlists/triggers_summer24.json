@@ -1,0 +1,115 @@
+{
+    "zmm": {
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8": {
+            "cut": "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 && (Tag_pt < 800)"
+        }
+    },
+    "zee": {
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ": {
+            "cut": "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ && (Tag_pt < 800)"
+        }
+    },
+    "zjet": {
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8": {
+            "cut": "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 && (Tag_pt < 800)"
+        },
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ": {
+            "cut": "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ && (Tag_pt < 800)"
+        }
+    },
+    "zerobias": {
+        "L1__ZeroBias": {
+            "cut": "L1__ZeroBias"
+        },
+        "HLT_ZeroBias": {
+            "cut": "HLT_ZeroBias"
+        }
+    },
+    "dijet": {
+        "HLT_ZeroBias": {
+            "cut": "HLT_ZeroBias && (Tag_pt < 64)"
+        },
+        "HLT_PFJet40": {
+            "cut": "HLT_PFJet40 && (Tag_pt >= 64 && Tag_pt < 84)"
+        },
+        "HLT_PFJet60": {
+            "cut": "HLT_PFJet60 && (Tag_pt >= 84 && Tag_pt < 114)"
+        },
+        "HLT_PFJet80": {
+            "cut": "HLT_PFJet80 && (Tag_pt >= 114 && Tag_pt < 196)"
+        },
+        "HLT_PFJet140": {
+            "cut": "HLT_PFJet140 && (Tag_pt >= 196 && Tag_pt < 272)"
+        },
+        "HLT_PFJet200": {
+            "cut": "HLT_PFJet200 && (Tag_pt >= 272 && Tag_pt < 339)"
+        },
+        "HLT_PFJet260": {
+            "cut": "HLT_PFJet260 && (Tag_pt >= 339 && Tag_pt < 395)"
+        },
+        "HLT_PFJet320": {
+            "cut": "HLT_PFJet320 && (Tag_pt >= 395 && Tag_pt < 507)"
+        },
+        "HLT_PFJet400": {
+            "cut": "HLT_PFJet400 && (Tag_pt >= 507 && Tag_pt < 548)"
+        },
+        "HLT_PFJet450": {
+            "cut": "HLT_PFJet450 && (Tag_pt >= 548 && Tag_pt < 686)"
+        },
+        "HLT_PFJet500": {
+            "cut": "HLT_PFJet500 && (Tag_pt >= 686 && Tag_pt < 6800)"
+        }
+    },
+    "multijet": {
+        "HLT_ZeroBias": {
+            "cut": "HLT_ZeroBias && (Tag_pt < 64)"
+        },
+        "HLT_PFJet40": {
+            "cut": "HLT_PFJet40 && (Tag_pt >= 64 && Tag_pt < 84)"
+        },
+        "HLT_PFJet60": {
+            "cut": "HLT_PFJet60 && (Tag_pt >= 84 && Tag_pt < 114)"
+        },
+        "HLT_PFJet80": {
+            "cut": "HLT_PFJet80 && (Tag_pt >= 114 && Tag_pt < 196)"
+        },
+        "HLT_PFJet140": {
+            "cut": "HLT_PFJet140 && (Tag_pt >= 196 && Tag_pt < 272)"
+        },
+        "HLT_PFJet200": {
+            "cut": "HLT_PFJet200 && (Tag_pt >= 272 && Tag_pt < 339)"
+        },
+        "HLT_PFJet260": {
+            "cut": "HLT_PFJet260 && (Tag_pt >= 339 && Tag_pt < 395)"
+        },
+        "HLT_PFJet320": {
+            "cut": "HLT_PFJet320 && (Tag_pt >= 395 && Tag_pt < 507)"
+        },
+        "HLT_PFJet400": {
+            "cut": "HLT_PFJet400 && (Tag_pt >= 507 && Tag_pt < 548)"
+        },
+        "HLT_PFJet450": {
+            "cut": "HLT_PFJet450 && (Tag_pt >= 548 && Tag_pt < 686)"
+        },
+        "HLT_PFJet500": {
+            "cut": "HLT_PFJet500 && (Tag_pt >= 686 && Tag_pt < 6800)"
+        }
+    },
+    "photonjet": {
+        "HLT_Photon20_HoverELoose": {
+            "cut": "HLT_Photon20_HoverELoose && (Tag_pt >=20 && Tag_pt < 30)"
+        },
+        "HLT_Photon30EB_TightID_TightIso": {
+            "cut": "HLT_Photon30EB_TightID_TightIso && (Tag_pt >= 30 && Tag_pt < 50)"
+        },
+        "HLT_Photon50EB_TightID_TightIso": {
+            "cut": "HLT_Photon50EB_TightID_TightIso && (Tag_pt >= 50 && Tag_pt < 110)"
+        },
+        "HLT_Photon110EB_TightID_TightIso": {
+            "cut": "HLT_Photon110EB_TightID_TightIso && (Tag_pt >= 110 && Tag_pt < 230)"
+        },
+        "HLT_Photon200": {
+            "cut": "HLT_Photon200 && (Tag_pt >= 230 && Tag_pt < 1200)"
+        }
+    }
+}

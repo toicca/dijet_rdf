@@ -55,6 +55,15 @@ def get_bins(fill_range : tuple = (376370, 380100), isMC : bool = False) -> dict
                     4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000), dtype=float)
     bins["pt"]["n"] = len(bins["pt"]["bins"]) - 1
 
+    # Double_t zptbins[] = {12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500}
+    bins["zpt"] = {}
+    bins["zpt"]["bins"] = np.array((12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 85, 105, 130, 175, 230, 300, 400, 500, 700, 1000, 1500), dtype=float)
+    bins["zpt"]["n"] = len(bins["zpt"]["bins"]) - 1
+
+    bins["zeta"] = {}
+    bins["zeta"]["bins"] = np.linspace(-5,5,100, dtype=float)
+    bins["zeta"]["n"] = len(bins["zeta"]["bins"]) - 1
+
     bins["eta"] = {}
     bins["eta"]["bins"] = np.array((-5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.839, -3.664, -3.489, -3.314,
     -3.139, -2.964, -2.853, -2.65, -2.5, -2.322, -2.172, -2.043, -1.93, -1.83, -1.74, -1.653, -1.566,
@@ -64,6 +73,14 @@ def get_bins(fill_range : tuple = (376370, 380100), isMC : bool = False) -> dict
     1.83, 1.93, 2.043, 2.172, 2.322, 2.5, 2.65, 2.853, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839,
     4.013, 4.191, 4.363, 4.538, 4.716, 4.889, 5.191), dtype=float)
     bins["eta"]["n"] = len(bins["eta"]["bins"]) - 1
+
+    bins["jet1pt"] = {}
+    bins["jet1pt"]["bins"] = np.linspace(0, 1750, 1750, dtype=float)
+    bins["jet1pt"]["n"] = len(bins["jet1pt"]["bins"]) - 1
+
+    bins["jet1eta"] = {}
+    bins["jet1eta"]["bins"] = np.linspace(-6, 6, 120, dtype=float)
+    bins["jet1eta"]["n"] = len(bins["jet1eta"]["bins"]) - 1
     
     bins["phi"] = {}
     bins["phi"]["bins"] = np.linspace(-np.pi, np.pi, 73, dtype=float)

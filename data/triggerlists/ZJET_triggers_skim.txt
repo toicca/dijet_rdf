@@ -1,3 +1,0 @@
-HLT_ZeroBias
-HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8
-HLT_IsoMu24_eta2p1

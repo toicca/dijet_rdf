@@ -1,10 +1,15 @@
 import ROOT
+import json
+import argparse
 import configparser
 import os
-import subprocess
-import json
 # import tomllib
 from processing_utils import find_site, get_bins, read_config_file, file_read_lines
+
+def update_state(state):
+    add_hist_parser(state.subparsers)
+    state.valfuncs['hist'] = validate_args
+    state.commands['hist'] = run
 
 def add_hist_parser(subparsers):
     hist_parser = subparsers.add_parser('hist', help='Produce histograms from skimmed files.')
@@ -16,11 +21,9 @@ def add_hist_parser(subparsers):
             text files containing input files (one input file per line).')
     hist_files.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas.')
 
-    hist_triggers = hist_parser.add_mutually_exclusive_group()
-    hist_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
-            triggers")
-    hist_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
-            a list of triggers")
+    hist_parser.add_argument('-tf', '--triggerfile', type=str, help='Path to the .json file containing \
+            triggers.')
+    hist_parser.add_argument('-ch', '--channel', type=str, help='Channel associated with the triggers.')
 
     hist_parser.add_argument('-reg', '--regions', type=str, help='Comma separated list of \
             .ini files with cuts for different regions.')
@@ -38,6 +41,10 @@ def add_hist_parser(subparsers):
             for multithreading")
     hist_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
+
+def validate_args(args):
+    if args.triggerfile and not args.channel:
+        raise argparse.ArgumentError(None, "--channel argument is required when --triggerfile is provided")
 
 def create_histogram(rdf, hist_config, bins, triggers):
     if len(triggers) > 0:
@@ -102,11 +109,12 @@ def make_histograms(args):
     else:
         raise ValueError("No file list provided")
 
-    triggers = []
-    if args.triggerlist:
-        triggers = args.triggerlist.split(",")
-    elif args.triggerpath:
-        triggers = file_read_lines(args.triggerpath)
+    # Load the trigger json
+    with open(args.triggerfile) as f:
+        triggers = json.load(f)[args.channel]
+
+    for trigger in triggers:
+        triggers[trigger] = triggers[trigger]["cut"]
 
     # Load the files
     for file in filelist:
@@ -122,9 +130,6 @@ def make_histograms(args):
 
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
-
-    # with open(config['histogram_config'], 'rb') as f:
-        # hist_config = tomllib.load(f)
 
     region_configs = {}
     if args.regions:
@@ -184,7 +189,7 @@ def save_histograms(histograms, args):
 
     output_file.Close()
 
-def run(args):
+def run(state):
     """
     config = {
         'filelist': ['J4PSkim_runs379413to379415_20240924.root'],
@@ -196,6 +201,8 @@ def run(args):
         'nThreads': 8
     }
     """
+
+    args = state.args
 
     # shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
