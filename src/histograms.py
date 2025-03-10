@@ -89,7 +89,7 @@ def create_histogram(rdf, hist_config, bins, triggers):
     else:
         raise ValueError(f"Unknown histogram type: {hist_config['type']}")
 
-def make_histograms(args):
+def make_histograms(args, logger):
     bins = get_bins()
 
     if args.nThreads:
@@ -166,7 +166,7 @@ def get_values(histograms):
         values[hist] = histograms[hist].GetValue()
     return values
 
-def save_histograms(histograms, args):
+def save_histograms(histograms, args, logger):
     range_str = ""
     if args.run_range:
         run_range = args.run_range.split(",")
@@ -188,21 +188,11 @@ def save_histograms(histograms, args):
         histograms[hist].Write()
 
     output_file.Close()
+    logger.info(f"Histograms saved to {output_file.GetName()}")
 
 def run(state):
-    """
-    config = {
-        'filelist': ['J4PSkim_runs379413to379415_20240924.root'],
-        'is_local': True,
-        'progress_bar': True,
-        'histogram_config': 'histograms.toml',
-        'run_range': (379413, 379415),
-        'run_tag': '20240920',
-        'nThreads': 8
-    }
-    """
-
     args = state.args
+    logger = state.logger
 
     # shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
@@ -220,5 +210,5 @@ def run(state):
             else:
                 setattr(args, arg, value)
 
-    histograms = make_histograms(args)
-    save_histograms(histograms, args)
+    histograms = make_histograms(args, logger)
+    save_histograms(histograms, args, logger)

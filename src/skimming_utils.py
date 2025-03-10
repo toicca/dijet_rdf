@@ -167,8 +167,7 @@ ROOT::VecOps::RVec<bool> get_veto( const ROOT::VecOps::RVec<float>& eta,
 
     return rdf
 
-
-def filter_json(rdf, filter_json):
+def filter_json(rdf, filter_json, logger):
     ROOT.gInterpreter.Declare(
 """
 #ifndef JSONFILTER
@@ -203,8 +202,8 @@ bool isGoodLumi(int run, int lumi) {
 """
     )
     ROOT.init_json(filter_json)
-    print("Applying golden JSON cut")
-    print(f"JSON file: {filter_json}")
+    logger.info("Applying golden JSON cut")
+    logger.info(f"JSON file: {filter_json}")
     rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "JSON filter"))
     return rdf
 

@@ -140,6 +140,7 @@ def validate_args(args):
 
 def run(state):
     args = state.args
+    logger = state.logger
     # shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
@@ -167,10 +168,10 @@ def run(state):
     if not os.path.exists(args.out):
         os.makedirs(args.out)
 
-    skim(files, triggers, args, args.step)
+    skim(files, triggers, args, args.step, logger)
 
 
-def skim(files, triggers, args, step=None):
+def skim(files, triggers, args, step=None, logger=None):
     # Load the files
     events_chain = ROOT.TChain("Events")
     runs_chain = ROOT.TChain("Runs")
@@ -181,7 +182,7 @@ def skim(files, triggers, args, step=None):
                 events_chain.Add(f"root://xrootd-cms.infn.it//{file}")
                 runs_chain.Add(f"root://xrootd-cms.infn.it//{file}")
             except Exception as e:
-                print(f"Skipping problematic run: {e}")
+                logger.warning(f"Skipping problematic run: {e}")
         else:
             events_chain.Add(file)
             runs_chain.Add(file)
@@ -193,14 +194,14 @@ def skim(files, triggers, args, step=None):
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
 
     if args.golden_json:
-        events_rdf = filter_json(events_rdf, args.golden_json)
+        events_rdf = filter_json(events_rdf, args.golden_json, logger)
 
     # Filter based on triggers and one jet
     # Check that the triggers are in the file
     cols = events_rdf.GetColumnNames()
     for trigger in triggers:
         if trigger not in cols and "&&" not in trigger:
-            print(f"Trigger {trigger} not in the file") 
+            logger.warning(f"Trigger {trigger} not in the file") 
             events_rdf = events_rdf.Define(trigger, "0")
 
     if len(triggers) == 0:
@@ -239,13 +240,13 @@ def skim(files, triggers, args, step=None):
         # Define that no jets were vetoed
         events_rdf = events_rdf.Define("Jet_vetoed", "ROOT::VecOps::RVec<bool>(Jet_pt.size(), false)")
 
-    events_rdf = run_JEC(events_rdf, args)
+    events_rdf = run_JEC(events_rdf, args, logger)
 
     # Define a weight column
     if args.is_mc:
         xsec = weight_info["xsec"].get(args.mc_tag)
         if xsec:
-            print(f"Reweight with xsec={xsec}")
+            logger.info(f"Reweight with xsec={xsec}")
             events_rdf = (events_rdf.Define("weight", f"{xsec}*genWeight"))
         else:
             events_rdf = (events_rdf.Define("weight", "genWeight"))
@@ -270,7 +271,7 @@ def skim(files, triggers, args, step=None):
         run_range = args.run_range.split(",")
         assert(len(run_range) == 2)
 
-        print(f"Run range: ({run_range[0]}, {run_range[1]})");
+        logger.info(f"Run range: ({run_range[0]}, {run_range[1]})");
         run_range_str = f"runs{run_range[0]}to{run_range[1]}"
 
         subprocess.run(["brilcalc", "lumi", "--normtag",
@@ -281,7 +282,7 @@ def skim(files, triggers, args, step=None):
         df = pd.read_csv("lumi.csv", comment='#', names=["run:fill", "time", "nls",
             "ncms", "delivered(/fb)", "recorded(/fb)"])
         int_lumi = np.sum(df["recorded(/fb)"].to_numpy())
-        print(f"Running on {int_lumi} 1/fb integrated luminosity")
+        logger.info(f"Running on {int_lumi} 1/fb integrated luminosity")
 
         events_rdf = events_rdf.Define("min_run", f"{run_range[0]}")
         events_rdf = events_rdf.Define("max_run", f"{run_range[1]}")
@@ -324,23 +325,23 @@ def skim(files, triggers, args, step=None):
     ss_options = ROOT.RDF.RSnapshotOptions()
     ss_options.fLazy = True
 
-    print(f"Writing output for {output_path}.root")
+    logger.info(f"Writing output for {output_path}.root")
     start = time.time()
     events_ss = events_rdf.Snapshot("Events", output_path+"_events.root", columns, options=ss_options)
     runs_ss = runs_rdf.Snapshot("Runs", output_path+"_runs.root", options=ss_options)
     # Get a report of the processing and process the snapshot
     report = events_rdf.Report()
     ROOT.RDF.RunGraphs([events_ss, runs_ss, report])
-    print(f"snapshot finished in {time.time()-start} s for {output_path}.root")
+    logger.info(f"snapshot finished in {time.time()-start} s for {output_path}.root")
 
     start = time.time()
     subprocess.run(["hadd", "-f", "-k", output_path+".root",
     output_path+"_events.root", output_path+"_runs.root"])
     os.remove(output_path+"_events.root")
     os.remove(output_path+"_runs.root")
-    print(f"hadd finished in {time.time()-start} s for {output_path}.root")
+    logger.info(f"hadd finished in {time.time()-start} s for {output_path}.root")
 
-    print(output_path+".root")
+    logger.info(output_path+".root")
 
 
     begin = report.begin()

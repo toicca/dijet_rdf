@@ -10,7 +10,7 @@ jet_columns = [
     "Jet_btagPNetQvG"
 ]
 
-def _init_TnP(rdf, channel):
+def _init_TnP(rdf, channel, logger):
     """
     Initialize the tag and probe variables for the analysis
     """
@@ -25,7 +25,7 @@ def _init_TnP(rdf, channel):
     elif channel == "multijet":
         from selections.multijet import init_multijet as init_selection
     else:
-        print("NOTICE: Running on empty selection")
+        logger.info("NOTICE: Running on empty selection")
         from selections.empty import init_empty as init_selection
 
     rdf = init_selection(rdf, jet_columns)
@@ -130,13 +130,12 @@ def _check_JEC(rdf, args):
             rdf = rdf.Define(ef, "-1.0")
 
 
-def run_JEC(rdf, args):
+def run_JEC(rdf, args, logger):
     _check_JEC(rdf, args)
     # Initialize the JEC variables
-    print("Initializing TnP variables")
-    rdf = _init_TnP(rdf, args.channel)
-    print("Initializing JEC variables")
+    logger.info("Initializing TnP variables")
+    rdf = _init_TnP(rdf, args.channel, logger)
+    logger.info("Initializing JEC variables")
     rdf = _def_JEC(rdf)
 
     return rdf
-    
