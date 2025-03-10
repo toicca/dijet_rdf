@@ -332,14 +332,26 @@ def skim(files, triggers, args, step=None, logger=None):
     # Get a report of the processing and process the snapshot
     report = events_rdf.Report()
     ROOT.RDF.RunGraphs([events_ss, runs_ss, report])
-    logger.info(f"snapshot finished in {time.time()-start} s for {output_path}.root")
+    snapshot_time = time.time() - start
+    if snapshot_time < 1:
+        logger.info(f"snapshot finished in {snapshot_time*1000:.2f} ms for {output_path}.root")
+    elif snapshot_time < 60:
+        logger.info(f"snapshot finished in {snapshot_time:.2f} s for {output_path}.root")
+    else:
+        minutes, seconds = divmod(snapshot_time, 60)
+        logger.info(f"snapshot finished in {int(minutes)} min {seconds:.2f} s for {output_path}.root")
 
     start = time.time()
     subprocess.run(["hadd", "-f", "-k", output_path+".root",
     output_path+"_events.root", output_path+"_runs.root"])
-    os.remove(output_path+"_events.root")
-    os.remove(output_path+"_runs.root")
-    logger.info(f"hadd finished in {time.time()-start} s for {output_path}.root")
+    hadd_time = time.time() - start
+    if hadd_time < 1:
+        logger.info(f"hadd finished in {hadd_time*1000:.2f} ms for {output_path}.root")
+    elif hadd_time < 60:
+        logger.info(f"hadd finished in {hadd_time:.2f} s for {output_path}.root")
+    else:
+        minutes, seconds = divmod(hadd_time, 60)
+        logger.info(f"hadd finished in {int(minutes)} min {seconds:.2f} s for {output_path}.root")
 
     logger.info(output_path+".root")
 
