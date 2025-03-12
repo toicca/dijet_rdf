@@ -23,11 +23,11 @@ bool multijetVetoForward(const ROOT::RVec<float>& Jet_pt,
                          const ROOT::RVec<float>& Jet_eta) {
     for (int i = 1; i < Jet_eta.size(); i++) {
         if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) >= 2.5) {
-            return true;
+            return false;
         }
     }
 
-    return false;
+    return true;
 }
 
 bool multijetVetoNear(const ROOT::RVec<float>& Jet_pt,
@@ -36,9 +36,9 @@ bool multijetVetoNear(const ROOT::RVec<float>& Jet_pt,
     for (int i = 1; i < Jet_eta.size(); i++) {
         if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) < 2.5
             && fabs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[0])) <= 1.0) {
-            return true;
+            return false;
         }
     }
 
-    return false;
+    return true;
 }
