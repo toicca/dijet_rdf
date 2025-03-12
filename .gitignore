@@ -13,3 +13,4 @@ out_hist/
 .vscode/
 CMSSW_14_0_4/
 *.swp
+data/histograms/validation.ini
