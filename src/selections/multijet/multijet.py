@@ -16,8 +16,7 @@ def init_multijet(rdf, jet_columns, state):
     # Multi-jet selection
     rdf = (rdf.Filter("nJet > 2", "nJet > 2")
             .Define("RecoilJet_idx_temp", "findRecoilJetIdxs(Jet_pt, Jet_eta, Jet_phi, Jet_mass, Jet_jetId)")
-            .Define("RecoilJet_vetoed", "ROOT::VecOps::Take(Jet_vetoed, RecoilJet_idx_temp)")
-            .Redefine("RecoilJet_idx_temp", "RecoilJet_idx_temp[RecoilJet_vetoed == 0]")
+            # .Define("RecoilJet_vetoed", "ROOT::VecOps::Take(Jet_vetoed, RecoilJet_idx_temp)")
             .Filter("RecoilJet_idx_temp.size() >= 2", "At least two recoil jets after veto")
             .Filter("multijetVetoForward(Jet_pt, Jet_eta)", "No jets in |eta| >= 2.5")
             .Filter("multijetVetoNear(Jet_pt, Jet_eta, Jet_phi)", "No jets near lead jet")
