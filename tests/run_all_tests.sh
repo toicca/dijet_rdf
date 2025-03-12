@@ -1,7 +1,7 @@
 #!/bin/bash
 
-for test_script in test/*.sh; do
-  if [ "$test_script" != "test/run_all_tests.sh" ]; then
+for test_script in tests/*.sh; do
+  if [ "$test_script" != "tests/run_all_tests.sh" ]; then
     bash "$test_script"
     RET=$?
     if [ $RET -ne 0 ]; then
