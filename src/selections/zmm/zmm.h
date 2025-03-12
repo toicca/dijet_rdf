@@ -10,7 +10,7 @@ std::pair<int, int> findMuonIdxs(const ROOT::RVec<float>& Muon_pt,
                                  const ROOT::RVec<float>& Muon_mass,
                                  const ROOT::RVec<float>& Muon_charge);
 
-RVec<bool> hasTrgObj(const ROOT::RVec<float>& Muon_eta,
+ROOT::RVec<bool> hasTrgObj(const ROOT::RVec<float>& Muon_eta,
                            const ROOT::RVec<float>& Muon_phi,
                            const ROOT::RVec<float>& trg_eta,
                            const ROOT::RVec<float>& trg_phi,
