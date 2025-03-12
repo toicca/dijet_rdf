@@ -1,7 +1,12 @@
 import ROOT
 import argparse
 
-from processing_utils import file_read_lines
+from utils.processing_utils import file_read_lines
+
+def update_state(state):
+    add_find_range_parser(state.subparsers)
+    state.valfuncs['find_range'] = validate_args
+    state.commands['find_range'] = run
 
 def add_find_range_parser(subparsers):
     find_range_parser = subparsers.add_parser('find_range', help="Find run range of \
@@ -19,6 +24,9 @@ def add_find_range_parser(subparsers):
     find_range_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     find_range_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
+
+def validate_args(args):
+    pass
 
 def find_run_range(rdf):
     return int(rdf.Min("run").GetValue()), int(rdf.Max("run").GetValue())

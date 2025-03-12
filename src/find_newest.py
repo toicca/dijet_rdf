@@ -3,6 +3,28 @@ import os
 from collections import defaultdict
 import argparse
 
+def update_state(state):
+    add_find_newest_parser(state.subparsers)
+    state.valfuncs['find_newest'] = validate_args
+    state.commands['find_newest'] = run
+
+def add_find_newest_parser(subparsers):
+    find_newest_parser = subparsers.add_parser('find_newest', help="Find newest output file in \
+            the subdirectories of given root directory")
+    find_newest_parser.add_argument("--root_directory", type=str, help="Directory to search for \
+            files in")
+    find_newest_parser.add_argument("--starts_with", type=str, help="Choose a prefix for the files \
+            to search for")
+    find_newest_parser.add_argument("--ends_with", type=str, help="Choose a suffix for the files \
+            to search for")
+    find_newest_parser.add_argument("--spaces", action="store_true", help="Use spaces instead of \
+            commas to separate the file paths")
+    find_newest_parser.add_argument("--max_depth", type=int, help="Depth of files to search for \
+            in the directory tree (default: None)")
+
+def validate_args(args):
+    pass
+
 def find_newest_files(root_dir, starts_with, ends_with, max_depth=None):
     newest_files = defaultdict(lambda: {"path": None, "mtime": 0})
 
@@ -29,19 +51,6 @@ def find_newest_files(root_dir, starts_with, ends_with, max_depth=None):
     # Return a list of newest file paths
     return [entry["path"] for entry in newest_files.values()]
 
-def add_find_newest_parser(subparsers):
-    find_newest_parser = subparsers.add_parser('find_newest', help="Find newest output file in \
-            the subdirectories of given root directory")
-    find_newest_parser.add_argument("--root_directory", type=str, help="Directory to search for \
-            files in")
-    find_newest_parser.add_argument("--starts_with", type=str, help="Choose a prefix for the files \
-            to search for")
-    find_newest_parser.add_argument("--ends_with", type=str, help="Choose a suffix for the files \
-            to search for")
-    find_newest_parser.add_argument("--spaces", action="store_true", help="Use spaces instead of \
-            commas to separate the file paths")
-    find_newest_parser.add_argument("--max_depth", type=int, help="Depth of files to search for \
-            in the directory tree (default: None)")
 
 def run(args):
     # Specify the root directory to search within

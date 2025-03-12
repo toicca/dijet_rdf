@@ -1,5 +1,5 @@
 import ROOT
-from processing_utils import file_read_lines, read_config_file, get_bins
+from utils.processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
@@ -10,6 +10,11 @@ hist_info = (("standard", "PFComposition", "PFComposition_EtaVsPhiVsProfileNEF_s
             ("standard", "Inclusive", "Inclusive_EtaVsPhi_selected"),
             ("dijet", "DB", "DB_dijet_EtaprobeVsPhiprobeVsAsymmetry"),
             )
+
+def update_state(state):
+    add_vetomaps_parser(state.subparsers)
+    state.valfuncs['produce_vetomaps'] = validate_args
+    state.commands['produce_vetomaps'] = run
 
 def add_vetomaps_parser(subparsers):
     # Produce vetomaps config
@@ -29,6 +34,8 @@ def add_vetomaps_parser(subparsers):
     vetomaps_parser.add_argument("--out", type=str, default="", help="Output path")
     vetomaps_parser.add_argument("--config", type=str, default="", help="Path to config file")
 
+def validate_args(args):
+    pass
 
 def produce_vetomap_old(input_file: str, trigger_list: List[str], output_path: str):
     """

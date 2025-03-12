@@ -10,8 +10,8 @@ import time
 import json
 from typing import List
 
-from processing_utils import file_read_lines, find_site
-from skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags, sort_jets, correct_jetId
+from utils.processing_utils import file_read_lines, find_site
+from utils.skimming_utils import filter_json, correct_jets, find_vetojets, get_Flags, sort_jets, correct_jetId
 from selections.JEC import jet_columns, run_JEC 
 
 weight_info = {

@@ -9,6 +9,11 @@ import pathlib
 import cmsstyle as CMS
 import time
 
+def update_state(state):
+    add_plots_parser(state.subparsers)
+    state.valfuncs['produce_plots'] = validate_args
+    state.commands['produce_plots'] = run
+
 def add_plots_parser(subparsers):
     # Produce plots config
     plots_parser = subparsers.add_parser("produce_plots", help="Produce plots for given list of \
@@ -23,6 +28,8 @@ def add_plots_parser(subparsers):
     plots_parser.add_argument("--all", action="store_true",
                                 help="Produce all plots in given .root files")
 
+def validate_args(args):
+    pass
 
 def file_read_lines(file: str) -> List[str]:
     with open(file) as f:
