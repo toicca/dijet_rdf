@@ -82,12 +82,13 @@ weight_info = {
 #    }
 }
 
-def update_state(self):
-    add_skim_parser(self.subparsers)
-    self.valfuncs['skim'] = validate_args
-    self.commands['skim'] = run
+def update_state(state):
+    add_skim_parser(state)
+    state.valfuncs['skim'] = validate_args
+    state.commands['skim'] = run
 
-def add_skim_parser(subparsers):
+def add_skim_parser(state):
+    subparsers = state.subparsers
     # Skimming config
     skim_parser = subparsers.add_parser("skim", help="Perform skimming for\
             given list of input files")
@@ -104,11 +105,11 @@ def add_skim_parser(subparsers):
         .json file containing the list of triggers to be used for skimming")
     skim_parser.add_argument("--out", type=str, required=True, default="", help="Output path")
     skim_parser.add_argument("--dataset", type=str,
-            choices=["dijet", "zjet", "zee", "egamma", "multijet"],
+            choices=state.channels,
             help="Dataset type: dijet, zjet, egamma or multijet")
     skim_parser.add_argument("-ch", "--channel", type=str,
-            choices=["dijet", "zmm", "zee", "photonjet", "multijet"],
-            help="Channel type: dijet, zmm, photonjet or multijet")
+            choices=state.channels,
+            help="Channel to be used")
     skim_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
             for multithreading")
     skim_parser.add_argument("--golden_json", type=str, help="Golden JSON for filtering")
@@ -118,7 +119,6 @@ def add_skim_parser(subparsers):
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
     skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
-    skim_parser.add_argument("--processing_tag", type=str, help="Processing tag added to filenames", default="")
     skim_parser.add_argument("--correction_json", type=str, help="Path to a JSON file defining \
                              JECs, vetomaps, etc.")
     skim_parser.add_argument("--correction_key", type=str, help="Key in the correction JSON file \
@@ -292,14 +292,14 @@ def skim(files, triggers, state):
         events_rdf = events_rdf.Define("min_run", f"{run_range[0]}")
         events_rdf = events_rdf.Define("max_run", f"{run_range[1]}")
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
-        output_path = os.path.join(args.out, f"J4PSkim{args.processing_tag}_{run_range_str}_{args.channel}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim{args.tag}_{run_range_str}_{args.channel}{step_str}")
     elif args.mc_tag:
-        output_path = os.path.join(args.out, f"J4PSkim{args.processing_tag}_{args.mc_tag}_{args.channel}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim{args.tag}_{args.mc_tag}_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
     else:
-        output_path = os.path.join(args.out, f"J4PSkim{args.processing_tag}_{args.channel}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim{args.tag}_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
