@@ -1,0 +1,13 @@
+{
+    "zmm": {
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8": {
+            "cut": "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 && (Tag_pt < 800)"
+        }
+    },
+    "dijet": {
+        "HLT_PFJet80": {
+            "cut": "HLT_PFJet80 && (Tag_pt >= 115 && Tag_pt < 150 && Probe_pt >= 115 && Probe_pt < 150)"
+        }
+    }
+
+}
