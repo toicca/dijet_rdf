@@ -1,6 +1,6 @@
 import ROOT
 
-def init_zjet(rdf, jet_columns):
+def init_zjet(rdf, jet_columns, state):
 
     rdf = (rdf.Define("goodMuon_pt", "Muon_pt[Muon_tightId >= 1 && Muon_pt > 10 && abs(Muon_eta) < 2.4 && Muon_pfRelIso03_all < 0.15]")
                 .Define("goodMuon_eta", "Muon_eta[Muon_tightId >= 1 && Muon_pt > 10 && abs(Muon_eta) < 2.4 && Muon_pfRelIso03_all < 0.15]")

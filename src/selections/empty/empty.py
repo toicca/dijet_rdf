@@ -1,6 +1,6 @@
 import ROOT
 
-def init_empty(rdf, jet_columns):
+def init_empty(rdf, jet_columns, state):
     rdf = (rdf.Define("Tag_pt", "-1.0")
             .Define("Tag_eta", "0.0")
             .Define("Tag_phi", "0.0")

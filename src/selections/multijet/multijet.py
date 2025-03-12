@@ -1,30 +1,23 @@
 import ROOT
 
-def init_multijet(rdf, jet_columns):
+def init_multijet(rdf, jet_columns, state):
 
-    ROOT.gInterpreter.Declare("""
-    #ifndef MULTIJET_IDXS
-    #define MULTIJET_IDXS
-                              
-    ROOT::RVec<int> findRecoilJetIdxs(const ROOT::RVec<float>& Jet_pt, const ROOT::RVec<float>& Jet_eta,
-                              const ROOT::RVec<float>& Jet_phi, const ROOT::RVec<float>& Jet_mass, const ROOT::RVec<int>& Jet_jetId) {
-        ROOT::RVec<int> idxs;
-                              
-        for (int i = 1; i < Jet_pt.size(); i++) {
-            if (Jet_pt[i] > 30 && abs(Jet_eta[i]) < 2.5 && Jet_jetId[i] >= 4 && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[0])) > 1.0) {
-                idxs.push_back(i);
-            }
-        }
-                              
-        return idxs;
-    }
-                              
-    #endif
-    """)
+    path = state.module_dir
+    path = path / "selections" / "multijet"
+    cpp_path = path / "multijet.cpp"
+    so_path = path / "multijet_cpp.so"
+    h_path = path / "multijet.h"
 
-    rdf = (rdf.Filter("nJet > 3", "nJet > 3")
+    # Compile and load the C++ code
+    ROOT.gInterpreter.ProcessLine(f'.L {cpp_path}+')
+    ROOT.gSystem.Load(str(so_path))
+    ROOT.gInterpreter.Declare(f'#include "{h_path}"')
+
+    # Multi-jet selection
+    rdf = (rdf.Filter("nJet > 2", "nJet > 2")
             .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5 && Jet_jetId[0] >= 4",
-                "Leading jet pT > 30 and |eta| < 2.5")
+                "Leading jet pT > 30, |eta| < 2.5, jetId >= 4")
+            .Filter("Jet_vetoed[0] == 0", "Lead jet not vetoed")
             .Define("RecoilJet_idx_temp", "findRecoilJetIdxs(Jet_pt, Jet_eta, Jet_phi, Jet_mass, Jet_jetId)")
             .Define("RecoilJet_vetoed", "ROOT::VecOps::Take(Jet_vetoed, RecoilJet_idx_temp)")
             .Redefine("RecoilJet_idx_temp", "RecoilJet_idx_temp[RecoilJet_vetoed == 0]")
@@ -34,9 +27,11 @@ def init_multijet(rdf, jet_columns):
             .Define("Probe_phi", "Jet_phi[0]")
             .Define("Probe_mass", "Jet_mass[0]")
             .Define("Probe_isFirst", "true")
-            .Filter("Jet_vetoed[0] == 0", "Lead jet not vetoed")
             .Define("Tag_label", "3")
-            .Define("RecoilJet_pt", f"ROOT::VecOps::Take(Jet_pt, RecoilJet_idx_temp)")
+    )
+
+    # Recoil jets
+    rdf = (rdf.Define("RecoilJet_pt", f"ROOT::VecOps::Take(Jet_pt, RecoilJet_idx_temp)")
             .Define("RecoilJet_eta", f"ROOT::VecOps::Take(Jet_eta, RecoilJet_idx_temp)")
             .Define("RecoilJet_phi", f"ROOT::VecOps::Take(Jet_phi, RecoilJet_idx_temp)")
             .Define("RecoilJet_mass", f"ROOT::VecOps::Take(Jet_mass, RecoilJet_idx_temp)")
@@ -45,7 +40,10 @@ def init_multijet(rdf, jet_columns):
                         RecoilJet_eta, RecoilJet_phi, RecoilJet_mass)")
             .Redefine("TagMJ_fourVec_temp",
                 "ROOT::VecOps::Sum(TagMJ_fourVec_temp, ROOT::Math::PtEtaPhiMVector())")
-            .Define("Tag_pt",
+    )
+
+    # Tag definitions
+    rdf = (rdf.Define("Tag_pt",
                 "float(TagMJ_fourVec_temp.Pt())")
             .Define("Tag_eta",
                 "float(TagMJ_fourVec_temp.Eta())")
@@ -57,6 +55,7 @@ def init_multijet(rdf, jet_columns):
             .Define("Activity_idx_temp", "-1") # No activity jet for multijet
     )
 
+    # Setting up probe columns
     for column in jet_columns:
         if column in ["Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"]:
             continue

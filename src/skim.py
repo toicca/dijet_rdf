@@ -168,10 +168,13 @@ def run(state):
     if not os.path.exists(args.out):
         os.makedirs(args.out)
 
-    skim(files, triggers, args, args.step, logger)
+    skim(files, triggers, state)
 
 
-def skim(files, triggers, args, step=None, logger=None):
+def skim(files, triggers, state):
+    args = state.args
+    logger = state.logger
+    step = args.step
     # Load the files
     events_chain = ROOT.TChain("Events")
     runs_chain = ROOT.TChain("Runs")
@@ -215,7 +218,8 @@ def skim(files, triggers, args, step=None, logger=None):
 
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
-    events_rdf = correct_jetId(events_rdf)
+    ## Correct jetId for 2022–2024 Nanos
+    # events_rdf = correct_jetId(events_rdf)
 
     # Apply corrections
     if args.correction_json:
@@ -230,7 +234,7 @@ def skim(files, triggers, args, step=None, logger=None):
 
         # JECs
         if "jec_path" and "jec_stack" in correction_info:
-            events_rdf = correct_jets(events_rdf, correction_info["jec_path"], correction_info["jec_stack"])
+            events_rdf = correct_jets(events_rdf, correction_info["jec_path"], correction_info["jec_stack"], ccols=correction_info["jec_cols"])
             events_rdf = sort_jets(events_rdf, jet_columns)
 
         # Vetomaps
@@ -240,7 +244,7 @@ def skim(files, triggers, args, step=None, logger=None):
         # Define that no jets were vetoed
         events_rdf = events_rdf.Define("Jet_vetoed", "ROOT::VecOps::RVec<bool>(Jet_pt.size(), false)")
 
-    events_rdf = run_JEC(events_rdf, args, logger)
+    events_rdf = run_JEC(events_rdf, state)
 
     # Define a weight column
     if args.is_mc:

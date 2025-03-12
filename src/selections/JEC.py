@@ -10,25 +10,27 @@ jet_columns = [
     "Jet_btagPNetQvG"
 ]
 
-def _init_TnP(rdf, channel, logger):
+def _init_TnP(rdf, state):
     """
     Initialize the tag and probe variables for the analysis
     """
+    channel = state.args.channel
+    logger = state.logger   
     if channel == "dijet":
-        from selections.dijet import init_dijet as init_selection
+        from selections.dijet.dijet import init_dijet as init_selection
     elif channel == "zmm":
-        from selections.zmm import init_zmm as init_selection
+        from selections.zmm.zmm import init_zmm as init_selection
     elif channel == "zee":
-        from selections.zee import init_zee as init_selection
+        from selections.zee.zee import init_zee as init_selection
     elif channel == "photonjet":
-        from selections.photonjet import init_photonjet as init_selection
+        from selections.photonjet.photonjet import init_photonjet as init_selection
     elif channel == "multijet":
-        from selections.multijet import init_multijet as init_selection
+        from selections.multijet.multijet import init_multijet as init_selection
     else:
         logger.info("NOTICE: Running on empty selection")
-        from selections.empty import init_empty as init_selection
+        from src.selections.empty.empty import init_empty as init_selection
 
-    rdf = init_selection(rdf, jet_columns)
+    rdf = init_selection(rdf, jet_columns, state)
 
     probe_cols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Probe_")]
     if "Probe_rawPt" not in probe_cols:
@@ -70,6 +72,11 @@ def _init_TnP(rdf, channel, logger):
             .Define("JetActivity_mass", "float(JetActivity_fourVec_temp.M())")
             .Define("JetActivity_polarVec_temp",
                 "ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi)")
+    )
+
+    rdf = (rdf.Define("TnP_pt_ave", "(Probe_pt + Tag_pt) * 0.5")
+            .Define("TnP_deltaPhi", "ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)")
+            .Define("TnP_deltaR", "ROOT::VecOps::DeltaR(Tag_eta, Probe_eta, Tag_phi, Probe_phi)")
     )
     
     return rdf
@@ -120,7 +127,7 @@ def _def_JEC(rdf):
 
     return rdf
 
-def _check_JEC(rdf, args):
+def _check_JEC(rdf):
     # Define energy fraction variables in case not in NanoAOD (added in V14)
     ef_cols = ["Jet_chEmEF", "Jet_chHEF", "Jet_hfEmEF", "Jet_muEF", "Jet_neEmEF", "Jet_neHEF"]
     rdf_cols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Jet_")]
@@ -130,11 +137,12 @@ def _check_JEC(rdf, args):
             rdf = rdf.Define(ef, "-1.0")
 
 
-def run_JEC(rdf, args, logger):
-    _check_JEC(rdf, args)
+def run_JEC(rdf, state):
+    logger = state.logger
+    _check_JEC(rdf)
     # Initialize the JEC variables
     logger.info("Initializing TnP variables")
-    rdf = _init_TnP(rdf, args.channel, logger)
+    rdf = _init_TnP(rdf, state)
     logger.info("Initializing JEC variables")
     rdf = _def_JEC(rdf)
 

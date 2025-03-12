@@ -12,6 +12,7 @@ import produce_time_evolution
 import produce_vetomaps
 from plotting import produce_plots
 import skim
+from pathlib import Path
 
 class ProcessingState:
     def __init__(self):
@@ -23,6 +24,7 @@ class ProcessingState:
         self.args = None
         self.valfuncs = {}
         self.commands = {}
+        self.module_dir = Path(__file__).resolve().parent
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
@@ -51,4 +53,5 @@ class ProcessingState:
 if __name__ == "__main__":
     state = ProcessingState()
     state.init_state()
+    print(state.module_dir)
     state.execute_command()

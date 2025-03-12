@@ -103,6 +103,18 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
 
     return correction_factors;
 }
+
+const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>& pt, const ROOT::VecOps::RVec<float>& eta, float rho, const ROOT::VecOps::RVec<float>& area, const ROOT::VecOps::RVec<float>& phi, int run) {
+    ROOT::VecOps::RVec<float> correction_factors;
+
+    for (size_t i = 0; i < pt.size(); i++) {
+        correction_factors.push_back(cstack->evaluate({area[i], eta[i], pt[i], rho, phi[i], float(run)}));
+    }
+
+    return correction_factors;
+}
+
+
 #endif
 """)
 
@@ -183,7 +195,6 @@ using json = nlohmann::json;
 json filter_json;
 
 void init_json(std::string jsonFile) {
-    std::cout << "Initializing JSON file" << std::endl;
     std::ifstream f(jsonFile);
     filter_json = json::parse(f);
 }
