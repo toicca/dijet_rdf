@@ -48,7 +48,11 @@ def validate_args(args):
 
 def create_histogram(rdf, hist_config, bins, triggers):
     if len(triggers) > 0:
-        trg_filter = " || ".join(triggers)
+        trg_filter = ""
+        for trigger in triggers:
+            trg_filter += f"({triggers[trigger]}) || "
+
+        trg_filter = trg_filter[:-4]
         rdf = (rdf.Filter(trg_filter))
 
     cut = hist_config.get("cut")
