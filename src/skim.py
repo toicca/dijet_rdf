@@ -358,6 +358,10 @@ def skim(files, triggers, state):
         minutes, seconds = divmod(hadd_time, 60)
         logger.info(f"hadd finished in {int(minutes)} min {seconds:.2f} s for {output_path}.root")
 
+    # Remove the temporary files
+    os.remove(output_path+"_events.root")
+    os.remove(output_path+"_runs.root")
+
     logger.info(output_path+".root")
 
 
