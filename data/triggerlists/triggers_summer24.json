@@ -25,7 +25,7 @@
             "cut": "HLT_ZeroBias"
         }
     },
-    "dijet": {
+    "singlejet": {
         "HLT_ZeroBias": {
             "cut": "HLT_ZeroBias && (Tag_pt < 64)"
         },
@@ -60,39 +60,122 @@
             "cut": "HLT_PFJet500 && (Tag_pt >= 686 && Tag_pt < 6800)"
         }
     },
+    "dijet": {
+        "HLT_ZeroBias": {
+            "cut": "HLT_ZeroBias && (TnP_pt_ave < 64)"
+        },
+        "HLT_DiPFJetAve40": {
+            "cut": "HLT_DiPFJetAve40 && (TnP_pt_ave >= 64 && TnP_pt_ave < 85)"
+        },
+        "HLT_DiPFJetAve60": {
+            "cut": "HLT_DiPFJetAve60 && (TnP_pt_ave >= 85 && TnP_pt_ave < 114) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve60_HFJEC": {
+            "cut": "HLT_DiPFJetAve60_HFJEC && (TnP_pt_ave >= 85 && TnP_pt_ave < 100) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve80": {
+            "cut": "HLT_DiPFJetAve80 && (TnP_pt_ave >= 114 && TnP_pt_ave < 196) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve80_HFJEC": {
+            "cut": "HLT_DiPFJetAve80_HFJEC && (TnP_pt_ave >= 100 && TnP_pt_ave < 125) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve140": {
+            "cut": "HLT_DiPFJetAve140 && (TnP_pt_ave >= 196 && TnP_pt_ave < 272) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve100_HFJEC": {
+            "cut": "HLT_DiPFJetAve100_HFJEC && (TnP_pt_ave >= 125 && TnP_pt_ave < 180) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve160_HFJEC": {
+            "cut": "HLT_DiPFJetAve160_HFJEC && (TnP_pt_ave >= 180 && TnP_pt_ave < 250) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve200": {
+            "cut": "HLT_DiPFJetAve200 && (TnP_pt_ave >= 272 && TnP_pt_ave < 339) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve220_HFJEC": {
+            "cut": "HLT_DiPFJetAve220_HFJEC && (TnP_pt_ave >= 250 && TnP_pt_ave < 350) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve260": {
+            "cut": "HLT_DiPFJetAve260 && (TnP_pt_ave >= 339 && TnP_pt_ave < 395) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve300_HFJEC": {
+            "cut": "HLT_DiPFJetAve300_HFJEC && (TnP_pt_ave >= 350 && TnP_pt_ave < 6800) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve320": {
+            "cut": "HLT_DiPFJetAve320 && (TnP_pt_ave >= 395 && TnP_pt_ave < 507) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve400": {
+            "cut": "HLT_DiPFJetAve400 && (TnP_pt_ave >= 507 && TnP_pt_ave < 548) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve450": {
+            "cut": "HLT_DiPFJetAve450 && (TnP_pt_ave >= 548 && TnP_pt_ave < 686) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve500": {
+            "cut": "HLT_DiPFJetAve500 && (TnP_pt_ave >= 686 && TnP_pt_ave < 6800) && (abs(Probe_eta) < 2.853)"
+        }
+    },
     "multijet": {
         "HLT_ZeroBias": {
             "cut": "HLT_ZeroBias && (Tag_pt < 64)"
         },
         "HLT_PFJet40": {
-            "cut": "HLT_PFJet40 && (Tag_pt >= 64 && Tag_pt < 84)"
+            "cut": "HLT_PFJet40 && (Tag_pt >= 64 && Tag_pt < 84) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd40":{
+            "cut": "HLT_PFJetFwd40 && (Tag_pt >= 64 && Tag_pt < 84) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet60": {
-            "cut": "HLT_PFJet60 && (Tag_pt >= 84 && Tag_pt < 114)"
+            "cut": "HLT_PFJet60 && (Tag_pt >= 84 && Tag_pt < 114) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd60": {
+            "cut": "HLT_PFJetFwd60 && (Tag_pt >= 84 && Tag_pt < 114) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet80": {
-            "cut": "HLT_PFJet80 && (Tag_pt >= 114 && Tag_pt < 196)"
+            "cut": "HLT_PFJet80 && (Tag_pt >= 114 && Tag_pt < 196) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd80": {
+            "cut": "HLT_PFJetFwd80 && (Tag_pt >= 114 && Tag_pt < 196) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet140": {
-            "cut": "HLT_PFJet140 && (Tag_pt >= 196 && Tag_pt < 272)"
+            "cut": "HLT_PFJet140 && (Tag_pt >= 196 && Tag_pt < 272) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd140": {
+            "cut": "HLT_PFJetFwd140 && (Tag_pt >= 196 && Tag_pt < 272) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet200": {
-            "cut": "HLT_PFJet200 && (Tag_pt >= 272 && Tag_pt < 339)"
+            "cut": "HLT_PFJet200 && (Tag_pt >= 272 && Tag_pt < 339) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd200": {
+            "cut": "HLT_PFJetFwd200 && (Tag_pt >= 272 && Tag_pt < 339) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet260": {
-            "cut": "HLT_PFJet260 && (Tag_pt >= 339 && Tag_pt < 395)"
+            "cut": "HLT_PFJet260 && (Tag_pt >= 339 && Tag_pt < 395) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd260": {
+            "cut": "HLT_PFJetFwd260 && (Tag_pt >= 339 && Tag_pt < 395) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet320": {
-            "cut": "HLT_PFJet320 && (Tag_pt >= 395 && Tag_pt < 507)"
+            "cut": "HLT_PFJet320 && (Tag_pt >= 395 && Tag_pt < 507) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd320": {
+            "cut": "HLT_PFJetFwd320 && (Tag_pt >= 395 && Tag_pt < 507) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet400": {
-            "cut": "HLT_PFJet400 && (Tag_pt >= 507 && Tag_pt < 548)"
+            "cut": "HLT_PFJet400 && (Tag_pt >= 507 && Tag_pt < 548) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd400": {
+            "cut": "HLT_PFJetFwd400 && (Tag_pt >= 507 && Tag_pt < 548) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet450": {
-            "cut": "HLT_PFJet450 && (Tag_pt >= 548 && Tag_pt < 686)"
+            "cut": "HLT_PFJet450 && (Tag_pt >= 548 && Tag_pt < 686) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd450": {
+            "cut": "HLT_PFJetFwd450 && (Tag_pt >= 548 && Tag_pt < 686) && (abs(Probe_eta) >= 2.853)"
         },
         "HLT_PFJet500": {
-            "cut": "HLT_PFJet500 && (Tag_pt >= 686 && Tag_pt < 6800)"
+            "cut": "HLT_PFJet500 && (Tag_pt >= 686 && Tag_pt < 6800) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_PFJetFwd500": {
+            "cut": "HLT_PFJetFwd500 && (Tag_pt >= 686 && Tag_pt < 6800) && (abs(Probe_eta) >= 2.853)"
         }
     },
     "photonjet": {
