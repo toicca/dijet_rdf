@@ -17,7 +17,8 @@ def add_find_json_parser(subparsers):
 def validate_args(args):
     pass
 
-def run(args):
+def run(state):
+    args = state.args
     json_files = [s.strip() for s in args.json_files.split(",")]
 
     run_range = [int(run) for run in args.run_range.split(",")]
@@ -28,8 +29,7 @@ def run(args):
     else:
         output_file = ""
 
-    #print(f"json_files: {json_files}")
-    #print(f"run: {run}")
+    state.logger.info(f"json_files: {json_files}")
 
     newest_run = 0
     newest_json = ""
@@ -63,4 +63,6 @@ def run(args):
         output_file = newest_json.split("/")[-1]
         os.system(f"cp -r {newest_json} {output_file}")
 
-    print(output_file)
+    state.logger.info(f"Newest JSON file: {output_file}")
+    state.logger.info(f"Newest run: {newest_run}")
+    state.logger.info(f"Run range: {run_range}")

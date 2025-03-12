@@ -3,6 +3,7 @@ from utils.processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
+import json
 
 response_histos = (
                     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsResponse"),
@@ -49,12 +50,8 @@ def add_produce_responses_parser(subparsers):
             produced by dijet_rdf")
     responses_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
-    responses_triggers = responses_parser.add_mutually_exclusive_group()
-    responses_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
-            triggers for which plots will be produced \
-            (default value 'all').")
-    responses_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
-            a list of triggers for which plots will be produced")
+    responses_parser.add_argument('-tf', '--triggerfile', type=str, help='Path to the .json file containing \
+            triggers.')
     responses_parser.add_argument("--out", type=str, default="", help="Output path")
     responses_parser.add_argument("--config", type=str, default="", help="Path to config file")
 
@@ -213,13 +210,14 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
 
 def run(state):
     args = state.args
-    trigger_list: List[str] = []
     files: List[str] = []
     
-    if args.triggerlist:
-        trigger_list = args.triggerlist.split(",")
-    elif args.triggerpath:
-        trigger_list = file_read_lines(args.triggerpath)
+    with open(args.triggerfile, "r") as f:
+        trigger_list = json.load(f)[args.channel]
+
+    for trigger in trigger_list:
+        trigger_list[trigger] = trigger_list[trigger]["cut"]
+
 
     # Split the file list and trigger list if they are given as a string
     if args.filelist:

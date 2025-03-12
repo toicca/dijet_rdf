@@ -21,7 +21,9 @@ class ProcessingState:
         self.subparsers = self.parser.add_subparsers(dest='subparser_name')
         self.parser.add_argument('--log', type=str, default='INFO', help='Logging level',
             choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+        self.parser.add_argument('--tag', type=str, help='Processing tag for the output file', default="")
         self.args = None
+        self.channels = ["photonjet", "dijet", "multijet", "zmm", "zee", "zjet", "empty"]
         self.valfuncs = {}
         self.commands = {}
         self.module_dir = Path(__file__).resolve().parent

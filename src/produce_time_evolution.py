@@ -1,6 +1,7 @@
 import ROOT
 from utils.processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
+import json
 import argparse, configparser
 import numpy as np
 import time
@@ -8,11 +9,12 @@ import time
 from find_range import find_run_range
 
 def update_state(state):
-    add_produce_time_evolution_parser(state.subparsers)
+    add_produce_time_evolution_parser(state)
     state.valfuncs["produce_time_evolution"] = validate_args
     state.commands["produce_time_evolution"] = run
 
-def add_produce_time_evolution_parser(subparsers):
+def add_produce_time_evolution_parser(state):
+    subparsers = state.subparsers
     time_evolution_parser = subparsers.add_parser("produce_time_evolution", help="Produce time \
             evolution for given input files")
     time_evolution_files = time_evolution_parser.add_mutually_exclusive_group(required=True)
@@ -20,11 +22,10 @@ def add_produce_time_evolution_parser(subparsers):
             input files")
     time_evolution_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
-    time_evolution_triggers = time_evolution_parser.add_mutually_exclusive_group()
-    time_evolution_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
-            triggers")
-    time_evolution_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
-            a list of triggers")
+    time_evolution_parser.add_argument("-tf", "--triggerfile", type=str, help="Path to the .json file \
+        containing the list of triggers to be used.")
+    time_evolution_parser.add_argument("-ch", "--channel", type=str, help="Channel to be used",
+                                       choices=state.channels)
     time_evolution_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
     time_evolution_parser.add_argument("--data_tag", type=str, help="data tag")
@@ -89,7 +90,7 @@ def lumi_data(rdf, hist_config, triggers):
     return ld
 
 
-def produce_time_evolution(lds, hist_config, bins):
+def produce_time_evolution(lds, hist_config, bins, logging):
     handles = []
     for ld in lds:
         for hist in hist_config:
@@ -114,7 +115,7 @@ def produce_time_evolution(lds, hist_config, bins):
         hs[hist] = ROOT.TH1D(f"{name}_int_lumi", title, len(lumi_bins)-1,
                 np.array(lumi_bins))
 
-    print("Filling time evolution histograms")
+    logging.info("Filling time evolution histograms")
     start_time_evolution = time.time()
     for i, ld in enumerate(lds):
         int_lumi = ld["int_lumi"].GetValue()
@@ -129,7 +130,7 @@ def produce_time_evolution(lds, hist_config, bins):
             ed = ld[hist].GetValue().GetMeanErr()
             hs[hist].SetBinContent(i+1, md)
             hs[hist].SetBinError(i+1, ed)
-    print(f"Done filling time evolution histograms (took {time.time() - start_time_evolution} s)")
+    logging.info(f"Done filling time evolution histograms (took {time.time() - start_time_evolution} s)")
     hists = [hs["min_runs"], hs["max_runs"]]
     for hist in hist_config:
         hists.append(hs[hist])
@@ -138,10 +139,11 @@ def produce_time_evolution(lds, hist_config, bins):
 
 def run(state):
     args = state.args
+    logging = state.logger
     # Shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
-    print("Producing time evolution histograms...")
+    logging.info("Producing time evolution histograms...")
 
     if args.nThreads:
         ROOT.EnableImplicitMT(args.nThreads)
@@ -156,11 +158,11 @@ def run(state):
     else:
         raise ValueError("No file list provided")
 
-    triggers = []
-    if args.triggerlist:
-        triggers = args.triggerlist.split(",")
-    elif args.triggerpath:
-        triggers = file_read_lines(args.triggerpath)
+    with open(args.triggerfile, "r") as f:
+        triggers = json.load(f)[args.channel]
+
+    for trigger in triggers:
+        triggers[trigger] = triggers[trigger]["cut"]
 
     bins = get_bins()
     hist_config = dict(read_config_file(args.hist_config))
@@ -178,14 +180,14 @@ def run(state):
 
     min_run = int(min([ld["min_run"].GetValue() for ld in lds]))
     max_run = int(max([ld["max_run"].GetValue() for ld in lds]))
-    print(f"Group run range: [{min_run}, {max_run}]")
+    logging.info(f"Group run range: [{min_run}, {max_run}]")
     if args.data_tag:
         output_path = f"{args.out}/J4PTimeEvolution_runs{min_run}to{max_run}_{args.data_tag}.root"
     else:
         output_path = f"{args.out}/J4PTimeEvolution_runs{min_run}to{max_run}.root"
 
     output_file = ROOT.TFile.Open(f"{output_path}", "RECREATE")
-    hs = produce_time_evolution(lds, hist_config, bins)
+    hs = produce_time_evolution(lds, hist_config, bins, logging)
     for h in hs:
             h.Write()
     output_file.Close()

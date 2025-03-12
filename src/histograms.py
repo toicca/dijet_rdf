@@ -143,6 +143,7 @@ def make_histograms(args, logger):
 
     hist_configs = args.hist_config.split(",")
     histograms = {}
+    all_hists = []
     for hist_in in hist_configs:
         hist_config = configparser.ConfigParser()
         hist_config.read(hist_in)
@@ -156,7 +157,11 @@ def make_histograms(args, logger):
         for hist in hist_config:
             if hist.lower() == "default":
                 continue
-            histograms[hist] = create_histogram(events_rdf, hist_config[hist], bins, triggers).GetValue()
+            all_hists.append(create_histogram(events_rdf, hist_config[hist], bins, triggers))
+            # histograms[hist] = create_histogram(events_rdf, hist_config[hist], bins, triggers).GetValue()
+
+    for hist in all_hists:
+        histograms[hist.GetName()] = hist.GetValue()
 
     return histograms
 

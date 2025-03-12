@@ -52,7 +52,8 @@ def find_newest_files(root_dir, starts_with, ends_with, max_depth=None):
     return [entry["path"] for entry in newest_files.values()]
 
 
-def run(args):
+def run(state):
+    args = state.args
     # Specify the root directory to search within
     root_directory = '/eos/user/j/jecpcl/public/test/jec_perIntLumi'
     starts_with = 'JEC4PROMPT'
@@ -71,6 +72,8 @@ def run(args):
     if not args.spaces:
         # Print the list comma-separated
         print(",".join(newest_files))
+        state.logger.debug(f"Newest files: {newest_files}")
     else:
         # Print the list space-separated
         print(" ".join(newest_files))
+        state.logger.debug(f"Newest files: {newest_files}")

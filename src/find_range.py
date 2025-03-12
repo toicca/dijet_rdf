@@ -31,7 +31,8 @@ def validate_args(args):
 def find_run_range(rdf):
     return int(rdf.Min("run").GetValue()), int(rdf.Max("run").GetValue())
 
-def run(args):
+def run(state):
+    args = state.args
     # Shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
@@ -64,3 +65,4 @@ def run(args):
         print(f"--begin {min_run} --end {max_run}");
     else:
         print(f"{min_run},{max_run}")
+    state.logger.debug(f"Run range: {min_run} - {max_run}")
