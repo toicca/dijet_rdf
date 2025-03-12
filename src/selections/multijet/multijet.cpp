@@ -10,11 +10,35 @@ ROOT::RVec<int> findRecoilJetIdxs(const ROOT::RVec<float>& Jet_pt,
     ROOT::RVec<int> idxs;
 
     for (int i = 1; i < Jet_pt.size(); i++) {
-        if (Jet_pt[i] > 30 && abs(Jet_eta[i]) < 2.5 && Jet_jetId[i] >= 4
-            && abs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[0])) > 1.0) {
+        if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) < 2.5
+            && fabs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[0])) > 1.0) {
             idxs.push_back(i);
         }
     }
 
     return idxs;
+}
+
+bool multijetVetoForward(const ROOT::RVec<float>& Jet_pt,
+                         const ROOT::RVec<float>& Jet_eta) {
+    for (int i = 1; i < Jet_eta.size(); i++) {
+        if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) >= 2.5) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool multijetVetoNear(const ROOT::RVec<float>& Jet_pt,
+                      const ROOT::RVec<float>& Jet_eta,
+                      const ROOT::RVec<float>& Jet_phi) {
+    for (int i = 1; i < Jet_eta.size(); i++) {
+        if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) < 2.5
+            && fabs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[0])) <= 1.0) {
+            return true;
+        }
+    }
+
+    return false;
 }

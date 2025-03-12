@@ -15,13 +15,21 @@ def init_multijet(rdf, jet_columns, state):
 
     # Multi-jet selection
     rdf = (rdf.Filter("nJet > 2", "nJet > 2")
-            .Filter("Jet_pt[0] > 30 && abs(Jet_eta[0]) < 2.5 && Jet_jetId[0] >= 4",
-                "Leading jet pT > 30, |eta| < 2.5, jetId >= 4")
+            .Filter("Jet_pt[0] > 30 && fabs(Jet_eta[0]) < 1.3 && Jet_jetId[0] >= 4",
+                "Leading jet pT > 30, |eta| < 1.3, jetId >= 4")
             .Filter("Jet_vetoed[0] == 0", "Lead jet not vetoed")
             .Define("RecoilJet_idx_temp", "findRecoilJetIdxs(Jet_pt, Jet_eta, Jet_phi, Jet_mass, Jet_jetId)")
             .Define("RecoilJet_vetoed", "ROOT::VecOps::Take(Jet_vetoed, RecoilJet_idx_temp)")
             .Redefine("RecoilJet_idx_temp", "RecoilJet_idx_temp[RecoilJet_vetoed == 0]")
             .Filter("RecoilJet_idx_temp.size() >= 2", "At least two recoil jets after veto")
+            .Filter("multijetVetoForward(Jet_pt, Jet_eta)", "No jets in |eta| > 2.5")
+            .Filter("multijetVetoNear(Jet_pt, Jet_eta, Jet_phi)", "No jets near lead jet")
+            .Filter("Jet_pt[1] > 30 && fabs(Jet_eta[1]) < 2.5 && Jet_jetId[1] >= 4",
+                "Second jet pT > 30, |eta| < 2.5, jetId >= 4")
+            .Filter("Jet_vetoed[1] == 0", "Second jet not vetoed")
+            .Filter("Jet_pt[2] > 30 && fabs(Jet_eta[2]) < 2.5 && Jet_jetId[2] >= 4",
+                "Third jet pT > 30, |eta| < 2.5, jetId >= 4")
+            .Filter("Jet_vetoed[2] == 0", "Third jet not vetoed")
             .Define("Probe_pt", "Jet_pt[0]")
             .Define("Probe_eta", "Jet_eta[0]")
             .Define("Probe_phi", "Jet_phi[0]")
@@ -52,6 +60,9 @@ def init_multijet(rdf, jet_columns, state):
             .Define("Tag_mass",
                 "float(TagMJ_fourVec_temp.M())")
             .Define("Tag_rawPt", "Tag_pt")
+            .Filter("Jet_pt[1] < 0.6*Tag_pt", "Second jet pT < 0.6*recoil pT")
+            .Filter("Jet_pt[2] < 0.6*Tag_pt", "Third jet pT < 0.6*recoil pT")
+            .Filter("fabs(ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)) > 2.84", "|dPhi(T,P)| > 2.84")
             .Define("Activity_idx_temp", "-1") # No activity jet for multijet
     )
 

@@ -9,4 +9,11 @@ ROOT::RVec<int> findRecoilJetIdxs(const ROOT::RVec<float>& Jet_pt,
                                   const ROOT::RVec<float>& Jet_mass,
                                   const ROOT::RVec<int>& Jet_jetId);
 
+bool multijetVetoForward(const ROOT::RVec<float>& Jet_pt,
+                         const ROOT::RVec<float>& Jet_eta);
+
+bool multijetVetoNear(const ROOT::RVec<float>& Jet_pt,
+                      const ROOT::RVec<float>& Jet_eta,
+                      const ROOT::RVec<float>& Jet_phi);
+
 #endif
