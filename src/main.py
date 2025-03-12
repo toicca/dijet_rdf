@@ -35,6 +35,9 @@ class ProcessingState:
         find_json.update_state(self)
         find_newest.update_state(self)
         find_range.update_state(self)
+        produce_ratio.update_state(self)
+        produce_responses.update_state(self)
+        produce_time_evolution.update_state(self)
         produce_plots.update_state(self)
         produce_vetomaps.update_state(self)
         

@@ -36,6 +36,31 @@ derived_histos = ()
                     # ("multijet", "DB", "DB_multijet_PtLeadVsEtaVsA"),
 # )
 
+def update_state(state):
+    add_produce_responses_parser(state.subparsers)
+    state.valfuncs["produce_responses"] = validate_args
+    state.commands["produce_responses"] = run
+
+def add_produce_responses_parser(subparsers):
+    responses_parser = subparsers.add_parser("produce_responses", help="Produce responses \
+            for files produced by JEC4PROMPT analysis")
+    responses_files = responses_parser.add_mutually_exclusive_group(required=True)
+    responses_files.add_argument("--filelist", type=str, help="Comma separated list of root files \
+            produced by dijet_rdf")
+    responses_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
+    responses_triggers = responses_parser.add_mutually_exclusive_group()
+    responses_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers for which plots will be produced \
+            (default value 'all').")
+    responses_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers for which plots will be produced")
+    responses_parser.add_argument("--out", type=str, default="", help="Output path")
+    responses_parser.add_argument("--config", type=str, default="", help="Path to config file")
+
+def validate_args(args):
+    pass
+
 def produce_resolutions(file: str, trigger_list: List[str], output_path : str):
     """
     Resolution producer for dijet_rdf.
@@ -186,7 +211,8 @@ def produce_responses(file: str, trigger_list: List[str], output_path : str):
             file.cd(response_path)
             h3.Write()
 
-def run(args):
+def run(state):
+    args = state.args
     trigger_list: List[str] = []
     files: List[str] = []
     

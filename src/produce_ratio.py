@@ -7,6 +7,37 @@ import time
 
 from find_range import find_run_range
 
+def update_state(state):
+    add_produce_ratio_parser(state.subparsers)
+    state.valfuncs["produce_ratio"] = validate_args
+    state.commands["produce_ratio"] = run
+
+def add_produce_ratio_parser(subparsers):
+    ratio_parser = subparsers.add_parser("produce_ratio", help="Produce Data vs. MC comparisons")
+    ratio_parser.add_argument("--data_files", type=str, required=True, help="A lsit of root files \
+            containing skimmed run data")
+    ratio_parser.add_argument("--mc_files", type=str, required=True, help="A list of root files \
+            containing skimmed MC data")
+    ratio_triggers = ratio_parser.add_mutually_exclusive_group()
+    ratio_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    ratio_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
+    ratio_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
+            (output file name included)")
+    ratio_parser.add_argument("--data_tag", type=str, help="data tag")
+    ratio_parser.add_argument("--mc_tag", type=str, required=True, help="MC tag")
+    ratio_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    ratio_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
+    ratio_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to \
+            the histogram config file.')
+    ratio_parser.add_argument("--groups_of", type=int, help="Produce ratios for \
+            groups containing given number of runs")
+
+def validate_args(args):
+    pass
+
 def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
     name = hist_config["name"]
     title = hist_config["title"]
@@ -41,7 +72,8 @@ def produce_ratio(rdf_numerator, h_denominator, hist_config, bins, i=None):
         raise ValueError(f"Histogram type {hist_config['type']} not supported by produce_ratio. \
                 Supported types: Histo1D, Profile1D")
 
-def run(args):
+def run(state):
+    args = state.args
     # Shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
 

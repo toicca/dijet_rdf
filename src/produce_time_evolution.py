@@ -7,6 +7,36 @@ import time
 
 from find_range import find_run_range
 
+def update_state(state):
+    add_produce_time_evolution_parser(state.subparsers)
+    state.valfuncs["produce_time_evolution"] = validate_args
+    state.commands["produce_time_evolution"] = run
+
+def add_produce_time_evolution_parser(subparsers):
+    time_evolution_parser = subparsers.add_parser("produce_time_evolution", help="Produce time \
+            evolution for given input files")
+    time_evolution_files = time_evolution_parser.add_mutually_exclusive_group(required=True)
+    time_evolution_files.add_argument("--filelist", type=str, help="Comma separated list of \
+            input files")
+    time_evolution_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
+            text files containing input files (one input file per line).')
+    time_evolution_triggers = time_evolution_parser.add_mutually_exclusive_group()
+    time_evolution_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
+            triggers")
+    time_evolution_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
+            a list of triggers")
+    time_evolution_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
+            (output file name included)")
+    time_evolution_parser.add_argument("--data_tag", type=str, help="data tag")
+    time_evolution_parser.add_argument("--nThreads", type=int, help="Number of threads to be used \
+            for multithreading")
+    time_evolution_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
+    time_evolution_parser.add_argument('-hconf', '--hist_config', required=True, type=str, help='Path to the histogram \
+            config file.')
+
+def validate_args(args):
+    pass
+
 def data_hists(rdf, hist_config, bins):
     hd = {}
     hd["int_lumi"] = rdf.Mean("int_lumi").GetValue()
@@ -106,7 +136,8 @@ def produce_time_evolution(lds, hist_config, bins):
 
     return hists
 
-def run(args):
+def run(state):
+    args = state.args
     # Shut up ROOT
     ROOT.gErrorIgnoreLevel = ROOT.kWarning
 
