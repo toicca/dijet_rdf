@@ -1,5 +1,5 @@
 #include "zee.h"
-#include "ROOT/VecOps.hxx"
+#include "ROOT/RVec.hxx"
 #include <cmath>
 #include "Math/Vector4D.h"
 

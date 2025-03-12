@@ -1,7 +1,7 @@
 #include "dijet.h"
 #include <random>
 #include <cmath>
-#include "ROOT/VecOps.hxx"
+#include "ROOT/RVec.hxx"
 
 std::pair<std::pair<int, int>, int> findTagProbeIdxs(
     ROOT::RVec<float> Jet_eta,

@@ -1,5 +1,5 @@
 #include "zmm.h"
-#include "ROOT/VecOps.hxx"
+#include "ROOT/RVec.hxx"
 #include <cmath>
 #include "Math/Vector4D.h"
 
@@ -15,8 +15,6 @@ std::pair<int, int> findMuonIdxs(const ROOT::RVec<float>& Muon_pt,
     float mtemp = 0.;
 
     for (int i = 0; i < Muon_pt.size(); i++) {
-        // if (Muon_pt[i] < 20) continue;
-        // Not having the pt cuts here allows to "fail" based on the z mass?
         ROOT::Math::PtEtaPhiMVector mu1(Muon_pt[i], Muon_eta[i], Muon_phi[i], Muon_mass[i]);
         for (int j = i+1; j < Muon_pt.size(); j++) {
             if (Muon_charge[i] == Muon_charge[j]) continue;

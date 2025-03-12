@@ -53,6 +53,7 @@ def init_zee(rdf, jet_columns, state):
             .Define("Tag_label", "1")
             .Filter("Tag_pt > 12", "Z pT > 12")
             .Filter("Tag_mass > 71.1876 && Tag_mass < 111.1876", "Z mass window")
+    )
 
     # Probe jet selection
     rdf = (rdf.Define("JetElectron_idx_temp", "findJetIdxs(Jet_eta, Jet_phi, selElectron_eta, selElectron_phi)")

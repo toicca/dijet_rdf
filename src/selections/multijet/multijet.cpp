@@ -1,5 +1,5 @@
 #include "multijet.h"
-#include "ROOT/VecOps.hxx"
+#include "ROOT/RVec.hxx"
 #include <cmath>
 
 ROOT::RVec<int> findRecoilJetIdxs(const ROOT::RVec<float>& Jet_pt,
