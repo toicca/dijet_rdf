@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jec4prompt"
+version = "0.1.0"
+description = "A Python package for RDF-based analysis of NanoAOD data"
+authors = [
+    { name = "Nico Toikka", email = "nico.timothy.toikka@cern.ch" },
+    { name = "Dan Näsman" }
+]
+dependencies = [
+    "numpy",
+    "uproot",
+    "requests"
+]
