@@ -107,9 +107,8 @@ def make_histograms(args, logger):
         filelist = [s.strip() for s in args.filelist.split(",")]
     elif args.filepaths:
         paths = [p.strip() for p in args.filepaths.split(",")]
-        filelist = []
         for path in paths:
-            filelist.extend(file_read_lines(path, find_ROOT=True))
+            files.extend(file_read_lines(path, find_ROOT=True))
     else:
         raise ValueError("No file list provided")
 
@@ -145,7 +144,6 @@ def make_histograms(args, logger):
             for region in region_config:
                 region_configs[region] = region_config[region].get("cut")
 
-    hist_configs = args.hist_config.split(",")
     histograms = {}
     all_hists = []
     for hist_in in hist_configs:

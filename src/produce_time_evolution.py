@@ -80,6 +80,9 @@ def lumi_data(rdf, hist_config, triggers):
         trg_filter = " || ".join(triggers)
 
     for hist in hist_config:
+        if hist_config[hist]["type"] == "Histo1D":
+            continue
+
         x_val = hist_config[hist]["x_val"]
         y_val = hist_config[hist]["y_val"]
         cut = hist_config[hist].get("cut")
