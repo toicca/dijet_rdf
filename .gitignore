@@ -7,7 +7,7 @@ src/JetMETObjects/src/*.pcm
 **.so
 out/
 output/
-out_skim/
+out_skim*/
 out_skim_condor/
 out_hist/
 .vscode/
