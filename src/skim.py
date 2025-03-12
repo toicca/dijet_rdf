@@ -118,6 +118,7 @@ def add_skim_parser(subparsers):
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
     skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
+    skim_parser.add_argument("--processing_tag", type=str, help="Processing tag added to filenames", default="")
     skim_parser.add_argument("--correction_json", type=str, help="Path to a JSON file defining \
                              JECs, vetomaps, etc.")
     skim_parser.add_argument("--correction_key", type=str, help="Key in the correction JSON file \
@@ -291,14 +292,14 @@ def skim(files, triggers, state):
         events_rdf = events_rdf.Define("min_run", f"{run_range[0]}")
         events_rdf = events_rdf.Define("max_run", f"{run_range[1]}")
         events_rdf = events_rdf.Define("int_lumi", f"{int_lumi}")
-        output_path = os.path.join(args.out, f"J4PSkim_{run_range_str}_{args.channel}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim{args.processing_tag}_{run_range_str}_{args.channel}{step_str}")
     elif args.mc_tag:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.mc_tag}_{args.channel}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim{args.processing_tag}_{args.mc_tag}_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
     else:
-        output_path = os.path.join(args.out, f"J4PSkim_{args.channel}{step_str}")
+        output_path = os.path.join(args.out, f"J4PSkim{args.processing_tag}_{args.channel}{step_str}")
         events_rdf = events_rdf.Define("min_run", "0")
         events_rdf = events_rdf.Define("max_run", "1")
         events_rdf = events_rdf.Define("int_lumi", "1.")
