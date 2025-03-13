@@ -8,7 +8,7 @@ python3 src/main.py skim \
   --out out_skim \
   --channel dijet \
   --nThreads 8 \
-  --nsteps 5 \
+  --nsteps 10 \
   --step 0 \
   --correction_json data/corrections/summer24_corrections.json \
   --correction_key Run2024H \

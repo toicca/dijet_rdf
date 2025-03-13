@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export EXTRA_CLING_ARGS='-O3'
+
 for test_script in tests/*.sh; do
   if [ "$test_script" != "tests/run_all_tests.sh" ]; then
     bash "$test_script"
