@@ -5,8 +5,7 @@
 ROOT::RVec<int> findRecoilJetIdxs(const ROOT::RVec<float>& Jet_pt,
                                   const ROOT::RVec<float>& Jet_eta,
                                   const ROOT::RVec<float>& Jet_phi,
-                                  const ROOT::RVec<float>& Jet_mass,
-                                  const ROOT::RVec<int>& Jet_jetId) {
+                                  const ROOT::RVec<float>& Jet_mass) {
     ROOT::RVec<int> idxs;
 
     for (int i = 1; i < Jet_pt.size(); i++) {
