@@ -104,9 +104,6 @@ def add_skim_parser(state):
     skim_parser.add_argument("-tf", "--triggerfile", type=str, required=True, help="Path to the \
         .json file containing the list of triggers to be used for skimming")
     skim_parser.add_argument("--out", type=str, required=True, default="", help="Output path")
-    skim_parser.add_argument("--dataset", type=str,
-            choices=state.channels,
-            help="Dataset type: dijet, zjet, egamma or multijet")
     skim_parser.add_argument("-ch", "--channel", type=str,
             choices=state.channels,
             help="Channel to be used")
@@ -135,9 +132,6 @@ def validate_args(args):
     if (args.step is not None and args.nsteps is not None):
         if args.step > args.nsteps:
             raise ValueError("step should be less than nsteps")
-    if args.dataset:
-        print("--dataset is deprecated. Use --channel instead.")
-        args.channel = args.dataset
 
 def run(state):
     args = state.args
@@ -205,7 +199,7 @@ def skim(files, triggers, state):
     cols = events_rdf.GetColumnNames()
     for trigger in triggers:
         if trigger not in cols and "&&" not in trigger:
-            logger.warning(f"Trigger {trigger} not in the file") 
+            logger.warning(f"Trigger {trigger} not in the files") 
             events_rdf = events_rdf.Define(trigger, "0")
 
     if len(triggers) == 0:
@@ -220,7 +214,7 @@ def skim(files, triggers, state):
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
     ## Correct jetId for 2022–2024 Nanos
-    # events_rdf = correct_jetId(events_rdf)
+    events_rdf = correct_jetId(events_rdf)
 
     # Apply corrections
     if args.correction_json:
@@ -242,8 +236,14 @@ def skim(files, triggers, state):
         if "vetomap_path" and "vetomap_set" in correction_info:
             events_rdf = find_vetojets(events_rdf, correction_info["vetomap_path"], correction_info["vetomap_set"])
     else:
+        # Define T1MET as PuppiMET when no corrections
+        events_rdf = (events_rdf.Define("T1MET_pt", "PuppiMET_pt")
+                .Define("T1MET_phi", "PuppiMET_phi")
+        )
+
         # Define that no jets were vetoed
         events_rdf = events_rdf.Define("Jet_vetoed", "ROOT::VecOps::RVec<bool>(Jet_pt.size(), false)")
+
 
     events_rdf = run_JEC(events_rdf, state)
 
@@ -329,6 +329,7 @@ def skim(files, triggers, state):
     # Lazy snapshot
     ss_options = ROOT.RDF.RSnapshotOptions()
     ss_options.fLazy = True
+    # ss_options.fVector2RVec = False
 
     logger.info(f"Writing output for {output_path}.root")
     start = time.time()
