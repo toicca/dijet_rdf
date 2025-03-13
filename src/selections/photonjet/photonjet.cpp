@@ -32,7 +32,7 @@ std::pair<int, int> findJetIdxs(const ROOT::RVec<float>& Jet_eta,
     for (int i = 0; i < Jet_eta.size(); i++) {
         bool badJet = false;
         for (int j = 0; j < Photon_eta.size(); j++) {
-            if (ROOT::VecOps::DeltaR(Jet_eta[i], Photon_eta[j], Jet_phi[i], Photon_phi[j]) < 0.3) {
+            if (ROOT::VecOps::DeltaR(Jet_eta[i], Photon_eta[j], Jet_phi[i], Photon_phi[j]) < 0.2) {
                 badJet = true;
                 break;
             }
