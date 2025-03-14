@@ -76,6 +76,8 @@ def init_multijet(rdf, jet_columns, state):
             .Define("Activity_idx_temp", "-1") # No activity jet for multijet
     )
 
+    rdf = rdf.Define("Activity_denom", "1.0")
+
     # Setting up probe columns
     for column in jet_columns:
         if column in ["Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"]:

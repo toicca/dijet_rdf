@@ -61,7 +61,8 @@ ROOT::RVec<bool> hasTrgObj(const ROOT::RVec<float>& Muon_eta,
     return trgObj;
 }
 
-std::pair<int, int> findJetIdxs(const ROOT::RVec<float>& Jet_eta,
+std::pair<int, int> findJetIdxs(const ROOT::RVec<float>& Jet_pt,
+                                const ROOT::RVec<float>& Jet_eta,
                                 const ROOT::RVec<float>& Jet_phi,
                                 const ROOT::RVec<float>& Muon_eta,
                                 const ROOT::RVec<float>& Muon_phi) {
@@ -78,7 +79,7 @@ std::pair<int, int> findJetIdxs(const ROOT::RVec<float>& Jet_eta,
         if (!badJet) {
             if (idx1 == -1) {
                 idx1 = i;
-            } else {
+            } else if (idx2 == -1 && Jet_pt[i] > 15) {
                 idx2 = i;
                 break;
             }

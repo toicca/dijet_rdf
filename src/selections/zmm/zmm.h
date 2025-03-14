@@ -17,7 +17,8 @@ ROOT::RVec<bool> hasTrgObj(const ROOT::RVec<float>& Muon_eta,
                            const ROOT::RVec<int>& trg_filterBits,
                            const ROOT::RVec<int>& trg_id);
 
-std::pair<int, int> findJetIdxs(const ROOT::RVec<float>& Jet_eta,
+std::pair<int, int> findJetIdxs(const ROOT::RVec<float>& Jet_pt,
+                                const ROOT::RVec<float>& Jet_eta,
                                 const ROOT::RVec<float>& Jet_phi,
                                 const ROOT::RVec<float>& Muon_eta,
                                 const ROOT::RVec<float>& Muon_phi);

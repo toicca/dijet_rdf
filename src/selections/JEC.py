@@ -35,7 +35,7 @@ def _init_TnP(rdf, state):
     probe_cols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Probe_")]
     if "Probe_rawPt" not in probe_cols:
         rdf = rdf.Define("Probe_rawPt", "(1.0 - Probe_rawFactor) * Probe_pt")
-    rdf = rdf.Filter("Activity_idx_temp >= 0 ? (Jet_pt[Activity_idx_temp] / ((Probe_pt + Tag_pt)*0.5)) < 1.0 : 1", "Activity jet pT fraction < 1.0")
+    rdf = rdf.Filter("Activity_idx_temp >= 0 ? (Jet_pt[Activity_idx_temp] / (Activity_denom)) < 1.0 : 1", "Activity jet pT fraction < 1.0")
 
     # Label non-flat branches as _temp to drop them later
     rdf = (rdf.Define("Tag_fourVec_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")

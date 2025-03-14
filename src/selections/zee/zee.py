@@ -69,6 +69,8 @@ def init_zee(rdf, jet_columns, state):
             .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 
+    rdf = rdf.Define("Activity_denom", "Tag_pt")
+
     for column in jet_columns:
         rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
 

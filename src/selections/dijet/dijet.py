@@ -33,6 +33,8 @@ def init_dijet(rdf, jet_columns, state):
             .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 
+    rdf = rdf.Define("Activity_denom", "0.5 * (Jet_pt[Tag_idx_temp] + Jet_pt[Activity_idx_temp])")
+
     # Probe definitions
     for column in jet_columns:
         rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
