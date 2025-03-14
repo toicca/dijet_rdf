@@ -19,7 +19,9 @@ def init_photonjet(rdf, jet_columns, state):
             .Define("goodPhoton_eta", "Photon_eta[isGoodPhoton]")
             .Define("goodPhoton_phi", "Photon_phi[isGoodPhoton]")
             .Define("goodPhoton_jetIdx", "Photon_jetIdx[isGoodPhoton]")
-            .Filter("goodPhoton_pt.size() > 0", "Good photon found")
+            .Define("goodPhoton_seedGain", "Photon_seedGain[isGoodPhoton]")
+            .Filter("goodPhoton_pt.size() > 0",
+                    "Good photon found")
     )
 
     # Trigger selected photons
@@ -28,12 +30,16 @@ def init_photonjet(rdf, jet_columns, state):
             .Define("selPhoton_eta", "goodPhoton_eta[hasTrg_temp]")
             .Define("selPhoton_phi", "goodPhoton_phi[hasTrg_temp]")
             .Define("selPhoton_jetIdx", "goodPhoton_jetIdx[hasTrg_temp]")
+            .Define("selPhoton_seedGain", "goodPhoton_seedGain[hasTrg_temp]")
             .Filter("selPhoton_pt.size() > 0", "Trigger selected photon found")
-            .Filter("selPhoton_pt[0] > 15", "Trigger selected photon pT > 15")
-            .Filter("abs(selPhoton_eta[0]) < 1.3", "Trigger selected photon |eta| < 1.3")
+            .Filter("selPhoton_pt[0] > 15",
+                    "Trigger selected photon pT > 15")
+            .Filter("abs(selPhoton_eta[0]) < 1.3",
+                    "Trigger selected photon |eta| < 1.3")
             .Define("Tag_idx_temp", "0")
             .Define("Tag_pt", f"selPhoton_pt[Tag_idx_temp]")
             .Define("Tag_rawPt", "Tag_pt")
+            .Redefine("Tag_pt", "selPhoton_seedGain[Tag_idx_temp] == 1 ? Tag_pt * 1./1.017: Tag_pt")
             .Define("Tag_eta", f"selPhoton_eta[Tag_idx_temp]")
             .Define("Tag_phi", f"selPhoton_phi[Tag_idx_temp]")
             .Define("Tag_mass", "0.0")
@@ -43,17 +49,31 @@ def init_photonjet(rdf, jet_columns, state):
     # Probe jet
     rdf = (rdf.Define("Jet_indices_temp", "findJetIdxs(Jet_eta, Jet_phi, goodPhoton_eta, goodPhoton_phi)")
             .Define("Probe_idx_temp", "Jet_indices_temp.first")
-            .Filter("Probe_idx_temp >= 0", "Jet found")
-            .Filter("Jet_pt[Probe_idx_temp] > 12", "Jet pT > 12")
-            .Filter("Jet_vetoed[Probe_idx_temp] == 0", "Probe not vetoed")
-            .Filter("abs(ROOT::VecOps::DeltaPhi(Jet_phi[Probe_idx_temp], Tag_phi)) > 2.7", "dPhi(Probe, Photon) > 2.7")
-            .Filter("Jet_jetId[Probe_idx_temp] >= 4", "Leading jet jet Id >= 4")
+            .Filter("Probe_idx_temp >= 0",
+                    "Jet found")
+            .Filter("Jet_pt[Probe_idx_temp] > 12", 
+                    "Jet pT > 12")
+            .Filter("Jet_vetoed[Probe_idx_temp] == 0",
+                    "Probe not vetoed")
+            .Filter("fabs(ROOT::VecOps::DeltaPhi(Jet_phi[Probe_idx_temp], Tag_phi)) > 2.7",
+                    "|dPhi(Probe, Photon)| > 2.7")
+            .Filter("Jet_jetId[Probe_idx_temp] >= 4",
+                    "Leading jet jet Id >= 4")
             .Define("Activity_idx_temp", "Jet_indices_temp.second")
-            .Filter("Probe_idx_temp >= 0", "Jet found")
+            .Filter("Probe_idx_temp >= 0",
+                    "Jet found")
             .Define("Probe_isFirst", "Probe_idx_temp == 0")
     )
 
     for column in jet_columns:
         rdf = rdf.Define("Probe_"+column[4:], f"{column}[Probe_idx_temp]")
+
+
+    # Redefine PuppiMET as the sum of the TnP
+    # rdf = (rdf.Define("PhJet_temp", "ROOT::Math::PtEtaPhiMVector(Tag_pt, Tag_eta, Tag_phi, Tag_mass)")
+           # .Redefine("PhJet_temp", "PhJet_temp + ROOT::Math::PtEtaPhiMVector(Jet_pt[Probe_idx_temp], Jet_eta[Probe_idx_temp], Jet_phi[Probe_idx_temp], Jet_mass[Probe_idx_temp])")
+           # .Redefine("PuppiMET_pt", "(-PhJet_temp).Pt()")
+           # .Redefine("PuppiMET_phi", "(-PhJet_temp).Phi()")
+    # )
 
     return rdf

@@ -75,6 +75,7 @@ def _init_TnP(rdf, state):
                 "ROOT::Math::Polar2DVector(JetActivity_pt, JetActivity_phi)")
     )
 
+    # General tag and probe variables
     rdf = (rdf.Define("TnP_pt_ave", "(Probe_pt + Tag_pt) * 0.5")
             .Define("TnP_deltaPhi", "ROOT::VecOps::DeltaPhi(Tag_phi, Probe_phi)")
             .Define("TnP_deltaR", "ROOT::VecOps::DeltaR(Tag_eta, Probe_eta, Tag_phi, Probe_phi)")
@@ -90,13 +91,12 @@ def _def_JEC(rdf):
                 "-1.0 * Tag_raw_polarVec_temp.Dot(Probe_raw_polarVec_temp) / (Tag_rawPt * Tag_rawPt)")
             .Define("DB_ratio", "Probe_pt / Tag_pt")
             .Define("DB_raw_ratio", "Probe_rawPt / Tag_rawPt")
-            .Define("DBT1", "1.0 + T1MET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("MPF_tag",
-                "1.0 + PuppiMET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
+                "1.0 + T1MET_polarVec_temp.Dot(Tag_polarVec_temp) / (Tag_pt * Tag_pt)")
             .Define("MPF_raw_tag",
                 "1.0 + RawPuppiMET_polarVec_temp.Dot(Tag_raw_polarVec_temp) / (Tag_rawPt * Tag_rawPt)")
             .Define("MPF_probe",
-                "1.0 + PuppiMET_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
+                "1.0 + T1MET_polarVec_temp.Dot(Probe_polarVec_temp) / (Probe_pt * Probe_pt)")
             .Define("MPF_raw_probe",
                 "1.0 + RawPuppiMET_polarVec_temp.Dot(Probe_raw_polarVec_temp) / (Probe_rawPt * Probe_rawPt)")
             .Define("R_un_reco_tag_temp",

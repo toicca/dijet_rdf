@@ -83,10 +83,10 @@ def init_multijet(rdf, jet_columns, state):
         rdf = rdf.Define("Probe_"+column[4:], f"{column}[0]")
 
     # Redefine PuppiMET through the lead and recoil
-    rdf = (rdf.Define("MJPuppiMET_temp", "-1.0 * TagMJ_fourVec_temp \
-        - ROOT::Math::PtEtaPhiMVector(Probe_pt, Probe_eta, Probe_phi, Probe_mass)")
-        .Redefine("PuppiMET_pt", "float(MJPuppiMET_temp.Pt())")
-        .Redefine("PuppiMET_phi", "float(MJPuppiMET_temp.Phi())")
-    )
+    # rdf = (rdf.Define("MJPuppiMET_temp", "-1.0 * TagMJ_fourVec_temp \
+        # - ROOT::Math::PtEtaPhiMVector(Probe_pt, Probe_eta, Probe_phi, Probe_mass)")
+        # .Redefine("PuppiMET_pt", "float(MJPuppiMET_temp.Pt())")
+        # .Redefine("PuppiMET_phi", "float(MJPuppiMET_temp.Phi())")
+    # )
 
     return rdf
