@@ -21,6 +21,7 @@ class ProcessingState:
         self.parser.add_argument('--log', type=str, default='INFO', help='Logging level',
             choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
         self.parser.add_argument('--tag', type=str, help='Processing tag for the output file', default="")
+        self.parser.add_argument('--redirector', type=str, help='Redirector for the input files', default="root://xrootd-cms.infn.it//")
         self.args = None
         self.channels = ["photonjet", "dijet", "multijet", "zmm", "zee", "zjet", "empty"]
         self.valfuncs = {}
@@ -47,6 +48,7 @@ class ProcessingState:
         self.logger.info(f"Subparser name: {self.args.subparser_name}")
         self.logger.info(f"Logging level: {self.args.log}")
         self.logger.setLevel(self.args.log)
+
         self.valfuncs[self.args.subparser_name](self.args)
 
     def execute_command(self):

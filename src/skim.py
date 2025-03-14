@@ -89,13 +89,24 @@ def update_state(state):
 
 def add_skim_parser(state):
     subparsers = state.subparsers
+
     # Skimming config
     skim_parser = subparsers.add_parser("skim", help="Perform skimming for\
             given list of input files")
+
+    # Input files
     skim_files = skim_parser.add_mutually_exclusive_group(required=True)
     skim_files.add_argument("--filelist", type=str, help="Comma separated list of root files")
     skim_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
             text files containing input files (one input file per line).')
+
+    # Corrections
+    skim_parser.add_argument("--correction_json", type=str, help="Path to a JSON file defining \
+                             JECs, vetomaps, etc.")
+    skim_parser.add_argument("--correction_key", type=str, help="Key in the correction JSON file \
+                             defining the corrections to be applied")
+
+    # Other
     skim_parser.add_argument("--nsteps", type=int, help="Number of steps input files are grouped into.")
     skim_parser.add_argument("--step", type=int, help="Step to be processed.")
     skim_parser.add_argument("--progress_bar", action="store_true", help="Show progress bar")
@@ -116,10 +127,6 @@ def add_skim_parser(state):
     skim_parser.add_argument("--run_range", type=str, help="Run range of the given input files \
             (run_min and run_max separated by a comma)")
     skim_parser.add_argument("--mc_tag", type=str, help="MC tag of the given MC files")
-    skim_parser.add_argument("--correction_json", type=str, help="Path to a JSON file defining \
-                             JECs, vetomaps, etc.")
-    skim_parser.add_argument("--correction_key", type=str, help="Key in the correction JSON file \
-                             defining the corrections to be applied")
 
 def validate_args(args):
     if not args.is_mc and args.mc_tag:
@@ -170,6 +177,7 @@ def skim(files, triggers, state):
     args = state.args
     logger = state.logger
     step = args.step
+
     # Load the files
     events_chain = ROOT.TChain("Events")
     runs_chain = ROOT.TChain("Runs")
@@ -177,8 +185,8 @@ def skim(files, triggers, state):
     for file in files:
         if not args.is_local:
             try:
-                events_chain.Add(f"root://xrootd-cms.infn.it//{file}")
-                runs_chain.Add(f"root://xrootd-cms.infn.it//{file}")
+                events_chain.Add(f"{args.redirector}{file}")
+                runs_chain.Add(f"{args.redirector}{file}")
             except Exception as e:
                 logger.warning(f"Skipping problematic run: {e}")
         else:
@@ -348,7 +356,7 @@ def skim(files, triggers, state):
         logger.info(f"snapshot finished in {int(minutes)} min {seconds:.2f} s for {output_path}.root")
 
     start = time.time()
-    subprocess.run(["hadd", "-f", "-k", output_path+".root",
+    subprocess.run(["hadd", "-f", output_path+".root",
     output_path+"_events.root", output_path+"_runs.root"])
     hadd_time = time.time() - start
     if hadd_time < 1:

@@ -3,6 +3,7 @@ from utils.processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
 import argparse, configparser
 import numpy as np
+import json
 import time
 
 from find_range import find_run_range
@@ -18,11 +19,9 @@ def add_produce_ratio_parser(subparsers):
             containing skimmed run data")
     ratio_parser.add_argument("--mc_files", type=str, required=True, help="A list of root files \
             containing skimmed MC data")
-    ratio_triggers = ratio_parser.add_mutually_exclusive_group()
-    ratio_triggers.add_argument("--triggerlist", type=str, help="Comma separated list of \
-            triggers")
-    ratio_triggers.add_argument("--triggerpath", type=str, help="Path to a file containing \
-            a list of triggers")
+    ratio_parser.add_argument('-tf', '--triggerfile', type=str, help='Path to the .json file containing \
+            triggers.')
+    ratio_parser.add_argument('-ch', '--channel', type=str, help='Channel associated with the triggers.')
     ratio_parser.add_argument("--out", type=str, required=True, default="", help="Output path \
             (output file name included)")
     ratio_parser.add_argument("--data_tag", type=str, help="data tag")
@@ -91,11 +90,11 @@ def run(state):
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(rdf_mc)
 
-    triggers = []
-    if args.triggerlist:
-        triggers = args.triggerlist.split(",")
-    elif args.triggerpath:
-        triggers = file_read_lines(args.triggerpath)
+    with open(args.triggerfile) as f:
+        triggers = json.load(f)[args.channel]
+
+    for trigger in triggers:
+        triggers[trigger] = triggers[trigger]["cut"]
 
     if len(triggers) > 0:
         trg_filter = " || ".join(triggers)

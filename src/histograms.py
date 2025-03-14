@@ -14,6 +14,7 @@ def update_state(state):
 def add_hist_parser(subparsers):
     hist_parser = subparsers.add_parser('hist', help='Produce histograms from skimmed files.')
 
+    # Input files
     hist_files = hist_parser.add_mutually_exclusive_group(required=True)
     hist_files.add_argument('-c', '--config', type=str, help='Path to the config file. If set, \
             overrides all other options.')
@@ -21,10 +22,10 @@ def add_hist_parser(subparsers):
             text files containing input files (one input file per line).')
     hist_files.add_argument('-fl', '--filelist', type=str, help='Input files separated by commas.')
 
+    # Other
     hist_parser.add_argument('-tf', '--triggerfile', type=str, help='Path to the .json file containing \
             triggers.')
     hist_parser.add_argument('-ch', '--channel', type=str, help='Channel associated with the triggers.')
-
     hist_parser.add_argument('-reg', '--regions', type=str, help='Comma separated list of \
             .ini files with cuts for different regions.')
     hist_parser.add_argument('-loc', '--is_local', action='store_true', help='Run locally. If not \
@@ -123,8 +124,8 @@ def make_histograms(args, logger):
     # Load the files
     for file in filelist:
         if not args.is_local:
-            events_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
-            runs_chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            events_chain.Add(f"{args.redirector}{file}")
+            runs_chain.Add(f"{args.redirector}{file}")
         else:
             events_chain.Add(file)
             runs_chain.Add(file)
