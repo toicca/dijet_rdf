@@ -58,10 +58,13 @@ class ProcessingState:
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
-if __name__ == "__main__":
+def main():
     state = ProcessingState()
     state.init_state()
     original_state = state
     state.execute_command()
     if state != original_state:
         original_state.logger.error("State has changed after execution")
+
+if __name__ == "__main__":
+    main()
