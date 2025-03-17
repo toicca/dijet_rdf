@@ -31,7 +31,7 @@ classifiers = [
 ]
 
 [project.scripts]
-j4p-main = "src:jec4prompt:main"
+j4p-main = "src.jec4prompt:main"
 
 [tool.pytest.ini_options]
 addopts = [
