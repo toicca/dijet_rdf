@@ -169,7 +169,7 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
     return rdf
 
 
-def find_vetojets(rdf, vfile, vset, vcols=["Jet_eta", "Jet_phi"]):
+def find_vetojets(rdf, vfile, vset, vcols=("Jet_eta", "Jet_phi")):
     ROOT.gInterpreter.Declare(
         f"""
 #ifndef VETO_JETS

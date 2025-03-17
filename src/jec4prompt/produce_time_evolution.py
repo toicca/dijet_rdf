@@ -1,12 +1,9 @@
-import ROOT
-from utils.processing_utils import file_read_lines, read_config_file, get_bins
-from typing import List
 import json
-import argparse, configparser
-import numpy as np
 import time
 
-from find_range import find_run_range
+import numpy as np
+import ROOT
+from utils.processing_utils import file_read_lines, get_bins, read_config_file
 
 
 def update_state(state):
@@ -167,10 +164,10 @@ def produce_time_evolution(lds, hist_config, bins, logging):
 
     hs = {}
     hs["min_runs"] = ROOT.TH1D(
-        f"min_runs", "min_runs", len(lumi_bins) - 1, np.array(lumi_bins)
+        "min_runs", "min_runs", len(lumi_bins) - 1, np.array(lumi_bins)
     )
     hs["max_runs"] = ROOT.TH1D(
-        f"max_runs", "max_runs", len(lumi_bins) - 1, np.array(lumi_bins)
+        "max_runs", "max_runs", len(lumi_bins) - 1, np.array(lumi_bins)
     )
     for hist in hist_config:
         name = hist_config[hist]["name"]

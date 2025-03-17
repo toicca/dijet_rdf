@@ -1,25 +1,21 @@
-import ROOT
+import json
 import os
 import subprocess
-import argparse
-import pathlib
-import ctypes
-import numpy as np
-import pandas as pd
 import time
-import json
 from typing import List
 
-from utils.processing_utils import file_read_lines, find_site
+import numpy as np
+import pandas as pd
+import ROOT
+from selections.JEC import jet_columns, run_JEC
+from utils.processing_utils import file_read_lines
 from utils.skimming_utils import (
-    filter_json,
     correct_jets,
+    filter_json,
     find_vetojets,
     get_Flags,
     sort_jets,
-    correct_jetId,
 )
-from selections.JEC import jet_columns, run_JEC
 
 weight_info = {
     "xsec": {
@@ -38,7 +34,8 @@ weight_info = {
         "QCD-4Jets_HT-800to1000_TuneCP5_13p6TeV_madgraphMLM-pythia8": 3046.0,
         # zjet
         "DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8": 6695.0,  # Winter24
-        "DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.0,  # Summer24 -> single sample so xsec doesn't contribute
+        # Summer24 -> single sample so xsec doesn't contribute
+        "DYto2Mu-4Jets_Bin-MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8": 1.0,
         # egamma Summer24
         "GJ-4Jets_HT-40to70_TuneCP5_13p6TeV_madgraphMLM-pythia8": 15240.0,
         "GJ-4Jets_HT-70to100_TuneCP5_13p6TeV_madgraphMLM-pythia8": 8111.0,
@@ -283,12 +280,13 @@ def skim(files, triggers, state):
 
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
-    ## Correct jetId for 2022–2024 Nanos
+    # Correct jetId for 2022–2024 Nanos
     # events_rdf = correct_jetId(events_rdf)
 
     # Apply corrections
     if args.correction_json:
         import json
+
         import correctionlib
 
         correctionlib.register_pyroot_binding()

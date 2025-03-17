@@ -1,12 +1,13 @@
-import ROOT
 import os
-from typing import List, Dict
+from typing import List
+
+import ROOT
 from RDFAnalyzer import RDFAnalyzer
 
 
 class FileWriter:
     def __init__(
-        self, output_file: str, triggers: List[str] = [], cut_hist_names: bool = False
+        self, output_file: str, triggers: List[str] = None, cut_hist_names: bool = False
     ):
         self.triggers = triggers
         self.cut_hist_names = cut_hist_names
@@ -34,7 +35,7 @@ class FileWriter:
 
         self.output.cd("..")
 
-    def write_samples(self, samples: List[RDFAnalyzer], triggers: List[str] = []):
+    def write_samples(self, samples: List[RDFAnalyzer], triggers: List[str] = None):
         if not triggers:
             triggers = self.triggers
 

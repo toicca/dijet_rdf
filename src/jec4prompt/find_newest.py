@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os
 from collections import defaultdict
-import argparse
 
 
 def update_state(state):
@@ -68,7 +67,8 @@ def find_newest_files(root_dir, starts_with, ends_with, max_depth=None):
             continue
 
         for filename in filenames:
-            if filename.startswith(starts_with):  #  and filename.endswith(ends_with):
+            # and filename.endswith(ends_with):
+            if filename.startswith(starts_with):
                 file_path = os.path.join(dirpath, filename)
                 mtime = os.path.getmtime(file_path)
 

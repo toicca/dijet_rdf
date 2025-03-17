@@ -1,6 +1,4 @@
 import ROOT
-import argparse
-
 from utils.processing_utils import file_read_lines
 
 

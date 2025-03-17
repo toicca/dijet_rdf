@@ -1,12 +1,7 @@
-import ROOT
-from utils.processing_utils import file_read_lines, read_config_file, get_bins
-from typing import List
-import argparse, configparser
-import numpy as np
 import json
-import time
 
-from find_range import find_run_range
+import ROOT
+from utils.processing_utils import get_bins, read_config_file
 
 
 def update_state(state):

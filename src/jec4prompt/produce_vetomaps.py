@@ -1,8 +1,8 @@
-import ROOT
-from utils.processing_utils import file_read_lines, read_config_file, get_bins
 from typing import List
-import argparse, configparser
+
 import numpy as np
+import ROOT
+from utils.processing_utils import file_read_lines, get_bins, read_config_file
 
 hist_info = (
     ("standard", "PFComposition", "PFComposition_EtaVsPhiVsProfileNEF_selected"),

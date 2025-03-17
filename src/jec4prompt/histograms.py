@@ -1,16 +1,12 @@
-import ROOT
-import json
 import argparse
 import configparser
+import json
 import os
 
+import ROOT
+
 # import tomllib
-from utils.processing_utils import (
-    find_site,
-    get_bins,
-    read_config_file,
-    file_read_lines,
-)
+from utils.processing_utils import file_read_lines, get_bins, read_config_file
 
 
 def update_state(state):
@@ -251,7 +247,6 @@ def make_histograms(args, logger):
             runs_chain.Add(file)
 
     events_rdf = ROOT.RDataFrame(events_chain)
-    runs_rdf = ROOT.RDataFrame(runs_chain)
 
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(events_rdf)
@@ -289,7 +284,6 @@ def make_histograms(args, logger):
             all_hists.append(
                 create_histogram(events_rdf, hist_config[hist], bins, triggers)
             )
-            # histograms[hist] = create_histogram(events_rdf, hist_config[hist], bins, triggers).GetValue()
 
     for hist in all_hists:
         histograms[hist.GetName()] = hist.GetValue()

@@ -1,13 +1,10 @@
-import ROOT
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-import argparse
 import configparser
-from typing import List
 import pathlib
-import cmsstyle as CMS
 import time
+from typing import List
+
+import cmsstyle as CMS
+import ROOT
 
 
 def update_state(state):

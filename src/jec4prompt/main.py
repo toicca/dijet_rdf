@@ -1,5 +1,6 @@
 import argparse
 import logging
+from pathlib import Path
 
 import find_json
 import find_newest
@@ -9,9 +10,8 @@ import produce_ratio
 import produce_responses
 import produce_time_evolution
 import produce_vetomaps
-from plotting import produce_plots
 import skim
-from pathlib import Path
+from plotting import produce_plots
 
 
 class ProcessingState:

@@ -43,7 +43,7 @@ def init_photonjet(rdf, jet_columns, state):
         .Filter("selPhoton_pt[0] > 15", "Trigger selected photon pT > 15")
         .Filter("abs(selPhoton_eta[0]) < 1.3", "Trigger selected photon |eta| < 1.3")
         .Define("Tag_idx_temp", "0")
-        .Define("Tag_pt", f"selPhoton_pt[Tag_idx_temp]")
+        .Define("Tag_pt", "selPhoton_pt[Tag_idx_temp]")
         .Define("Tag_rawPt", "Tag_pt")
         .Redefine(
             "Tag_pt",
@@ -52,8 +52,8 @@ def init_photonjet(rdf, jet_columns, state):
         .Define(
             "Tag_rawFactor_temp", "selPhoton_seedGain[Tag_idx_temp] == 1 ? 1./1.017 : 1"
         )
-        .Define("Tag_eta", f"selPhoton_eta[Tag_idx_temp]")
-        .Define("Tag_phi", f"selPhoton_phi[Tag_idx_temp]")
+        .Define("Tag_eta", "selPhoton_eta[Tag_idx_temp]")
+        .Define("Tag_phi", "selPhoton_phi[Tag_idx_temp]")
         .Define("Tag_mass", "0.0")
         .Define("Tag_label", "2")
         .Define("PhTag_polVec_temp", "ROOT::Math::Polar2DVector(Tag_pt, Tag_phi)")

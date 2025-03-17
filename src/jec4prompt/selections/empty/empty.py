@@ -1,6 +1,3 @@
-import ROOT
-
-
 def init_empty(rdf, jet_columns, state):
     rdf = (
         rdf.Define("Tag_pt", "-1.0")

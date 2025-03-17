@@ -51,10 +51,10 @@ def init_multijet(rdf, jet_columns, state):
 
     # Recoil jets
     rdf = (
-        rdf.Define("RecoilJet_pt", f"ROOT::VecOps::Take(Jet_pt, RecoilJet_idx_temp)")
-        .Define("RecoilJet_eta", f"ROOT::VecOps::Take(Jet_eta, RecoilJet_idx_temp)")
-        .Define("RecoilJet_phi", f"ROOT::VecOps::Take(Jet_phi, RecoilJet_idx_temp)")
-        .Define("RecoilJet_mass", f"ROOT::VecOps::Take(Jet_mass, RecoilJet_idx_temp)")
+        rdf.Define("RecoilJet_pt", "ROOT::VecOps::Take(Jet_pt, RecoilJet_idx_temp)")
+        .Define("RecoilJet_eta", "ROOT::VecOps::Take(Jet_eta, RecoilJet_idx_temp)")
+        .Define("RecoilJet_phi", "ROOT::VecOps::Take(Jet_phi, RecoilJet_idx_temp)")
+        .Define("RecoilJet_mass", "ROOT::VecOps::Take(Jet_mass, RecoilJet_idx_temp)")
         .Define(
             "TagMJ_fourVec_temp",
             "ROOT::VecOps::Construct<ROOT::Math::PtEtaPhiMVector>(RecoilJet_pt, \

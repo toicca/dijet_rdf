@@ -1,8 +1,9 @@
 import configparser
 import json
-import numpy as np
 import subprocess
 from typing import Dict, List
+
+import numpy as np
 
 
 def find_site(file):
