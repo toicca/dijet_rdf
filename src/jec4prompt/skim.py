@@ -222,7 +222,7 @@ def skim(files, triggers, state):
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
     ## Correct jetId for 2022–2024 Nanos
-    events_rdf = correct_jetId(events_rdf)
+    # events_rdf = correct_jetId(events_rdf)
 
     # Apply corrections
     if args.correction_json:

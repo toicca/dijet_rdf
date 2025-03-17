@@ -8,7 +8,7 @@ python3 src/main.py skim \
   --out out_skim \
   --channel dijet \
   --nThreads 8 \
-  --nsteps 10 \
+  --nsteps 1 \
   --step 0 \
   --correction_json data/corrections/summer24_corrections.json \
   --correction_key Run2024H \
@@ -21,10 +21,10 @@ if [ $RET -ne 0 ]; then
 fi
 
 python3 src/main.py hist \
-  -hconf data/histograms/JECs.ini,data/histograms/kinematics.ini,data/histograms/validation.ini \
+  -hconf data/histograms/JECs.ini,data/histograms/kinematics.ini \
   -fl out_skim/J4PSkim_dijet_0.root \
   --triggerfile data/triggerlists/triggers_summer24.json \
-  --channel dijet \
+  --channel dj_singlejet \
   -loc \
   -pbar \
   --nThreads 8 \

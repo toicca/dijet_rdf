@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jec4prompt"
-version = "0.1.0"
+version = "2025.0.0"
 description = "A Python package for RDF-based analysis of NanoAOD data"
 authors = [
     { name = "Nico Toikka", email = "nico.timothy.toikka@cern.ch" },
@@ -12,6 +12,18 @@ authors = [
 ]
 dependencies = [
     "numpy",
+    "pandas",
     "uproot",
+    "mplhep",
+    "correctionlib",
     "requests"
+]
+requires-python = ">= 3.9"
+
+[project.scripts]
+j4p-main = "src:main"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
 ]
