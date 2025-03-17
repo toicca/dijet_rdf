@@ -13,17 +13,40 @@ from plotting import produce_plots
 import skim
 from pathlib import Path
 
+
 class ProcessingState:
     def __init__(self):
-        self.parser = argparse.ArgumentParser(description='JEC4PROMPT Toolkit: \
-            https://github.com/toicca/dijet_rdf/tree/main')
-        self.subparsers = self.parser.add_subparsers(dest='subparser_name')
-        self.parser.add_argument('--log', type=str, default='INFO', help='Logging level',
-            choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
-        self.parser.add_argument('--tag', type=str, help='Processing tag for the output file', default="")
-        self.parser.add_argument('--redirector', type=str, help='Redirector for the input files', default="root://xrootd-cms.infn.it//")
+        self.parser = argparse.ArgumentParser(
+            description="JEC4PROMPT Toolkit: \
+            https://github.com/toicca/dijet_rdf/tree/main"
+        )
+        self.subparsers = self.parser.add_subparsers(dest="subparser_name")
+        self.parser.add_argument(
+            "--log",
+            type=str,
+            default="INFO",
+            help="Logging level",
+            choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        )
+        self.parser.add_argument(
+            "--tag", type=str, help="Processing tag for the output file", default=""
+        )
+        self.parser.add_argument(
+            "--redirector",
+            type=str,
+            help="Redirector for the input files",
+            default="root://xrootd-cms.infn.it//",
+        )
         self.args = None
-        self.channels = ["photonjet", "dijet", "multijet", "zmm", "zee", "zjet", "empty"]
+        self.channels = [
+            "photonjet",
+            "dijet",
+            "multijet",
+            "zmm",
+            "zee",
+            "zjet",
+            "empty",
+        ]
         self.valfuncs = {}
         self.commands = {}
         self.module_dir = Path(__file__).resolve().parent
@@ -42,7 +65,7 @@ class ProcessingState:
         produce_time_evolution.update_state(self)
         produce_plots.update_state(self)
         produce_vetomaps.update_state(self)
-        
+
         self.args = self.parser.parse_args()
         self.logger.info(f"Parsed arguments: {self.args}")
         self.logger.info(f"Subparser name: {self.args.subparser_name}")
@@ -58,6 +81,7 @@ class ProcessingState:
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+
 def main():
     state = ProcessingState()
     state.init_state()
@@ -65,6 +89,7 @@ def main():
     state.execute_command()
     if state != original_state:
         original_state.logger.error("State has changed after execution")
+
 
 if __name__ == "__main__":
     main()

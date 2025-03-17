@@ -9,31 +9,51 @@ import pathlib
 import cmsstyle as CMS
 import time
 
+
 def update_state(state):
     add_plots_parser(state.subparsers)
-    state.valfuncs['produce_plots'] = validate_args
-    state.commands['produce_plots'] = run
+    state.valfuncs["produce_plots"] = validate_args
+    state.commands["produce_plots"] = run
+
 
 def add_plots_parser(subparsers):
     # Produce plots config
-    plots_parser = subparsers.add_parser("produce_plots", help="Produce plots for given list of \
-                                            input files")
+    plots_parser = subparsers.add_parser(
+        "produce_plots",
+        help="Produce plots for given list of \
+                                            input files",
+    )
     plots_files = plots_parser.add_mutually_exclusive_group(required=True)
-    plots_files.add_argument("--filelist", type=str, help="Comma separated list of root files \
-            produced by dijet_rdf")
-    plots_files.add_argument('-fp', '--filepaths', type=str, help='Comma separated list of \
-            text files containing input files (one input file per line).')
+    plots_files.add_argument(
+        "--filelist",
+        type=str,
+        help="Comma separated list of root files \
+            produced by dijet_rdf",
+    )
+    plots_files.add_argument(
+        "-fp",
+        "--filepaths",
+        type=str,
+        help="Comma separated list of \
+            text files containing input files (one input file per line).",
+    )
     plots_parser.add_argument("--out", required=True, type=str, help="Output path")
-    plots_parser.add_argument("--config", type=str, default="", help="Path to config file")
-    plots_parser.add_argument("--all", action="store_true",
-                                help="Produce all plots in given .root files")
+    plots_parser.add_argument(
+        "--config", type=str, default="", help="Path to config file"
+    )
+    plots_parser.add_argument(
+        "--all", action="store_true", help="Produce all plots in given .root files"
+    )
+
 
 def validate_args(args):
     pass
 
+
 def file_read_lines(file: str) -> List[str]:
     with open(file) as f:
         return [line.strip() for line in f.readlines()]
+
 
 def read_config_file(file: str) -> configparser.ConfigParser:
     config = configparser.ConfigParser()
@@ -41,8 +61,11 @@ def read_config_file(file: str) -> configparser.ConfigParser:
 
     return config
 
+
 def produce_plots_all(file, output_path):
-    subfolder_name = file.GetName().split("/")[-1].replace(".root", "").replace(".", "_")
+    subfolder_name = (
+        file.GetName().split("/")[-1].replace(".root", "").replace(".", "_")
+    )
     for trigger_key in file.GetListOfKeys():
         trigger_name = trigger_key.GetName()
         systems = file.Get(trigger_name)
@@ -52,7 +75,15 @@ def produce_plots_all(file, output_path):
             for method_key in methods.GetListOfKeys():
                 method_name = method_key.GetName()
 
-                pathlib.Path("{}/{}/{}/{}/{}".format(output_path, subfolder_name, trigger_name, system_name, method_name)).mkdir(exist_ok=True, parents=True)
+                pathlib.Path(
+                    "{}/{}/{}/{}/{}".format(
+                        output_path,
+                        subfolder_name,
+                        trigger_name,
+                        system_name,
+                        method_name,
+                    )
+                ).mkdir(exist_ok=True, parents=True)
 
                 hists = methods.Get(method_name)
                 for hist_key in hists.GetListOfKeys():
@@ -67,21 +98,44 @@ def produce_plots_all(file, output_path):
                     ytitle = hist.GetYaxis().GetTitle()
 
                     (b_min, b_max) = (hist.GetMinimumBin(), hist.GetMaximumBin())
-                    (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
-                    (y_min, y_max) = (hist.GetBinContent(b_min), hist.GetBinContent(b_max))
-                    y_max = 1.05*y_max
+                    (x_min, x_max) = (
+                        hist.GetXaxis().GetXmin(),
+                        hist.GetXaxis().GetXmax(),
+                    )
+                    (y_min, y_max) = (
+                        hist.GetBinContent(b_min),
+                        hist.GetBinContent(b_max),
+                    )
+                    y_max = 1.05 * y_max
                     iPos = 33
 
                     # Move CMS logo/text out of frame so it does not get covered by the plot
                     if hist.InheritsFrom("TH2D") or hist.InheritsFrom("TProfile2D"):
-                        (x_min, x_max) = (hist.GetXaxis().GetXmin(), hist.GetXaxis().GetXmax())
-                        (y_min, y_max) = (hist.GetYaxis().GetXmin(), hist.GetYaxis().GetXmax())
+                        (x_min, x_max) = (
+                            hist.GetXaxis().GetXmin(),
+                            hist.GetXaxis().GetXmax(),
+                        )
+                        (y_min, y_max) = (
+                            hist.GetYaxis().GetXmin(),
+                            hist.GetYaxis().GetXmax(),
+                        )
                         iPos = 0
 
                     CMS.SetExtraText("Preliminary")
                     CMS.SetEnergy("13.6")
                     CMS.SetLumi("")
-                    canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xtitle, ytitle, square = True, extraSpace=0.0, iPos=iPos)
+                    canv = CMS.cmsCanvas(
+                        "",
+                        x_min,
+                        x_max,
+                        y_min,
+                        y_max,
+                        xtitle,
+                        ytitle,
+                        square=True,
+                        extraSpace=0.0,
+                        iPos=iPos,
+                    )
 
                     CMS.GetcmsCanvasHist(canv).GetYaxis().SetTitleOffset(1.5)
                     CMS.GetcmsCanvasHist(canv).GetXaxis().SetTitleOffset(0.9)
@@ -94,12 +148,36 @@ def produce_plots_all(file, output_path):
                     lcolor = hist.GetLineColor()
                     fstyle = hist.GetFillStyle()
                     fcolor = hist.GetFillColor()
-                    CMS.cmsDraw(hist, "", marker, msize, mcolor, lstyle, lwidth, lcolor, fstyle, fcolor)
+                    CMS.cmsDraw(
+                        hist,
+                        "",
+                        marker,
+                        msize,
+                        mcolor,
+                        lstyle,
+                        lwidth,
+                        lcolor,
+                        fstyle,
+                        fcolor,
+                    )
 
-                    CMS.SaveCanvas(canv, "{}/{}/{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger_name, system_name, method_name, hist_name))
+                    CMS.SaveCanvas(
+                        canv,
+                        "{}/{}/{}/{}/{}/{}.pdf".format(
+                            output_path,
+                            subfolder_name,
+                            trigger_name,
+                            system_name,
+                            method_name,
+                            hist_name,
+                        ),
+                    )
+
 
 def produce_plots_from_config(file, output_path, config, plots):
-    subfolder_name = file.GetName().split("/")[-1].replace(".root", "").replace(".", "_")
+    subfolder_name = (
+        file.GetName().split("/")[-1].replace(".root", "").replace(".", "_")
+    )
     for plot_name in plots:
         if config[plot_name]["triggers"] == "":
             trigger_keys = file.GetListOfKeys()
@@ -121,38 +199,73 @@ def produce_plots_from_config(file, output_path, config, plots):
                     for hist_key in hists.GetListOfKeys():
                         hist_name = hist_key.GetName()
                         method_hist_str = f"{method_name}/{hist_name}"
-                        system_method_hist_str = f"{system_name}/{method_name}/{hist_name}"
-                        #print(system_name, method_name, hist_name)
-                        if hist_name in hists_config or method_hist_str in hists_config or system_method_hist_str in hists_config:
+                        system_method_hist_str = (
+                            f"{system_name}/{method_name}/{hist_name}"
+                        )
+                        # print(system_name, method_name, hist_name)
+                        if (
+                            hist_name in hists_config
+                            or method_hist_str in hists_config
+                            or system_method_hist_str in hists_config
+                        ):
                             if config[plot_name]["projection"] == "x":
-                                collected_plots.append(hists.Get(hist_name).ProjectionX())
+                                collected_plots.append(
+                                    hists.Get(hist_name).ProjectionX()
+                                )
                             elif config[plot_name]["projection"] == "y":
-                                collected_plots.append(hists.Get(hist_name).ProjectionY())
+                                collected_plots.append(
+                                    hists.Get(hist_name).ProjectionY()
+                                )
                             elif config[plot_name]["projection"] == "z":
-                                collected_plots.append(hists.Get(hist_name).ProjectionZ())
+                                collected_plots.append(
+                                    hists.Get(hist_name).ProjectionZ()
+                                )
                             else:
                                 collected_plots.append(hists.Get(hist_name))
-            
-            if len(collected_plots) == 0: continue
 
-            all_1D = all(p.InheritsFrom("TH1D") or p.InheritsFrom("TProfile1D") for p in collected_plots)
-            all_2D = all(p.InheritsFrom("TH2D") or p.InheritsFrom("TProfile2D") for p in collected_plots)
+            if len(collected_plots) == 0:
+                continue
+
+            all_1D = all(
+                p.InheritsFrom("TH1D") or p.InheritsFrom("TProfile1D")
+                for p in collected_plots
+            )
+            all_2D = all(
+                p.InheritsFrom("TH2D") or p.InheritsFrom("TProfile2D")
+                for p in collected_plots
+            )
 
             if not (all_1D or all_2D):
-                print(f"Skipping plotting of [{plot_name}], histogram list given in the config file contains both 1D and 2D histograms")
+                print(
+                    f"Skipping plotting of [{plot_name}], histogram list given in the config file contains both 1D and 2D histograms"
+                )
 
-            pathlib.Path("{}/{}/{}".format(output_path, subfolder_name, trigger)).mkdir(exist_ok=True, parents=True)
+            pathlib.Path("{}/{}/{}".format(output_path, subfolder_name, trigger)).mkdir(
+                exist_ok=True, parents=True
+            )
 
             xtitle = collected_plots[0].GetXaxis().GetTitle()
             ytitle = collected_plots[0].GetYaxis().GetTitle()
 
-            (x_min, x_max) = (min([p.GetXaxis().GetXmin() for p in collected_plots]), max([p.GetXaxis().GetXmax() for p in collected_plots]))
-            (y_min, y_max) = (min([p.GetYaxis().GetXmin() for p in collected_plots]), max([p.GetYaxis().GetXmax() for p in collected_plots]))
+            (x_min, x_max) = (
+                min([p.GetXaxis().GetXmin() for p in collected_plots]),
+                max([p.GetXaxis().GetXmax() for p in collected_plots]),
+            )
+            (y_min, y_max) = (
+                min([p.GetYaxis().GetXmin() for p in collected_plots]),
+                max([p.GetYaxis().GetXmax() for p in collected_plots]),
+            )
 
             if all_1D:
-                (x_min, x_max) = (min([p.GetXaxis().GetXmin() for p in collected_plots]), max([p.GetXaxis().GetXmax() for p in collected_plots]))
-                (y_min, y_max) = (min([p.GetBinContent(p.GetMinimumBin()) for p in collected_plots]), max([p.GetBinContent(p.GetMaximumBin()) for p in collected_plots]))
-                y_max = 1.05*y_max
+                (x_min, x_max) = (
+                    min([p.GetXaxis().GetXmin() for p in collected_plots]),
+                    max([p.GetXaxis().GetXmax() for p in collected_plots]),
+                )
+                (y_min, y_max) = (
+                    min([p.GetBinContent(p.GetMinimumBin()) for p in collected_plots]),
+                    max([p.GetBinContent(p.GetMaximumBin()) for p in collected_plots]),
+                )
+                y_max = 1.05 * y_max
 
             iPos = 33
             if all_2D:
@@ -164,7 +277,7 @@ def produce_plots_from_config(file, output_path, config, plots):
             CMS.SetEnergy("13.6")
             if config[plot_name]["energy"] != "":
                 CMS.SetEnergy(config[plot_name]["energy"])
-            
+
             CMS.SetLumi("")
             logx = int(config[plot_name]["logx"])
             logy = int(config[plot_name]["logy"])
@@ -187,7 +300,18 @@ def produce_plots_from_config(file, output_path, config, plots):
             if config[plot_name]["extraSpace"] != "":
                 extraSpace = float(config[plot_name]["extraSpace"])
 
-            canv = CMS.cmsCanvas('', x_min, x_max, y_min, y_max, xtitle, ytitle, square=True, extraSpace=extraSpace, iPos=iPos)
+            canv = CMS.cmsCanvas(
+                "",
+                x_min,
+                x_max,
+                y_min,
+                y_max,
+                xtitle,
+                ytitle,
+                square=True,
+                extraSpace=extraSpace,
+                iPos=iPos,
+            )
             if logx == 1:
                 canv.SetLogx()
             if logy == 1:
@@ -220,31 +344,36 @@ def produce_plots_from_config(file, output_path, config, plots):
             markers = []
             if config[plot_name]["markers"] != "":
                 markers = [s.strip() for s in config[plot_name]["markers"].split(",")]
-            
+
             colors = []
             if config[plot_name]["markers"] != "":
                 colors = [s.strip() for s in config[plot_name]["colors"].split(",")]
 
             leg = None
             entries = []
-            if config[plot_name]["legend"] != "" and config[plot_name]["legendPos"] != "":
+            if (
+                config[plot_name]["legend"] != ""
+                and config[plot_name]["legendPos"] != ""
+            ):
                 entries = [s.strip() for s in config[plot_name]["legend"].split("@")]
-                pos = [float(s.strip()) for s in config[plot_name]["legendPos"].split(",")]
+                pos = [
+                    float(s.strip()) for s in config[plot_name]["legendPos"].split(",")
+                ]
                 leg = CMS.cmsLeg(pos[0], pos[1], pos[2], pos[3])
 
-            for (i, plot) in enumerate(collected_plots):
+            for i, plot in enumerate(collected_plots):
 
                 if leg is not None and len(entries) > 0:
                     leg.AddEntry(plot, entries[i])
 
-                if (len(markers) > 0):
+                if len(markers) > 0:
                     marker = int(markers[i])
                     fstyle = int(markers[i])
                 else:
                     marker = plot.GetMarkerStyle()
                     fstyle = plot.GetFillStyle()
 
-                if (len(colors) > 0):
+                if len(colors) > 0:
                     mcolor = int(colors[i])
                     lcolor = int(colors[i])
                     fcolor = int(colors[i])
@@ -252,20 +381,37 @@ def produce_plots_from_config(file, output_path, config, plots):
                     mcolor = plot.GetMarkerColor()
                     lcolor = plot.GetLineColor()
                     fcolor = plot.GetFillColor()
-                
+
                 lstyle = plot.GetLineStyle()
                 msize = plot.GetMarkerSize()
                 lwidth = plot.GetLineWidth()
-                CMS.cmsDraw(plot, "", marker=marker, msize=msize, mcolor=mcolor, lstyle=lstyle, lwidth=lwidth, lcolor=lcolor, fstyle=fstyle, fcolor=fcolor)
+                CMS.cmsDraw(
+                    plot,
+                    "",
+                    marker=marker,
+                    msize=msize,
+                    mcolor=mcolor,
+                    lstyle=lstyle,
+                    lwidth=lwidth,
+                    lcolor=lcolor,
+                    fstyle=fstyle,
+                    fcolor=fcolor,
+                )
 
-            CMS.SaveCanvas(canv, "{}/{}/{}/{}.pdf".format(output_path, subfolder_name, trigger, plot_name))
+            CMS.SaveCanvas(
+                canv,
+                "{}/{}/{}/{}.pdf".format(
+                    output_path, subfolder_name, trigger, plot_name
+                ),
+            )
+
 
 def run(args):
     files: List[str] = []
 
     # Split the file list and trigger list if they are given as a string
     if args.filelist:
-        files= args.filelist.split(",")
+        files = args.filelist.split(",")
     elif args.filepath:
         files = file_read_lines(args.filepath, find_ROOT=True)
     else:
@@ -287,4 +433,6 @@ def run(args):
 
     for root_file in root_files:
         root_file.Close()
-    print("Finished producing plots (execution time {:.3} s)".format(time.time()-start))
+    print(
+        "Finished producing plots (execution time {:.3} s)".format(time.time() - start)
+    )

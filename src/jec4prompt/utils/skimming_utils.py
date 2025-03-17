@@ -1,7 +1,9 @@
 import ROOT
 
+
 def correct_jetId(rdf):
-    ROOT.gInterpreter.Declare("""
+    ROOT.gInterpreter.Declare(
+        """
     #ifndef JETID_FIX
     #define JETID_FIX
 
@@ -52,7 +54,8 @@ ROOT::VecOps::RVec<unsigned int> fix_jetId(const ROOT::VecOps::RVec<float>& Jet_
     return Jet_passJetId;
 }
 #endif
-    """)
+    """
+    )
 
     jetcols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Jet_")]
 
@@ -65,9 +68,15 @@ ROOT::VecOps::RVec<unsigned int> fix_jetId(const ROOT::VecOps::RVec<float>& Jet_
 
     return rdf
 
-def correct_jets(rdf, cfile, cstack, ccols="Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area,Jet_phi"):
+
+def correct_jets(
+    rdf,
+    cfile,
+    cstack,
+    ccols="Jet_rawPt,Jet_eta,Rho_fixedGridRhoFastjetAll,Jet_area,Jet_phi",
+):
     ROOT.gInterpreter.Declare(
-f"""
+        f"""
 #ifndef JET_CORRECTIONS
 #define JET_CORRECTIONS
 
@@ -81,7 +90,7 @@ auto cstack = (cset->compound()).at("{cstack}");
     )
 
     ROOT.gInterpreter.Declare(
-"""
+        """
 #ifndef GET_CORRECTION
 #define GET_CORRECTION
 const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>& pt, const ROOT::VecOps::RVec<float>& eta, float rho, const ROOT::VecOps::RVec<float>& area) {
@@ -116,32 +125,53 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
 
 
 #endif
-""")
+"""
+    )
 
     # Recalculate corrections
-    rdf = (rdf.Define("Jet_rawPt", "(1.0 - Jet_rawFactor) * Jet_pt")
-            .Define("Jet_correctionFactor", f"get_correction({ccols})")
-            .Redefine("Jet_pt", "Jet_rawPt * Jet_correctionFactor")
-            .Redefine("Jet_mass", "(1.0 - Jet_rawFactor) * Jet_mass * Jet_correctionFactor")
-            .Redefine("Jet_rawFactor", "1.0-1.0/Jet_correctionFactor")
+    rdf = (
+        rdf.Define("Jet_rawPt", "(1.0 - Jet_rawFactor) * Jet_pt")
+        .Define("Jet_correctionFactor", f"get_correction({ccols})")
+        .Redefine("Jet_pt", "Jet_rawPt * Jet_correctionFactor")
+        .Redefine("Jet_mass", "(1.0 - Jet_rawFactor) * Jet_mass * Jet_correctionFactor")
+        .Redefine("Jet_rawFactor", "1.0-1.0/Jet_correctionFactor")
     )
 
     # Recalculate MET
-    rdf = (rdf.Define("UncorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_rawPt[Jet_pt > 15], Jet_phi[Jet_pt > 15])")
-            .Redefine("UncorrectedJet_temp", "ROOT::VecOps::Sum(UncorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
-            .Define("CorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_pt[Jet_pt > 15], Jet_phi[Jet_pt > 15])")
-            .Redefine("CorrectedJet_temp", "ROOT::VecOps::Sum(CorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
-            .Define("RawPuppiMET_temp", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
-            .Define("T1MET_temp", "RawPuppiMET_temp + UncorrectedJet_temp - CorrectedJet_temp")
-            .Define("T1MET_pt", "float(T1MET_temp.R())")
-            .Define("T1MET_phi", "float(T1MET_temp.Phi())")
+    rdf = (
+        rdf.Define(
+            "UncorrectedJet_temp",
+            "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_rawPt[Jet_pt > 15], Jet_phi[Jet_pt > 15])",
+        )
+        .Redefine(
+            "UncorrectedJet_temp",
+            "ROOT::VecOps::Sum(UncorrectedJet_temp, ROOT::Math::Polar2DVectorF())",
+        )
+        .Define(
+            "CorrectedJet_temp",
+            "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_pt[Jet_pt > 15], Jet_phi[Jet_pt > 15])",
+        )
+        .Redefine(
+            "CorrectedJet_temp",
+            "ROOT::VecOps::Sum(CorrectedJet_temp, ROOT::Math::Polar2DVectorF())",
+        )
+        .Define(
+            "RawPuppiMET_temp",
+            "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)",
+        )
+        .Define(
+            "T1MET_temp", "RawPuppiMET_temp + UncorrectedJet_temp - CorrectedJet_temp"
+        )
+        .Define("T1MET_pt", "float(T1MET_temp.R())")
+        .Define("T1MET_phi", "float(T1MET_temp.Phi())")
     )
 
     return rdf
 
+
 def find_vetojets(rdf, vfile, vset, vcols=["Jet_eta", "Jet_phi"]):
     ROOT.gInterpreter.Declare(
-f"""
+        f"""
 #ifndef VETO_JETS
 #define VETO_JETS
 
@@ -155,7 +185,7 @@ auto veval = vset->at("{vset}");
     )
 
     ROOT.gInterpreter.Declare(
-"""
+        """
 #ifndef GET_VETO
 #define GET_VETO
 
@@ -179,13 +209,14 @@ ROOT::VecOps::RVec<bool> get_veto( const ROOT::VecOps::RVec<float>& eta,
 """
     )
 
-    rdf = (rdf.Define("Jet_vetoed", f"get_veto({','.join(vcols)})"))
+    rdf = rdf.Define("Jet_vetoed", f"get_veto({','.join(vcols)})")
 
     return rdf
 
+
 def filter_json(rdf, filter_json, logger):
     ROOT.gInterpreter.Declare(
-"""
+        """
 #ifndef JSONFILTER
 #define JSONFILTER
 
@@ -219,27 +250,31 @@ bool isGoodLumi(int run, int lumi) {
     ROOT.init_json(filter_json)
     logger.info("Applying golden JSON cut")
     logger.info(f"JSON file: {filter_json}")
-    rdf = (rdf.Filter("isGoodLumi(run, luminosityBlock)", "JSON filter"))
+    rdf = rdf.Filter("isGoodLumi(run, luminosityBlock)", "JSON filter")
     return rdf
+
 
 def get_Flags(campaign=None):
     # TODO: Implement campaign-specific flags
     flags = [
-            "Flag_goodVertices",
-            "Flag_globalSuperTightHalo2016Filter",
-            "Flag_EcalDeadCellTriggerPrimitiveFilter",
-            "Flag_BadPFMuonFilter",
-            "Flag_BadPFMuonDzFilter",
-            "Flag_hfNoisyHitsFilter",
-            "Flag_eeBadScFilter",
-            "Flag_ecalBadCalibFilter"
+        "Flag_goodVertices",
+        "Flag_globalSuperTightHalo2016Filter",
+        "Flag_EcalDeadCellTriggerPrimitiveFilter",
+        "Flag_BadPFMuonFilter",
+        "Flag_BadPFMuonDzFilter",
+        "Flag_hfNoisyHitsFilter",
+        "Flag_eeBadScFilter",
+        "Flag_ecalBadCalibFilter",
     ]
 
     return flags
 
+
 def sort_jets(rdf, jet_columns):
     # Sort jets by pt
-    rdf = rdf.Define("Jet_pt_index", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Jet_pt))")
+    rdf = rdf.Define(
+        "Jet_pt_index", "ROOT::VecOps::Reverse(ROOT::VecOps::Argsort(Jet_pt))"
+    )
     for col in jet_columns:
         rdf = rdf.Redefine(f"{col}", f"ROOT::VecOps::Take({col}, Jet_pt_index)")
     return rdf
