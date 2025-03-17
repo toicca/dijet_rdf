@@ -18,8 +18,10 @@ def init_dijet(rdf, jet_columns, state):
                 "Tag and probe found")
             .Define("Tag_idx_temp", "TnP_idx_temp.first.first")
             .Define("Probe_idx_temp", "TnP_idx_temp.first.second")
-            .Filter("Jet_vetoed[Tag_idx_temp] == 0", "Tag not vetoed")
-            .Filter("Jet_vetoed[Probe_idx_temp] == 0", "Probe not vetoed")
+            .Filter("Jet_vetoed[Tag_idx_temp] == 0",
+                    "Tag not vetoed")
+            .Filter("Jet_vetoed[Probe_idx_temp] == 0",
+                    "Probe not vetoed")
     )
 
     # Tag definitions
@@ -31,6 +33,8 @@ def init_dijet(rdf, jet_columns, state):
             .Define("Tag_label", "0")
             .Define("Activity_idx_temp", "TnP_idx_temp.second")
             .Define("Probe_isFirst", "Probe_idx_temp == 0")
+            .Filter("fabs(Jet_pt[Probe_idx_temp] - Tag_pt) / (0.5 * (Jet_pt[Probe_idx_temp] + Tag_pt)) < 10",
+                    "Probe pt not too far from tag pt") # Basically redundant
     )
 
     rdf = rdf.Define("Activity_denom", "0.5 * (Jet_pt[Tag_idx_temp] + Jet_pt[Activity_idx_temp])")

@@ -18,20 +18,20 @@ std::pair<std::pair<int, int>, int> findTagProbeIdxs(
     int idx2 = 1 - idx1;
 
     // Check that the tag is in barrel
-    if (abs(Jet_eta[idx1]) > 1.3 || Jet_pt[idx1] < 12 || Jet_jetId[idx1] < 4) {
+    if (fabs(Jet_eta[idx1]) > 1.3 || Jet_pt[idx1] < 15 || Jet_jetId[idx1] < 4) {
         return std::make_pair(std::make_pair(-1, -1), -1);
     }
 
     // Check that the probe is back-to-back with the tag
-    if (abs(ROOT::VecOps::DeltaPhi(Jet_phi[idx2], Jet_phi[idx1])) < 2.7 ||
-        Jet_pt[idx2] < 12 || Jet_jetId[idx2] < 4) {
+    if (fabs(ROOT::VecOps::DeltaPhi(Jet_phi[idx2], Jet_phi[idx1])) < 2.7 ||
+        Jet_pt[idx2] < 15 || Jet_jetId[idx2] < 4) {
         return std::make_pair(std::make_pair(-1, -1), -1);
     }
 
     // Find the activity jet
     int idx3 = -1;
     for (int i = 0; i < Jet_pt.size(); i++) {
-        if (i != idx1 && i != idx2 && Jet_pt[i] > 12 && Jet_jetId[i] >= 4) {
+        if (i != idx1 && i != idx2 && Jet_pt[i] > 15 && Jet_jetId[i] >= 4) {
             idx3 = i;
             break;
         }
