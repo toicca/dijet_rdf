@@ -5,10 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jec4prompt"
 version = "2025.0.0"
-description = "A Python package for RDF-based analysis of NanoAOD data"
+description = "A Python toolkit for RDF-based analysis of CMS NanoAOD data"
+readme = "README.md"
 authors = [
     { name = "Nico Toikka", email = "nico.timothy.toikka@cern.ch" },
     { name = "Dan Näsman" }
+]
+maintainers = [
+    { name = "Nico Toikka", email = "nico.timothy.toikka@cern.ch" }
 ]
 dependencies = [
     "numpy",
@@ -19,6 +23,12 @@ dependencies = [
     "requests"
 ]
 requires-python = ">= 3.9"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: C++",
+]
 
 [project.scripts]
 j4p-main = "src:jec4prompt:main"

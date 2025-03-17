@@ -118,18 +118,21 @@ const ROOT::VecOps::RVec<float> get_correction( const ROOT::VecOps::RVec<float>&
 #endif
 """)
 
+    # Recalculate corrections
     rdf = (rdf.Define("Jet_rawPt", "(1.0 - Jet_rawFactor) * Jet_pt")
             .Define("Jet_correctionFactor", f"get_correction({ccols})")
             .Redefine("Jet_pt", "Jet_rawPt * Jet_correctionFactor")
             .Redefine("Jet_mass", "(1.0 - Jet_rawFactor) * Jet_mass * Jet_correctionFactor")
             .Redefine("Jet_rawFactor", "1.0-1.0/Jet_correctionFactor")
-            .Define("UncorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_rawPt[Jet_pt > 15], Jet_phi[Jet_pt > 15])")
+    )
+
+    # Recalculate MET
+    rdf = (rdf.Define("UncorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_rawPt[Jet_pt > 15], Jet_phi[Jet_pt > 15])")
             .Redefine("UncorrectedJet_temp", "ROOT::VecOps::Sum(UncorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
             .Define("CorrectedJet_temp", "ROOT::VecOps::Construct<ROOT::Math::Polar2DVectorF>(Jet_pt[Jet_pt > 15], Jet_phi[Jet_pt > 15])")
             .Redefine("CorrectedJet_temp", "ROOT::VecOps::Sum(CorrectedJet_temp, ROOT::Math::Polar2DVectorF())")
-            .Define("PuppiMET_temp", "ROOT::Math::Polar2DVectorF(PuppiMET_pt, PuppiMET_phi)")
             .Define("RawPuppiMET_temp", "ROOT::Math::Polar2DVectorF(RawPuppiMET_pt, RawPuppiMET_phi)")
-            .Define("T1MET_temp", "RawPuppiMET_temp + UncorrectedJet_temp - CorrectedJet_temp") # -RC?
+            .Define("T1MET_temp", "RawPuppiMET_temp + UncorrectedJet_temp - CorrectedJet_temp")
             .Define("T1MET_pt", "float(T1MET_temp.R())")
             .Define("T1MET_phi", "float(T1MET_temp.Phi())")
     )
