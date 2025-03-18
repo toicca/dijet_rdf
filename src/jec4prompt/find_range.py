@@ -1,5 +1,5 @@
 import ROOT
-from utils.processing_utils import file_read_lines
+from jec4prompt.utils.processing_utils import file_read_lines
 
 
 def update_state(state):

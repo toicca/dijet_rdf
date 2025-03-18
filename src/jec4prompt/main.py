@@ -2,16 +2,16 @@ import argparse
 import logging
 from pathlib import Path
 
-import find_json
-import find_newest
-import find_range
-import histograms
-import produce_ratio
-import produce_responses
-import produce_time_evolution
-import produce_vetomaps
-import skim
-from plotting import produce_plots
+import jec4prompt.find_json as find_json
+import jec4prompt.find_newest as find_newest
+import jec4prompt.find_range as find_range
+import jec4prompt.histograms as histograms
+import jec4prompt.produce_ratio as produce_ratio
+import jec4prompt.produce_responses as produce_responses
+import jec4prompt.produce_time_evolution as produce_time_evolution
+import jec4prompt.produce_vetomaps as produce_vetomaps
+import jec4prompt.skim as skim
+from jec4prompt.plotting import produce_plots
 
 
 class ProcessingState:
@@ -71,6 +71,11 @@ class ProcessingState:
         self.logger.info(f"Subparser name: {self.args.subparser_name}")
         self.logger.info(f"Logging level: {self.args.log}")
         self.logger.setLevel(self.args.log)
+        
+        # Check that there's a subparser
+        if self.args.subparser_name is None:
+            self.parser.print_help()
+            self.parser.exit()
 
         self.valfuncs[self.args.subparser_name](self.args)
 

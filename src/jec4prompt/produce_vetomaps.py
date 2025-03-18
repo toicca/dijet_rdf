@@ -2,7 +2,7 @@ from typing import List
 
 import numpy as np
 import ROOT
-from utils.processing_utils import file_read_lines, get_bins, read_config_file
+from jec4prompt.utils.processing_utils import file_read_lines, get_bins, read_config_file
 
 hist_info = (
     ("standard", "PFComposition", "PFComposition_EtaVsPhiVsProfileNEF_selected"),

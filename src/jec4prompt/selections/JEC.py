@@ -29,18 +29,18 @@ def _init_TnP(rdf, state):
     channel = state.args.channel
     logger = state.logger
     if channel == "dijet":
-        from selections.dijet.dijet import init_dijet as init_selection
+        from jec4prompt.selections.dijet.dijet import init_dijet as init_selection
     elif channel == "zmm":
-        from selections.zmm.zmm import init_zmm as init_selection
+        from jec4prompt.selections.zmm.zmm import init_zmm as init_selection
     elif channel == "zee":
-        from selections.zee.zee import init_zee as init_selection
+        from jec4prompt.selections.zee.zee import init_zee as init_selection
     elif channel == "photonjet":
-        from selections.photonjet.photonjet import init_photonjet as init_selection
+        from jec4prompt.selections.photonjet.photonjet import init_photonjet as init_selection
     elif channel == "multijet":
-        from selections.multijet.multijet import init_multijet as init_selection
+        from jec4prompt.selections.multijet.multijet import init_multijet as init_selection
     else:
         logger.info("NOTICE: Running on empty selection")
-        from src.selections.empty.empty import init_empty as init_selection
+        from jec4prompt.selections.empty.empty import init_empty as init_selection
 
     rdf = init_selection(rdf, jet_columns, state)
 

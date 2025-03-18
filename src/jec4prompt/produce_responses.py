@@ -2,7 +2,7 @@ import json
 from typing import List
 
 import ROOT
-from utils.processing_utils import file_read_lines, get_bins, read_config_file
+from jec4prompt.utils.processing_utils import file_read_lines, get_bins, read_config_file
 
 response_histos = (
     ("multijet", "MPF", "MPF_multijet_PtRecoilVsEtaVsResponse"),

@@ -1,7 +1,7 @@
 import json
 
 import ROOT
-from utils.processing_utils import get_bins, read_config_file
+from jec4prompt.utils.processing_utils import get_bins, read_config_file
 
 
 def update_state(state):

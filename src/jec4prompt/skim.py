@@ -7,9 +7,9 @@ from typing import List
 import numpy as np
 import pandas as pd
 import ROOT
-from selections.JEC import jet_columns, run_JEC
-from utils.processing_utils import file_read_lines
-from utils.skimming_utils import (
+from jec4prompt.selections.JEC import jet_columns, run_JEC
+from jec4prompt.utils.processing_utils import file_read_lines
+from jec4prompt.utils.skimming_utils import (
     correct_jets,
     filter_json,
     find_vetojets,

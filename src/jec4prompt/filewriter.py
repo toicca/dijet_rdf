@@ -36,6 +36,7 @@ class FileWriter:
         self.output.cd("..")
 
     def write_samples(self, samples: List[RDFAnalyzer], triggers: List[str] = None):
+
         if not triggers:
             triggers = self.triggers
 

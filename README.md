@@ -11,6 +11,10 @@ The toolkit can be installed (in editable mode) with
 ```
 pip install -e .
 ```
+or run directly with
+```
+python3 -m src.jec4prompt.main
+```
 
 For faster processing with RDF you can also include
 ```
