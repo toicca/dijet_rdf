@@ -1,7 +1,7 @@
 #!/bin/bash
 source /cvmfs/sft.cern.ch/lcg/views/LCG_107a/x86_64-el9-gcc14-opt/setup.sh
 
-python3 src/main.py skim \
+python3 -m src.jec4prompt.main skim \
   --filepath data/DT_2024/JetMET/Run2024H.txt \
   --golden_json /eos/user/c/cmsdqm/www/CAF/certification/Collisions24/2024H_Golden.json \
   --triggerfile data/triggerlists/triggers_summer24.json \
@@ -20,7 +20,7 @@ if [ $RET -ne 0 ]; then
   exit $RET
 fi
 
-python3 src/main.py hist \
+python3 -m src.jec4prompt.main hist \
   -hconf data/histograms/JECs.ini,data/histograms/kinematics.ini,data/histograms/validation.ini \
   -fl out_skim/J4PSkim_multijet_0.root \
   --triggerfile data/triggerlists/triggers_summer24.json \
