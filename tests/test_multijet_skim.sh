@@ -21,7 +21,7 @@ if [ $RET -ne 0 ]; then
 fi
 
 python3 -m src.jec4prompt.main hist \
-  -hconf data/histograms/JECs.ini,data/histograms/kinematics.ini,data/histograms/validation.ini \
+  -hconf data/histograms/JECs.ini,data/histograms/kinematics.ini \
   -fl out_skim/J4PSkim_multijet_0.root \
   --triggerfile data/triggerlists/triggers_summer24.json \
   --channel multijet \
