@@ -301,7 +301,7 @@ def get_bins(fill_range: tuple = (376370, 380100), isMC: bool = False) -> dict:
     bins["deltaR"]["n"] = len(bins["deltaR"]["bins"]) - 1
 
     bins["response"] = {}
-    bins["response"]["bins"] = np.linspace(0, 2, 100, dtype=float)
+    bins["response"]["bins"] = np.linspace(0, 4, 400, dtype=float)
     bins["response"]["n"] = len(bins["response"]["bins"]) - 1
 
     bins["asymmetry"] = {}
