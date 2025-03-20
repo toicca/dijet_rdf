@@ -9,7 +9,7 @@ def init_photonjet(rdf, jet_columns, state):
     h_path = path / "photonjet.h"
 
     # Compile and load the C++ code
-    ROOT.gInterpreter.ProcessLine(f".L {cpp_path}+")
+    ROOT.gInterpreter.ProcessLine(f".L {cpp_path}++")
     ROOT.gSystem.Load(str(so_path))
     ROOT.gInterpreter.Declare(f'#include "{h_path}"')
 

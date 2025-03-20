@@ -87,3 +87,41 @@ std::pair<int, int> findJetIdxs(const ROOT::RVec<float>& Jet_pt,
     }
     return std::make_pair(idx1, idx2);
 }
+
+ROOT::RVec<bool> passMuMET(const ROOT::RVec<float>& Muon_eta,
+                        const ROOT::RVec<float>& Muon_phi,
+                        const ROOT::RVec<float>& Jet_pt,
+                        const ROOT::RVec<float>& Jet_eta,
+                        const ROOT::RVec<float>& Jet_phi,
+                        const ROOT::RVec<float>& Jet_rawFactor,
+                        const ROOT::RVec<float>& Jet_muonSubtrFactor) {
+    ROOT::RVec<bool> passMuMET(Jet_eta.size(), true);
+
+    // dR check
+    for (int i = 0; i < Jet_eta.size(); i++) {
+        for (int j = 0; j < Muon_eta.size(); j++) {
+            if (ROOT::VecOps::DeltaR(Jet_eta[i], Muon_eta[j], Jet_phi[i], Muon_phi[j]) < 0.3) {
+                passMuMET[i] = false;
+                break;
+            }
+        }
+    }
+
+    // pT check
+    // Require that the corrected pT of the jet is greater than 15 GeV after muon subtraction
+    // TODO: Should the muon be subtracted from the probe jet?
+    for (int i = 0; i < Jet_eta.size(); i++) {
+        if (!passMuMET[i]) continue;
+
+        float rpt = (1.0 - Jet_rawFactor[i]) * Jet_pt[i];
+        float musubtrpt = rpt * (1.0 - Jet_muonSubtrFactor[i]);
+        float mupt = rpt - musubtrpt;
+
+        if (Jet_pt[i] - mupt < 15) {
+            passMuMET[i] = false;
+        }
+    }
+
+
+    return passMuMET;
+}
