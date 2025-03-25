@@ -1,0 +1,169 @@
+{
+    "zmm": {
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8": {
+            "cut": "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 && (Tag_pt < 800)"
+        }
+    },
+    "zee": {
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ": {
+            "cut": "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ && (Tag_pt < 800)"
+        }
+    },
+    "zjet": {
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8": {
+            "cut": "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8 && (Tag_pt < 800)"
+        },
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ": {
+            "cut": "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ && (Tag_pt < 800)"
+        }
+    },
+    "zerobias": {
+        "L1__ZeroBias": {
+            "cut": "L1__ZeroBias"
+        },
+        "HLT_ZeroBias": {
+            "cut": "HLT_ZeroBias"
+        }
+    },
+    "singlejet": {
+        "HLT_PFJet40": {
+            "cut": "HLT_PFJet40 && (Tag_pt >= 64 && Tag_pt < 84)"
+        },
+        "HLT_PFJet60": {
+            "cut": "HLT_PFJet60 && (Tag_pt >= 84 && Tag_pt < 114)"
+        },
+        "HLT_PFJet80": {
+            "cut": "HLT_PFJet80 && (Tag_pt >= 114 && Tag_pt < 196)"
+        },
+        "HLT_PFJet140": {
+            "cut": "HLT_PFJet140 && (Tag_pt >= 196 && Tag_pt < 272)"
+        },
+        "HLT_PFJet200": {
+            "cut": "HLT_PFJet200 && (Tag_pt >= 272 && Tag_pt < 339)"
+        },
+        "HLT_PFJet260": {
+            "cut": "HLT_PFJet260 && (Tag_pt >= 339 && Tag_pt < 395)"
+        },
+        "HLT_PFJet320": {
+            "cut": "HLT_PFJet320 && (Tag_pt >= 395 && Tag_pt < 507)"
+        },
+        "HLT_PFJet400": {
+            "cut": "HLT_PFJet400 && (Tag_pt >= 507 && Tag_pt < 548)"
+        },
+        "HLT_PFJet450": {
+            "cut": "HLT_PFJet450 && (Tag_pt >= 548 && Tag_pt < 686)"
+        },
+        "HLT_PFJet500": {
+            "cut": "HLT_PFJet500 && (Tag_pt >= 686 && Tag_pt < 6800)"
+        }
+    },
+    "dijet": {
+        "HLT_DiPFJetAve40": {
+            "cut": "HLT_DiPFJetAve40 && (TnP_pt_ave >= 64 && TnP_pt_ave < 85)"
+        },
+        "HLT_DiPFJetAve60": {
+            "cut": "HLT_DiPFJetAve60 && (TnP_pt_ave >= 85 && TnP_pt_ave < 114) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve60_HFJEC": {
+            "cut": "HLT_DiPFJetAve60_HFJEC && (TnP_pt_ave >= 85 && TnP_pt_ave < 100) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve80": {
+            "cut": "HLT_DiPFJetAve80 && (TnP_pt_ave >= 114 && TnP_pt_ave < 196) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve80_HFJEC": {
+            "cut": "HLT_DiPFJetAve80_HFJEC && (TnP_pt_ave >= 100 && TnP_pt_ave < 125) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve140": {
+            "cut": "HLT_DiPFJetAve140 && (TnP_pt_ave >= 196 && TnP_pt_ave < 272) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve100_HFJEC": {
+            "cut": "HLT_DiPFJetAve100_HFJEC && (TnP_pt_ave >= 125 && TnP_pt_ave < 180) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve160_HFJEC": {
+            "cut": "HLT_DiPFJetAve160_HFJEC && (TnP_pt_ave >= 180 && TnP_pt_ave < 250) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve200": {
+            "cut": "HLT_DiPFJetAve200 && (TnP_pt_ave >= 272 && TnP_pt_ave < 339) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve220_HFJEC": {
+            "cut": "HLT_DiPFJetAve220_HFJEC && (TnP_pt_ave >= 250 && TnP_pt_ave < 350) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve260": {
+            "cut": "HLT_DiPFJetAve260 && (TnP_pt_ave >= 339 && TnP_pt_ave < 395) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve300_HFJEC": {
+            "cut": "HLT_DiPFJetAve300_HFJEC && (TnP_pt_ave >= 350 && TnP_pt_ave < 6800) && (abs(Probe_eta) >= 2.853)"
+        },
+        "HLT_DiPFJetAve320": {
+            "cut": "HLT_DiPFJetAve320 && (TnP_pt_ave >= 395 && TnP_pt_ave < 507) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve400": {
+            "cut": "HLT_DiPFJetAve400 && (TnP_pt_ave >= 507 && TnP_pt_ave < 548) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve450": {
+            "cut": "HLT_DiPFJetAve450 && (TnP_pt_ave >= 548 && TnP_pt_ave < 686) && (abs(Probe_eta) < 2.853)"
+        },
+        "HLT_DiPFJetAve500": {
+            "cut": "HLT_DiPFJetAve500 && (TnP_pt_ave >= 686 && TnP_pt_ave < 6800) && (abs(Probe_eta) < 2.853)"
+        }
+    },
+    "dj_singlejet": {
+        "HLT_DiPFJetAve500": {
+            "cut": "(HLT_DiPFJetAve500)"
+        }
+    },
+    "multijet": {
+        "HLT_PFJet40": {
+            "cut": "(HLT_PFJet40 && (Tag_pt >= 1.15*64 && Tag_pt < 1.15*84))"
+        },
+        "HLT_PFJet60": {
+            "cut": "(HLT_PFJet60 && (Tag_pt >= 1.15*84 && Tag_pt < 1.15*114))"
+        },
+        "HLT_PFJet80": {
+            "cut": "(HLT_PFJet80 && (Tag_pt >= 1.15*114 && Tag_pt < 1.15*196))"
+        },
+        "HLT_PFJet140": {
+            "cut": "(HLT_PFJet140 && (Tag_pt >= 1.15*196 && Tag_pt < 1.15*272))"
+        },
+        "HLT_PFJet200": {
+            "cut": "(HLT_PFJet200 && (Tag_pt >= 1.15*272 && Tag_pt < 1.15*330))"
+        },
+        "HLT_PFJet260": {
+            "cut": "(HLT_PFJet260 && (Tag_pt >= 1.15*330 && Tag_pt < 1.15*395))"
+        },
+        "HLT_PFJet320": {
+            "cut": "(HLT_PFJet320 && (Tag_pt >= 1.15*395 && Tag_pt < 1.15*468))"
+        },
+        "HLT_PFJet400": {
+            "cut": "(HLT_PFJet400 && (Tag_pt >= 1.15*468 && Tag_pt < 1.15*548))"
+        },
+        "HLT_PFJet450": {
+            "cut": "(HLT_PFJet450 && (Tag_pt >= 1.15*548 && Tag_pt < 1.15*686))"
+        },
+        "HLT_PFJet500": {
+            "cut": "(HLT_PFJet500 && (Tag_pt >= 1.15*686 && Tag_pt < 6800))"
+        }
+    },
+    "mj_singlejet": {
+        "HLT_PFJet500": {
+            "cut": "(HLT_PFJet500)"
+        }
+    },
+    "photonjet": {
+        "HLT_Photon20_HoverELoose": {
+            "cut": "(HLT_Photon20_HoverELoose && (Tag_pt >=20 && Tag_pt < 30) && fabs(Probe_eta) < 1.3)"
+        },
+        "HLT_Photon30EB_TightID_TightIso": {
+            "cut": "(HLT_Photon30EB_TightID_TightIso && (Tag_pt >= 30 && Tag_pt < 50) && fabs(Probe_eta) < 1.3)"
+        },
+        "HLT_Photon50EB_TightID_TightIso": {
+            "cut": "(HLT_Photon50EB_TightID_TightIso && (Tag_pt >= 50 && Tag_pt < 110) && fabs(Probe_eta) < 1.3)"
+        },
+        "HLT_Photon110EB_TightID_TightIso": {
+            "cut": "(HLT_Photon110EB_TightID_TightIso && (Tag_pt >= 110 && Tag_pt < 230) && fabs(Probe_eta) < 1.3)"
+        },
+        "HLT_Photon200": {
+            "cut": "(HLT_Photon200 && (Tag_pt >= 230 && Tag_pt < 2000) && fabs(Probe_eta) < 1.3)"
+        }
+    }
+}
