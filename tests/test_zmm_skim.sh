@@ -8,7 +8,7 @@ python3 -m src.jec4prompt.main skim \
   --out out_skim \
   --channel zmm \
   --nThreads 8 \
-  --nsteps 10 \
+  --nsteps 20 \
   --step 0 \
   --correction_json data/corrections/summer24_corrections.json \
   --correction_key Run2024H \
