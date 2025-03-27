@@ -1,0 +1,10 @@
+include src/jec4prompt/selections/dijet/dijet.cpp
+include src/jec4prompt/selections/dijet/dijet.h
+include src/jec4prompt/selections/multijet/multijet.cpp
+include src/jec4prompt/selections/multijet/multijet.h
+include src/jec4prompt/selections/photonjet/photonjet.cpp
+include src/jec4prompt/selections/photonjet/photonjet.h
+include src/jec4prompt/selections/zee/zee.cpp
+include src/jec4prompt/selections/zee/zee.h
+include src/jec4prompt/selections/zmm/zmm.cpp
+include src/jec4prompt/selections/zmm/zmm.h
