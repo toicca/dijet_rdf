@@ -7,9 +7,9 @@ For running on lxplus use the LCG image, ie.,
 source /cvmfs/sft.cern.ch/lcg/views/LCG_107a/x86_64-el9-gcc14-opt/setup.sh
 ```
 
-The toolkit can be installed (in editable mode) with
+The toolkit can be installed with
 ```
-pip install -e .
+make install
 ```
 and then ran directly with
 ```
