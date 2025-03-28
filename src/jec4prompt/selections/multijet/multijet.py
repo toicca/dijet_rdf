@@ -10,8 +10,9 @@ def init_multijet(rdf, jet_columns, state):
     h_path = path / "multijet.h"
 
     # Compile and load the C++ code
-    ROOT.gSystem.Load(str(so_path))
+    # ROOT.gSystem.Load(str(so_path))
     ROOT.gInterpreter.Declare(f'#include "{h_path}"')
+    ROOT.gInterpreter.Declare(f'#include "{cpp_path}"')
 
     # Multi-jet selection
     rdf = (

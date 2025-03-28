@@ -9,8 +9,9 @@ def init_dijet(rdf, jet_columns, state):
     h_path = path / "dijet.h"
 
     # Compile and load the C++ code
-    ROOT.gSystem.Load(str(so_path))
+    # ROOT.gSystem.Load(str(cpp_path))
     ROOT.gInterpreter.Declare(f'#include "{h_path}"')
+    ROOT.gInterpreter.Declare(f'#include "{cpp_path}"')
 
     # Tag-probe pair selection
     rdf = (
