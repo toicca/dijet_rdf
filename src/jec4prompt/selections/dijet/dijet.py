@@ -2,15 +2,52 @@ import ROOT
 
 
 def init_dijet(rdf, jet_columns, state):
-    path = state.module_dir
-    path = path / "selections" / "dijet"
-    cpp_path = path / "dijet.cpp"
-    so_path = path / "dijet_cpp.so"
-    h_path = path / "dijet.h"
+    ROOT.gInterpreter.Declare("""
+        #ifndef DIJET_SEL
+        #define DIJET_SEL
 
-    # Compile and load the C++ code
-    ROOT.gSystem.Load(str(so_path))
-    ROOT.gInterpreter.Declare(f'#include "{h_path}"')
+        #include <random>
+        #include <cmath>
+        #include "ROOT/RVec.hxx"
+
+        std::pair<std::pair<int, int>, int> findTagProbeIdxs(
+            ROOT::RVec<float> Jet_eta,
+            ROOT::RVec<float> Jet_pt,
+            ROOT::RVec<float> Jet_phi,
+            ROOT::RVec<int> Jet_jetId
+        ) {
+            // Random number generator setup
+            static std::random_device rd;  // Non-deterministic random source
+            static std::mt19937 gen(rd()); // Seeded Mersenne Twister PRNG
+            static std::uniform_int_distribution<int> dist(0, 1); // Uniform distribution: 0 or 1
+
+            int idx1 = dist(gen); // Generate random 0 or 1
+            int idx2 = 1 - idx1;
+
+            // Check that the tag is in barrel
+            if (fabs(Jet_eta[idx1]) > 1.3 || Jet_pt[idx1] < 15 || Jet_jetId[idx1] < 4) {
+                return std::make_pair(std::make_pair(-1, -1), -1);
+            }
+
+            // Check that the probe is back-to-back with the tag
+            if (fabs(ROOT::VecOps::DeltaPhi(Jet_phi[idx2], Jet_phi[idx1])) < 2.7 ||
+                Jet_pt[idx2] < 15 || Jet_jetId[idx2] < 4) {
+                return std::make_pair(std::make_pair(-1, -1), -1);
+            }
+
+            // Find the activity jet
+            int idx3 = -1;
+            for (int i = 0; i < Jet_pt.size(); i++) {
+                if (i != idx1 && i != idx2 && Jet_pt[i] > 15 && Jet_jetId[i] >= 4) {
+                    idx3 = i;
+                    break;
+                }
+            }
+
+            return std::make_pair(std::make_pair(idx1, idx2), idx3);
+        }
+        #endif
+    """)
 
     # Tag-probe pair selection
     rdf = (

@@ -2,16 +2,54 @@ import ROOT
 
 
 def init_multijet(rdf, jet_columns, state):
+    ROOT.gInterpreter.Declare("""
+        #ifndef MULTIJET_SEL
+        #define MULTIJET_SEL
 
-    path = state.module_dir
-    path = path / "selections" / "multijet"
-    cpp_path = path / "multijet.cpp"
-    so_path = path / "multijet_cpp.so"
-    h_path = path / "multijet.h"
+        #include "ROOT/RVec.hxx"
+        #include <cmath>
 
-    # Compile and load the C++ code
-    ROOT.gSystem.Load(str(so_path))
-    ROOT.gInterpreter.Declare(f'#include "{h_path}"')
+        ROOT::RVec<int> findRecoilJetIdxs(const ROOT::RVec<float>& Jet_pt,
+                                          const ROOT::RVec<float>& Jet_eta,
+                                          const ROOT::RVec<float>& Jet_phi,
+                                          const ROOT::RVec<float>& Jet_mass) {
+            ROOT::RVec<int> idxs;
+
+            for (int i = 1; i < Jet_pt.size(); i++) {
+                if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) < 2.5
+                    && fabs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[0])) > 1.0) {
+                    idxs.push_back(i);
+                }
+            }
+
+            return idxs;
+        }
+
+        bool multijetVetoForward(const ROOT::RVec<float>& Jet_pt,
+                                 const ROOT::RVec<float>& Jet_eta) {
+            for (int i = 1; i < Jet_eta.size(); i++) {
+                if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) >= 2.5) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        bool multijetVetoNear(const ROOT::RVec<float>& Jet_pt,
+                              const ROOT::RVec<float>& Jet_eta,
+                              const ROOT::RVec<float>& Jet_phi) {
+            for (int i = 1; i < Jet_eta.size(); i++) {
+                if (Jet_pt[i] > 30 && fabs(Jet_eta[i]) < 2.5
+                    && fabs(ROOT::VecOps::DeltaPhi(Jet_phi[i], Jet_phi[0])) <= 1.0) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        #endif
+    """)
 
     # Multi-jet selection
     rdf = (
