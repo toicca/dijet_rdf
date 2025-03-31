@@ -464,17 +464,12 @@ def skim(files, triggers, state):
     columns = list(set(columns))
     columns.sort()
 
-    # Lazy snapshot
-    ss_options = ROOT.RDF.RSnapshotOptions()
-    ss_options.fLazy = True
-    # ss_options.fVector2RVec = False
-
     logger.info(f"Writing output for {output_path}.root")
     start = time.time()
     events_ss = events_rdf.Snapshot(
-        "Events", output_path + "_events.root", columns, options=ss_options
+        "Events", output_path + "_events.root", columns
     )
-    runs_ss = runs_rdf.Snapshot("Runs", output_path + "_runs.root", options=ss_options)
+    runs_ss = runs_rdf.Snapshot("Runs", output_path + "_runs.root")
     # Get a report of the processing and process the snapshot
     report = events_rdf.Report()
     ROOT.RDF.RunGraphs([events_ss, runs_ss, report])
