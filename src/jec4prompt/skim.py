@@ -472,7 +472,6 @@ def skim(files, triggers, state):
     runs_ss = runs_rdf.Snapshot("Runs", output_path + "_runs.root")
     # Get a report of the processing and process the snapshot
     report = events_rdf.Report()
-    ROOT.RDF.RunGraphs([events_ss, runs_ss, report])
     snapshot_time = time.time() - start
     if snapshot_time < 1:
         logger.info(

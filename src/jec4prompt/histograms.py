@@ -267,22 +267,28 @@ def make_histograms(args, logger):
     for hist_in in hist_configs:
         hist_config = configparser.ConfigParser()
         hist_config.read(hist_in)
-        hist_config = dict(hist_config)
 
-        for hist in hist_config:
+        hist_dict = {section: dict(hist_config.items(section)) for section in hist_config.sections()}
+
+        for section in hist_config.sections():
+            if section.lower() == "default":
+                continue
             for region in region_configs:
-                hist_config[hist + "_" + region] = hist_config[hist].copy()
-                hist_config[hist + "_" + region]["cut"] = (
-                    hist_config[hist + "_" + region]["cut"]
-                    + " && "
-                    + region_configs[region]
+                if region.lower() == "default":
+                    continue
+                hist_dict[section + "_" + region] = {}
+                for key, value in hist_dict[section].items():
+                    if key == "name":
+                        hist_dict[section + "_" + region][key] = value + "_" + region
+                    else:
+                        hist_dict[section + "_" + region][key] = value
+                hist_dict[section + "_" + region]["cut"] = (
+                    region_configs[region]
                 )
 
-        for hist in hist_config:
-            if hist.lower() == "default":
-                continue
+        for hist in hist_dict:
             all_hists.append(
-                create_histogram(events_rdf, hist_config[hist], bins, triggers)
+                create_histogram(events_rdf, hist_dict[hist], bins, triggers)
             )
 
     for hist in all_hists:
