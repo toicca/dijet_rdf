@@ -10,6 +10,7 @@ import jec4prompt.produce_ratio as produce_ratio
 import jec4prompt.produce_responses as produce_responses
 import jec4prompt.produce_time_evolution as produce_time_evolution
 import jec4prompt.produce_vetomaps as produce_vetomaps
+import jec4prompt.produce_dials as produce_dials
 import jec4prompt.skim as skim
 from jec4prompt.plotting import produce_plots
 
@@ -65,6 +66,7 @@ class ProcessingState:
         produce_time_evolution.update_state(self)
         produce_plots.update_state(self)
         produce_vetomaps.update_state(self)
+        produce_dials.update_state(self, add_parser=True)
 
         self.args = self.parser.parse_args()
         self.logger.info(f"Parsed arguments: {self.args}")

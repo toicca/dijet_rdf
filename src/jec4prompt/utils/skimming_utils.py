@@ -60,11 +60,18 @@ ROOT::VecOps::RVec<unsigned int> fix_jetId(const ROOT::VecOps::RVec<float>& Jet_
     jetcols = [str(col) for col in rdf.GetColumnNames() if str(col).startswith("Jet_")]
 
     if "Jet_chMultiplicity" in jetcols:
+        # NanoV14
         id_input = "Jet_eta,Jet_neHEF,Jet_neEmEF,Jet_chMultiplicity,Jet_neMultiplicity,Jet_chHEF,Jet_muEF,Jet_chEmEF"
     else:
+        # NanoV12
         id_input = "Jet_jetId,Jet_eta,Jet_neHEF,Jet_neEmEF,Jet_muEF,Jet_chEmEF"
 
-    rdf = rdf.Redefine("Jet_jetId", f"fix_jetId({id_input})")
+    if "Jet_jetId" in jetcols:
+        # If Jet_jetId is already present, redefine it
+        # Pre NanoV15
+        rdf = rdf.Redefine("Jet_jetId", f"fix_jetId({id_input})")
+    else:
+        rdf = rdf.Define("Jet_jetId", f"fix_jetId({id_input})")
 
     return rdf
 
@@ -251,6 +258,45 @@ bool isGoodLumi(int run, int lumi) {
     logger.info("Applying golden JSON cut")
     logger.info(f"JSON file: {filter_json}")
     rdf = rdf.Filter("isGoodLumi(run, luminosityBlock)", "JSON filter")
+    return rdf
+
+def add_json(rdf, filter_json, logger):
+    ROOT.gInterpreter.Declare(
+        """
+#ifndef JSONFILTER
+#define JSONFILTER
+
+#include <iostream>
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <string>
+
+using json = nlohmann::json;
+
+json extra_json;
+
+void init_json(std::string jsonFile) {
+    std::ifstream f(jsonFile);
+    extra_json = json::parse(f);
+}
+
+bool passExtra(int run, int lumi) {
+   for (auto& lumiRange : extra_json[std::to_string(run)]) {
+       if (lumi >= lumiRange[0] && lumi <= lumiRange[1]) {
+           return true;
+       }
+   }
+
+    return false;
+}
+
+#endif
+"""
+    )
+    ROOT.init_json(filter_json)
+    logger.info("Including extra JSON")
+    logger.info(f"JSON file: {filter_json}")
+    rdf = rdf.Define("passDIALS", "passExtra(run, luminosityBlock)")
     return rdf
 
 

@@ -2,8 +2,45 @@ import configparser
 import json
 import subprocess
 from typing import Dict, List
-
 import numpy as np
+
+import logging
+logger = logging.getLogger(__name__)
+
+def get_rdf(args, tree = "Events"):
+    import ROOT
+
+    if args.nThreads:
+        ROOT.EnableImplicitMT(args.nThreads)
+
+    files = get_files(args)
+
+    rdf = ROOT.RDataFrame(tree, files)
+    if args.progress_bar:
+        ROOT.RDF.Experimental.AddProgressBar(rdf)
+
+    return rdf
+
+def get_files(args):
+
+    # Check that the required arguments are there
+    if not (args.filelist or args.filepaths):
+        raise ValueError("Either 'filelist' or 'filepaths' must be provided")
+
+    files = []
+    if args.filelist:
+        files = args.filelist.split(",")
+    elif args.filepaths:
+        paths = [p.strip() for p in args.filepaths.split(",")]
+        for path in paths:
+            files.extend(file_read_lines(path, find_ROOT=True))
+    else:
+        raise ValueError("No file list provided")
+    
+    if not args.is_local:
+        files = [f"{args.redirector}/{file}" for file in files]
+
+    return files
 
 
 def find_site(file):

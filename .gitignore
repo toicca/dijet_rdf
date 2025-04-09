@@ -15,3 +15,5 @@ CMSSW_14_0_4/
 *.swp
 data/histograms/validation.ini
 jec4prompt.egg-info/
+old_*
+.cache/

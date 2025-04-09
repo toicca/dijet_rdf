@@ -1,5 +1,5 @@
 import ROOT
-from jec4prompt.utils.processing_utils import file_read_lines
+from jec4prompt.utils.processing_utils import file_read_lines, get_rdf
 
 
 def update_state(state):
@@ -12,7 +12,7 @@ def add_find_range_parser(subparsers):
     find_range_parser = subparsers.add_parser(
         "find_range",
         help="Find run range of \
-                                                given input files",
+        given input files",
     )
     find_range_files = find_range_parser.add_mutually_exclusive_group(required=True)
     find_range_files.add_argument(
@@ -43,6 +43,12 @@ def add_find_range_parser(subparsers):
             in a form compatible with the brilcalc command line tool",
     )
     find_range_parser.add_argument(
+        "--list_runs",
+        action="store_true",
+        help="Prints the list of runs \
+            instead of the range",
+    )
+    find_range_parser.add_argument(
         "--nThreads",
         type=int,
         help="Number of threads to be used \
@@ -56,6 +62,9 @@ def add_find_range_parser(subparsers):
 def validate_args(args):
     pass
 
+def find_runs(rdf):
+    runs = set(rdf.AsNumpy(["run"])["run"])
+    return sorted(list(runs))
 
 def find_run_range(rdf):
     return int(rdf.Min("run").GetValue()), int(rdf.Max("run").GetValue())
@@ -84,11 +93,17 @@ def run(state):
         if args.is_local:
             chain.Add(file)
         else:
-            chain.Add(f"root://cms-xrd-global.cern.ch/{file}")
+            chain.Add(f"{args.redirector}/{file}")
 
     rdf = ROOT.RDataFrame(chain)
     if args.progress_bar:
         ROOT.RDF.Experimental.AddProgressBar(rdf)
+
+    if args.list_runs:
+        runs = find_runs(rdf)
+        print(",".join(map(str, runs)))
+        state.logger.debug(f"Runs: {runs}")
+        return
 
     min_run, max_run = find_run_range(rdf)
     if args.for_brilcalc:

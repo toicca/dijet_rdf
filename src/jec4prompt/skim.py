@@ -15,7 +15,10 @@ from jec4prompt.utils.skimming_utils import (
     find_vetojets,
     get_Flags,
     sort_jets,
+    correct_jetId,
+    add_json,
 )
+
 
 weight_info = {
     "xsec": {
@@ -168,6 +171,12 @@ def add_skim_parser(state):
         "--golden_json", type=str, help="Golden JSON for filtering"
     )
     skim_parser.add_argument(
+        "--extra_json",
+        type=str,
+        help="Extra JSON that will be stored for filtering",
+        default="",
+    )
+    skim_parser.add_argument(
         "--defined_columns",
         action="store_true",
         help="Save only defined \
@@ -260,6 +269,10 @@ def skim(files, triggers, state):
 
     if args.golden_json:
         events_rdf = filter_json(events_rdf, args.golden_json, logger)
+        if args.extra_json:
+            events_rdf = add_json(
+                events_rdf, args.extra_json, args.golden_json, logger
+            )
 
     # Filter based on triggers and one jet
     # Check that the triggers are in the file
@@ -281,7 +294,7 @@ def skim(files, triggers, state):
     events_rdf = events_rdf.Filter("nJet > 0", "nJet > 0")
 
     # Correct jetId for 2022–2024 Nanos
-    # events_rdf = correct_jetId(events_rdf)
+    events_rdf = correct_jetId(events_rdf)
 
     # Apply corrections
     if args.correction_json:
@@ -465,20 +478,28 @@ def skim(files, triggers, state):
     columns.sort()
 
     # Lazy snapshot
+    logger.info(f"Writing output for {output_path}.root")
+    proc_list = []
+
     ss_options = ROOT.RDF.RSnapshotOptions()
     ss_options.fLazy = True
     # ss_options.fVector2RVec = False
 
-    logger.info(f"Writing output for {output_path}.root")
-    start = time.time()
     events_ss = events_rdf.Snapshot(
         "Events", output_path + "_events.root", columns, options=ss_options
     )
+    proc_list.append(events_ss)
     runs_ss = runs_rdf.Snapshot("Runs", output_path + "_runs.root", options=ss_options)
+    proc_list.append(runs_ss)
+
     # Get a report of the processing and process the snapshot
     report = events_rdf.Report()
-    ROOT.RDF.RunGraphs([events_ss, runs_ss, report])
+    proc_list.append(report)
+
+    start = time.time()
+    ROOT.RDF.RunGraphs(proc_list)
     snapshot_time = time.time() - start
+
     if snapshot_time < 1:
         logger.info(
             f"snapshot finished in {snapshot_time*1000:.2f} ms for {output_path}.root"
@@ -515,8 +536,10 @@ def skim(files, triggers, state):
         )
 
     # Remove the temporary files
-    os.remove(output_path + "_events.root")
-    os.remove(output_path + "_runs.root")
+    if os.path.exists(output_path + "_events.root"):
+        os.remove(output_path + "_events.root")
+    if os.path.exists(output_path + "_runs.root"):
+        os.remove(output_path + "_runs.root")
 
     logger.info(output_path + ".root")
 
